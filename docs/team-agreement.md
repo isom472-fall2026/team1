@@ -17,11 +17,11 @@ than in week 10.
 
 | Name | Standing role | Hours per week I can give | How to reach me fastest | Signed — by hand | Signed again — through Antigravity |
 |---|---|---|---|---|---|
-|  |  |  |  |  |  |
-|  |  |  |  |  |  |
-|  |  |  |  |  |  |
-|  |  |  |  |  |  |
-|  |  |  |  |  |  |
+| Seyed Esmaeili | Build Lead | 8 | Whatsapp | Seyed | Seyed0318 2026-09-23 |
+| Sulaiman Alhamlan | Design Lead |  |  |  |  |
+| Esmael Mahmud | Data Lead |  |  |  |  |
+| Ayoub Mohammed | Quality and FinOps Lead |  |  |  |  |
+| Mustafa Dashti | Client Lead |  |  |  |  |
 |  |  |  |  |  |  |
 
 Type your own name in the fifth column, in your own commit. Have Antigravity write your
