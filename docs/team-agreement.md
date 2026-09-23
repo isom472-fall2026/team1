@@ -19,7 +19,7 @@ than in week 10.
 |---|---|---|---|---|---|
 | Seyed Esmaeili | Build Lead | 8 | Whatsapp | Seyed | Seyed0318 2026-09-23 |
 | Sulaiman Alhamlan | Design Lead | 7 | whatsapp  | sulieman | sulieman314 2026-09-23 |
-| Esmael Mahmud | Data Lead | 6| whatsapp | Esmael | Esmael021 2026-09-23 |
+| Esmael Mahmud | Data Lead | 6| whatsapp | Ismael | Esmael021 2026-09-23 |
 | Ayoub Mohammed | Quality and FinOps Lead | 6  | whatsapp | Ayoub | ayoubalkandri 2026-09-23 |
 | Mustafa Dashti | Client Lead |   |  |  |  |
 |  |  |  |  |  |  |
