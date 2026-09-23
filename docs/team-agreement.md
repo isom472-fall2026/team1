@@ -34,12 +34,12 @@ was.
 We agree the following. Edit the lines if your team wants different answers — except the
 last two, which are the course's rules and are not yours to change.
 
-1. We meet **<day>** at **<time>**, **<where — in person or online>**.
-2. We answer messages within **<number>** hours on a working day.
+1. We meet **<monday>** at **<6pm>**, **<online>**.
+2. We answer messages within **<8>** hours on a working day.
 3. Work is picked from the board. Nobody works on something that is not a story.
 4. If someone cannot finish what they took, they say so **before** the day it is due, in
    the team group. Saying so early is not failure. Silence is.
-5. If a member misses **<number>** meetings without telling anyone, the Phase Lead tells
+5. If a member misses **<3>** meetings without telling anyone, the Phase Lead tells
    the instructor. We do not carry a silent member to week 14 and raise it at the end.
 6. We do not change someone else's work without telling them.
 7. Every pull request is reviewed by someone who did not write it.
