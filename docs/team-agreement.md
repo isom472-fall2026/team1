@@ -17,11 +17,11 @@ than in week 10.
 
 | Name | Standing role | Hours per week I can give | How to reach me fastest | Signed — by hand | Signed again — through Antigravity |
 |---|---|---|---|---|---|
-|  |  |  |  |  |  |
-|  |  |  |  |  |  |
-|  |  |  |  |  |  |
-|  |  |  |  |  |  |
-|  |  |  |  |  |  |
+| Seyed Esmaeili | Build Lead | 8 | Whatsapp | Seyed | Seyed0318 2026-09-23 |
+| Sulaiman Alhamlan | Design Lead | 7 | whatsapp | sulieman | sulieman314 2026-09-23 |
+| Esmael Mahmud | Data Lead | 6| whatsapp | Ismael | @ismailmomahmoud 2026-09-23 |
+| Ayoub Mohammed | Quality and FinOps Lead | 6  | whatsapp | Ayoub | ayoubalkandri 2026-09-25 |
+| Mustafa Dashti | Client Lead | 6  | whatsapp | mustafa | madashti62 2026-09-24 |
 |  |  |  |  |  |  |
 
 Type your own name in the fifth column, in your own commit. Have Antigravity write your
@@ -34,12 +34,12 @@ was.
 We agree the following. Edit the lines if your team wants different answers — except the
 last two, which are the course's rules and are not yours to change.
 
-1. We meet **<day>** at **<time>**, **<where — in person or online>**.
-2. We answer messages within **<number>** hours on a working day.
+1. We meet **<saturday>** at **<6pm>**, **<online>**.
+2. We answer messages within **<8>** hours on a working day.
 3. Work is picked from the board. Nobody works on something that is not a story.
 4. If someone cannot finish what they took, they say so **before** the day it is due, in
    the team group. Saying so early is not failure. Silence is.
-5. If a member misses **<number>** meetings without telling anyone, the Phase Lead tells
+5. If a member misses **<3>** meetings without telling anyone, the Phase Lead tells
    the instructor. We do not carry a silent member to week 14 and raise it at the end.
 6. We do not change someone else's work without telling them.
 7. Every pull request is reviewed by someone who did not write it.
