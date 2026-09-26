@@ -1,15 +1,16 @@
 # TODO: the system's name
 
-**Client:** TODO: who the client is — the organisation and the person you deal with.
+**Client:** Our client the American University of Kuwait and were dealing with Dr. Seyed Ebrahim Esmaeili .
 
-TODO: what the system does, in two lines. Plain language, no jargon. Someone who has
-never met your client should understand what it is for after reading these two lines.
+This system lets university students easily browse and book seats for on-campus events while automatically managing waitlists when rooms are full.
+
+It also gives event organizers a simple digital checklist to check students in at the door and instantly see turnout reports.
 
 > **Next due: Wednesday 23 September — your proposal.**
 > Write it in `docs/proposal.md`, then publish it. Steps: [docs/how-we-work.md](docs/how-we-work.md#phase-1--the-proposal)
 > Update this line at the start of every phase. It is the first thing your team sees.
 
-- **Proposal page:** TODO: link to the published page (`https://isom472-fall2026.github.io/team1/docs/`)
+- **Proposal page:** [Published proposal](https://isom472-fall2026.github.io/team1/docs/)
 - **Running system:** TODO: link to the deployed system once it exists
 - **Board:** TODO: link to your Project board
 
@@ -36,12 +37,12 @@ it. Do not delete it.
 
 | Role | Name | What they hand in |
 |---|---|---|
-| Client Lead | TODO | the backlog of user stories |
-| Design Lead | TODO | the prototype and the screen list |
-| Data Lead | TODO | the schema and seed data in Supabase |
-| Build Lead | TODO | the running system and release notes |
-| FinOps Lead | TODO | the ledger |
-| Quality Lead | TODO | bug issues, each closed as fixed, will-not-fix or not-a-bug |
+| Client Lead | Mustafa Dashti | the backlog of user stories |
+| Design Lead | Sulaiman Alhamlan | the prototype and the screen list |
+| Data Lead | Esmael Mahmud | the schema and seed data in Supabase |
+| Build Lead | Seyed Esmaeili | the running system and release notes |
+| FinOps Lead | Ayoub Mohammed | the ledger |
+| Quality Lead | Ayoub Mohammed | bug issues, each closed as fixed, will-not-fix or not-a-bug |
 
 At six members, every role is held by one person. At five, one person holds a combined
 Quality and FinOps Lead. **At four there is no FinOps or Quality Lead at all:** whoever is
@@ -52,12 +53,12 @@ cuts the tag.
 
 | Phase | Phase Lead | Due |
 |---|---|---|
-| 1 — team, environment, proposal | TODO | Wed 23 Sep |
-| 2 — design sprint | TODO | Wed 7 Oct |
-| 3 — sprint 1 | TODO | Wed 21 Oct |
-| 4 — sprint 2 | TODO | Wed 4 Nov |
-| 5 — sprint 3 | TODO | Wed 18 Nov |
-| 6 — final sprint | TODO | Wed 9 Dec |
+| 1 — team, environment, proposal | Seyed Esmaeili | Wed 23 Sep |
+| 2 — design sprint | Sulaiman Alhamlan | Wed 7 Oct |
+| 3 — sprint 1 | Esmael Mahmud | Wed 21 Oct |
+| 4 — sprint 2 | Ayoub Mohammed | Wed 4 Nov |
+| 5 — sprint 3 | Mustafa Dashti | Wed 18 Nov |
+| 6 — final sprint | Seyed Esmaeili | Wed 9 Dec |
 
 ## What is in this repository
 
