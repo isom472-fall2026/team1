@@ -28,16 +28,16 @@
 <p><strong>Team Seas:</strong> Seyed Esmaeili, Sulaiman Alhamlan, Ayoub Mohammed, Esmael Mahmud, Mustaf Dashti</p>
 
 <h2>1. The client, and how you reach them</h2>
-<p>American University of Kuwait (AUK). Our contact is Dr. Seyed Ebrahim Esmaeili, Associate Professor at AUK. Dr. Seyed is the father of one of our team members, which gave us direct personal access to him. Our teammate met with him to discuss event coordination challenges across campus; he agreed to regular bi-weekly review meetings, committed to answering questions through the end of the semester, and agreed to review the working prototype before the final project submission.</p>
+<p>American University of Kuwait (AUK). The campus events are officially managed and run by the AUK Student Activities Office (SAO) and the Academic Affairs Committee (AAC). Our contact is Dr. Seyed Ebrahim Esmaeili, Associate Professor at AUK and a key representative on the academic committees. Dr. Seyed is the father of one of our team members, which gave us direct personal access to him. He has the authority to review, evaluate, and formally accept the completed tracking system on behalf of both the Student Activities Office and the organizing committees. Our teammate met with him to discuss event coordination challenges across campus; he agreed to regular bi-weekly review meetings, committed to answering questions through the end of the semester, and agreed to review the working prototype before the final project submission.</p>
 
 <h2>2. What happens today, and what goes wrong</h2>
 <p>Throughout each semester, AUK hosts a variety of on-campus gatherings: student theatre productions and plays in the auditorium, hands-on faculty workshops in computer labs, and guest speaker seminars. Each event type has a hard physical room capacity (auditorium seating limits, computer lab desks, or lecture hall occupancy).</p>
 <ol>
-  <li>The organizing committee posts event announcements on campus message boards and social channels with a generic web form link.</li>
-  <li>The form does not close when venue capacity is reached; high-demand plays and guest seminars routinely collect 80 to 120 sign-ups for halls with 50 to 60 seats.</li>
-  <li>Event staff manually sort spreadsheets by submission time and attempt to email confirmation lists to attendees.</li>
+  <li>The organizing committee posts event announcements on campus message boards and social channels with an open, uncapped public registration link.</li>
+  <li>The registration channel does not close when the physical venue capacity is reached; high-demand plays and guest seminars routinely collect 80 to 120 sign-ups for halls with only 50 to 60 seats.</li>
+  <li>Event staff must manually sort through submission records by arrival timestamp in an attempt to compile and email confirmation lists to attendees.</li>
   <li>On the day of the event, organizers print paper rosters and manually cross off attendee names at the entrance door.</li>
-  <li>After the event, staff manually count paper sign-ins to report turnout numbers to the administration.</li>
+  <li>After the event, staff must physically count paper sign-in sheets to report turnout numbers to the university administration.</li>
 </ol>
 <p>What goes wrong: For popular auditorium plays and major seminars, uncontrolled sign-ups result in severe overcrowding, forcing organizers to turn away 20 to 30 frustrated students at the door on peak event nights. Conversely, for technical workshops, an average of 7 to 10 confirmed students fail to show up without cancelling, leaving seats empty while interested students were turned away. Manually reconciling paper check-in sheets and generating attendance counts takes staff 3 to 5 hours after every major event.</p>
 
@@ -61,7 +61,7 @@
 
 <h2>5. What it records</h2>
 <p>Events (title, event type: play, workshop, or seminar, venue location, date/time, seat capacity). Attendees (name, university ID, email). Bookings (attendee ID, event ID, booking status: confirmed, waitlisted, or cancelled). Attendance Logs (booking ID, check-in timestamp, marked present by which organizer).</p>
-<p>The system exists to answer the operational question: <em>"Has this venue reached its physical capacity limit, and did this specific registered attendee show up?"</em> That question cannot be answered without persistent records across past events and days.</p>
+<p>The system exists to answer the operational question: <em>"Has this venue reached its physical capacity limit, and did this specific registered attendee show up?"</em> This system goes far beyond a standard questionnaire or a form with a simple submission limit. A basic form cannot track status changes (such as waitlist promotions when cancellations occur), handle live entrance gate validation, or associate real-time entrance stamps with distinct student records to prevent empty-seat waste. These critical operations cannot be handled without persistent, relational records managed across past events and days.</p>
 
 <h2>6. In scope by the final week — and what is not</h2>
 <p>In scope:</p>

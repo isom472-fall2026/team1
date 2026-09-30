@@ -1,4 +1,4 @@
-# TODO: the system's name
+# Team Seas: System name: CampusSeat
 
 **Client:** Our client the American University of Kuwait and were dealing with Dr. Seyed Ebrahim Esmaeili .
 
