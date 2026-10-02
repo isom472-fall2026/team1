@@ -63,12 +63,20 @@ jobs:
             fi
 
             preview_dir="site/previews/$branch"
-            if git cat-file -e "$ref:docs/index.html" 2>/dev/null; then
-              mkdir -p "$preview_dir"
-              git archive "$ref" docs | tar -x -C "$preview_dir" --strip-components=1
-            elif git cat-file -e "$ref:index.html" 2>/dev/null; then
+            if git ls-tree -r --name-only "$ref" 2>/dev/null | grep -q '\.html$'; then
               mkdir -p "$preview_dir"
               git archive "$ref" | tar -x -C "$preview_dir"
+
+              if [ ! -f "$preview_dir/index.html" ]; then
+                if [ -f "$preview_dir/docs/index.html" ]; then
+                  cp "$preview_dir/docs/index.html" "$preview_dir/index.html"
+                else
+                  first_html=$(find "$preview_dir" -name "index.html" 2>/dev/null | head -n 1)
+                  if [ -n "$first_html" ]; then
+                    cp "$first_html" "$preview_dir/index.html"
+                  fi
+                fi
+              fi
             fi
           done
 
