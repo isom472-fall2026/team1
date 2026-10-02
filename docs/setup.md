@@ -66,16 +66,17 @@ Every member does this in Phase 1. The Phase 1 delivery note records that all of
 
 ## 5. Your public page
 
-Your repository already publishes a page. **Pages is switched on for you** — there is no
-setting for you to find.
+Your repository publishes a page through GitHub Actions. **Pages is switched on for you** —
+there is no setting for you to find.
 
-- The address is `https://isom472-fall2026.github.io/<your-repo>/docs/`
-- It serves the `docs/` folder on the `main` branch
-- **It republishes itself about a minute after anything is merged into `main`.** You never
-  press publish. Merge the pull request and refresh the page.
+- The main proposal page is `https://isom472-fall2026.github.io/<your-repo>/docs/`.
+- Push a branch to publish its `docs/` folder at
+   `https://isom472-fall2026.github.io/<your-repo>/previews/<branch-name>/`.
+- Push another commit to update that preview. Delete the branch to remove it.
+- The main page remains based on `main`; merging a pull request updates it.
 
-To change what it shows, edit `docs/index.html` on a branch, open a pull request, have it
-reviewed, and merge. That is the same loop as everything else.
+For example, branch `14-duplicate-orders` previews at
+`https://isom472-fall2026.github.io/<your-repo>/previews/14-duplicate-orders/`.
 
 If the page shows "404" ten minutes after a merge, tell your instructor. It is a setting on
 the repository, not something you broke.

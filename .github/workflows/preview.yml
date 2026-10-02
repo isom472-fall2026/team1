@@ -1,60 +1,74 @@
-name: Deploy Branch Preview
+name: Publish GitHub Pages with Branch Previews
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened, closed]
+  push:
+    branches:
+      - "**"
+  delete:
 
 permissions:
-  contents: write
-  pull-requests: write
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
 
 jobs:
-  deploy-preview:
+  build:
+    if: github.event_name != 'delete' || github.event.ref_type == 'branch'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: read
     steps:
-      - name: Checkout Code
+      - name: Checkout main and all branches
         uses: actions/checkout@v4
-
-      # (Optional) If you use a build step (Node/React/etc.), uncomment and configure this section:
-      # - name: Setup Node.js
-      #   uses: actions/setup-node@v4
-      #   with:
-      #     node-version: '20'
-      # - name: Install Dependencies & Build
-      #   run: |
-      #     npm ci
-      #     npm run build
-
-      # Step 1: Deploy preview to a subdirectory named after the branch
-      - name: Deploy Branch Preview
-        if: github.event.action != 'closed'
-        uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: . # Change to your build directory (e.g., 'dist' or 'build') if your site needs building
-          target-folder: previews/${{ github.event.pull_request.head.ref }}
-          branch: gh-pages # Your target deployment branch
-          clean: false # VERY IMPORTANT: Prevents deleting other previews or the main site
+          ref: main
+          fetch-depth: 0
 
-      # Step 2: Comment the Preview Link on the Pull Request
-      - name: Comment PR with Preview Link
-        if: github.event.action != 'closed'
-        uses: thollander/actions-comment-pull-request@v2
-        with:
-          message: |
-            🚀 **Branch preview deployed successfully!**
-            
-            You can view your changes live here:
-            👉 [View Preview](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/previews/${{ github.event.pull_request.head.ref }}/)
-            
-            _Note: It might take a minute or two for GitHub Pages to refresh the static cache._
-          comment_tag: "pages-preview"
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
 
-      # Step 3: Cleanup preview folder on GitHub Pages when PR is closed/merged
-      - name: Clean Up Preview on PR Close
-        if: github.event.action == 'closed'
-        uses: JamesIves/github-pages-deploy-action@v4
+      - name: Assemble main site and branch previews
+        run: |
+          mkdir -p site
+          git archive origin/main | tar -x -C site
+
+          for ref in $(git for-each-ref --format='%(refname)' refs/remotes/origin/); do
+            branch="${ref#refs/remotes/origin/}"
+            case "$branch" in
+              HEAD|main) continue ;;
+            esac
+
+            if ! git cat-file -e "$ref:docs/index.html" 2>/dev/null; then
+              continue
+            fi
+
+            preview_dir="site/previews/$branch"
+            mkdir -p "$preview_dir"
+            git archive "$ref" docs | tar -x -C "$preview_dir" --strip-components=1
+          done
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
         with:
-          folder: .github # A dummy empty folder (or clean up using custom bash commands)
-          target-folder: previews/${{ github.event.pull_request.head.ref }}
-          branch: gh-pages
-          clean: true # Deletes the specific branch preview folder when PR is merged/closed
+          source: ./site
+          destination: ./_site
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
