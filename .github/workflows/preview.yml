@@ -1,0 +1,60 @@
+name: Deploy Branch Preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # (Optional) If you use a build step (Node/React/etc.), uncomment and configure this section:
+      # - name: Setup Node.js
+      #   uses: actions/setup-node@v4
+      #   with:
+      #     node-version: '20'
+      # - name: Install Dependencies & Build
+      #   run: |
+      #     npm ci
+      #     npm run build
+
+      # Step 1: Deploy preview to a subdirectory named after the branch
+      - name: Deploy Branch Preview
+        if: github.event.action != 'closed'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: . # Change to your build directory (e.g., 'dist' or 'build') if your site needs building
+          target-folder: previews/${{ github.event.pull_request.head.ref }}
+          branch: gh-pages # Your target deployment branch
+          clean: false # VERY IMPORTANT: Prevents deleting other previews or the main site
+
+      # Step 2: Comment the Preview Link on the Pull Request
+      - name: Comment PR with Preview Link
+        if: github.event.action != 'closed'
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          message: |
+            🚀 **Branch preview deployed successfully!**
+            
+            You can view your changes live here:
+            👉 [View Preview](https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/previews/${{ github.event.pull_request.head.ref }}/)
+            
+            _Note: It might take a minute or two for GitHub Pages to refresh the static cache._
+          comment_tag: "pages-preview"
+
+      # Step 3: Cleanup preview folder on GitHub Pages when PR is closed/merged
+      - name: Clean Up Preview on PR Close
+        if: github.event.action == 'closed'
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          folder: .github # A dummy empty folder (or clean up using custom bash commands)
+          target-folder: previews/${{ github.event.pull_request.head.ref }}
+          branch: gh-pages
+          clean: true # Deletes the specific branch preview folder when PR is merged/closed
