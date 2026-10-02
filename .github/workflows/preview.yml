@@ -106,6 +106,8 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
           BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          REPO_FULL: ${{ github.repository }}
         run: |
           PREVIEW_URL="${PAGE_URL}previews/${BRANCH}/"
           DOCS_URL="${PAGE_URL}docs/"
@@ -114,25 +116,12 @@ jobs:
           PR_NUMBER=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
 
           if [ -n "$PR_NUMBER" ]; then
-            BODY=$(cat <<EOF
-### 🚀 Branch Preview Available
+            BODY=$(printf '### 🚀 Branch Preview Available\n\nChanges on branch `%s` can be previewed live at:\n👉 **[View Branch Preview](%s)**\n\n| Target | URL |\n|---|---|\n| 🔍 **Branch Preview** | [%s](%s) |\n| 📄 **Main Proposal** | [%s](%s) |\n\n*Updated automatically from commit `%s`.*\n%s\n' \
+              "$BRANCH" "$PREVIEW_URL" "$PREVIEW_URL" "$PREVIEW_URL" "$DOCS_URL" "$DOCS_URL" "$SHA" "$MARKER")
 
-Changes on branch \`${BRANCH}\` can be previewed live at:
-👉 **[View Branch Preview](${PREVIEW_URL})**
-
-| Target | URL |
-|---|---|
-| 🔍 **Branch Preview** | [${PREVIEW_URL}](${PREVIEW_URL}) |
-| 📄 **Main Proposal** | [${DOCS_URL}](${DOCS_URL}) |
-
-*Updated automatically from commit \`${{ github.sha }}\`.*
-${MARKER}
-EOF
-)
-
-            EXISTING_ID=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" 2>/dev/null | head -n 1 || echo "")
+            EXISTING_ID=$(gh api "repos/${REPO_FULL}/issues/${PR_NUMBER}/comments" --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" 2>/dev/null | head -n 1 || echo "")
             if [ -n "$EXISTING_ID" ]; then
-              gh api -X PATCH "repos/${{ github.repository }}/issues/comments/${EXISTING_ID}" -f body="$BODY" || echo "Could not update PR comment"
+              gh api -X PATCH "repos/${REPO_FULL}/issues/comments/${EXISTING_ID}" -f body="$BODY" || echo "Could not update PR comment"
             else
               gh pr comment "$PR_NUMBER" --body "$BODY" || echo "Could not post PR comment"
             fi
@@ -150,10 +139,11 @@ EOF
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           BRANCH: ${{ github.event.pull_request.head.ref }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          REPO_FULL: ${{ github.repository }}
         run: |
-          REPO="${{ github.repository }}"
-          OWNER="${REPO%/*}"
-          NAME="${REPO#*/}"
+          OWNER="${REPO_FULL%/*}"
+          NAME="${REPO_FULL#*/}"
           PREVIEW_URL="https://${OWNER}.github.io/${NAME}/previews/${BRANCH}/"
           DOCS_URL="https://${OWNER}.github.io/${NAME}/docs/"
           MARKER="<!-- branch-preview-comment -->"
@@ -168,25 +158,12 @@ EOF
           echo "Preview is live at: ${PREVIEW_URL}" >> $GITHUB_STEP_SUMMARY
           echo "::notice title=Branch Preview URL::${PREVIEW_URL}"
 
-          BODY=$(cat <<EOF
-### 🚀 Branch Preview Available
+          BODY=$(printf '### 🚀 Branch Preview Available\n\nChanges on branch `%s` can be previewed live at:\n👉 **[View Branch Preview](%s)**\n\n| Target | URL |\n|---|---|\n| 🔍 **Branch Preview** | [%s](%s) |\n| 📄 **Main Proposal** | [%s](%s) |\n\n*Updated automatically from commit `%s`.*\n%s\n' \
+            "$BRANCH" "$PREVIEW_URL" "$PREVIEW_URL" "$PREVIEW_URL" "$DOCS_URL" "$DOCS_URL" "$SHA" "$MARKER")
 
-Changes on branch \`${BRANCH}\` can be previewed live at:
-👉 **[View Branch Preview](${PREVIEW_URL})**
-
-| Target | URL |
-|---|---|
-| 🔍 **Branch Preview** | [${PREVIEW_URL}](${PREVIEW_URL}) |
-| 📄 **Main Proposal** | [${DOCS_URL}](${DOCS_URL}) |
-
-*Updated automatically from commit \`${{ github.event.pull_request.head.sha }}\`.*
-${MARKER}
-EOF
-)
-
-          EXISTING_ID=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" 2>/dev/null | head -n 1 || echo "")
+          EXISTING_ID=$(gh api "repos/${REPO_FULL}/issues/${PR_NUMBER}/comments" --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" 2>/dev/null | head -n 1 || echo "")
           if [ -n "$EXISTING_ID" ]; then
-            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/${EXISTING_ID}" -f body="$BODY" || echo "Could not update PR comment"
+            gh api -X PATCH "repos/${REPO_FULL}/issues/comments/${EXISTING_ID}" -f body="$BODY" || echo "Could not update PR comment"
           else
             gh pr comment "$PR_NUMBER" --body "$BODY" || echo "Could not post PR comment"
           fi
