@@ -4,22 +4,29 @@ on:
   push:
     branches:
       - "**"
+  pull_request:
+    types: [opened, reopened, synchronize]
   delete:
 
 permissions:
   contents: read
 
-concurrency:
-  group: github-pages
-  cancel-in-progress: false
-
 jobs:
-  build:
-    if: github.event_name != 'delete' || github.event.ref_type == 'branch'
+  build-and-deploy:
+    if: github.event_name == 'push' || (github.event_name == 'delete' && github.event.ref_type == 'branch')
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: read
+      pages: write
+      id-token: write
+      pull-requests: write
+      issues: write
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout main and all branches
         uses: actions/checkout@v4
@@ -59,16 +66,127 @@ jobs:
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
 
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    permissions:
-      pages: write
-      id-token: write
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v5
+
+      - name: Output preview link to summary and notice
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          BRANCH: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          if [ "$EVENT_NAME" = "delete" ]; then
+            echo "### 🗑️ Branch preview removed" >> $GITHUB_STEP_SUMMARY
+            echo "Branch \`${{ github.event.ref }}\` was deleted; its preview has been removed from GitHub Pages." >> $GITHUB_STEP_SUMMARY
+          elif [ "$BRANCH" = "main" ]; then
+            echo "### 🚀 GitHub Pages Deployed (main)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Target | URL |" >> $GITHUB_STEP_SUMMARY
+            echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+            echo "| 📄 **Main Proposal** | [${PAGE_URL}docs/](${PAGE_URL}docs/) |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🌐 **Site Root** | [${PAGE_URL}](${PAGE_URL})" >> $GITHUB_STEP_SUMMARY
+            echo "::notice title=Main Pages Deployed::${PAGE_URL}docs/"
+          else
+            PREVIEW_URL="${PAGE_URL}previews/${BRANCH}/"
+            echo "### 🚀 Branch Preview Deployed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Target | URL |" >> $GITHUB_STEP_SUMMARY
+            echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔍 **Branch Preview** | [${PREVIEW_URL}](${PREVIEW_URL}) |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📄 **Main Proposal** | [${PAGE_URL}docs/](${PAGE_URL}docs/) |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Preview is live at: ${PREVIEW_URL}" >> $GITHUB_STEP_SUMMARY
+            echo "::notice title=Branch Preview URL::${PREVIEW_URL}"
+          fi
+
+      - name: Comment preview link on open PR (if exists)
+        if: github.event_name == 'push' && github.ref_name != 'main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          PREVIEW_URL="${PAGE_URL}previews/${BRANCH}/"
+          DOCS_URL="${PAGE_URL}docs/"
+          MARKER="<!-- branch-preview-comment -->"
+
+          PR_NUMBER=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+          if [ -n "$PR_NUMBER" ]; then
+            BODY=$(cat <<EOF
+### 🚀 Branch Preview Available
+
+Changes on branch \`${BRANCH}\` can be previewed live at:
+👉 **[View Branch Preview](${PREVIEW_URL})**
+
+| Target | URL |
+|---|---|
+| 🔍 **Branch Preview** | [${PREVIEW_URL}](${PREVIEW_URL}) |
+| 📄 **Main Proposal** | [${DOCS_URL}](${DOCS_URL}) |
+
+*Updated automatically from commit \`${{ github.sha }}\`.*
+${MARKER}
+EOF
+)
+
+            EXISTING_ID=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" 2>/dev/null | head -n 1 || echo "")
+            if [ -n "$EXISTING_ID" ]; then
+              gh api -X PATCH "repos/${{ github.repository }}/issues/comments/${EXISTING_ID}" -f body="$BODY" || echo "Could not update PR comment"
+            else
+              gh pr comment "$PR_NUMBER" --body "$BODY" || echo "Could not post PR comment"
+            fi
+          fi
+
+  pr-preview-link:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      issues: write
+    steps:
+      - name: Output and comment preview link on Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          REPO="${{ github.repository }}"
+          OWNER="${REPO%/*}"
+          NAME="${REPO#*/}"
+          PREVIEW_URL="https://${OWNER}.github.io/${NAME}/previews/${BRANCH}/"
+          DOCS_URL="https://${OWNER}.github.io/${NAME}/docs/"
+          MARKER="<!-- branch-preview-comment -->"
+
+          echo "### 🚀 Branch Preview for PR #${PR_NUMBER}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Target | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 **Branch Preview** | [${PREVIEW_URL}](${PREVIEW_URL}) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📄 **Main Proposal** | [${DOCS_URL}](${DOCS_URL}) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Preview is live at: ${PREVIEW_URL}" >> $GITHUB_STEP_SUMMARY
+          echo "::notice title=Branch Preview URL::${PREVIEW_URL}"
+
+          BODY=$(cat <<EOF
+### 🚀 Branch Preview Available
+
+Changes on branch \`${BRANCH}\` can be previewed live at:
+👉 **[View Branch Preview](${PREVIEW_URL})**
+
+| Target | URL |
+|---|---|
+| 🔍 **Branch Preview** | [${PREVIEW_URL}](${PREVIEW_URL}) |
+| 📄 **Main Proposal** | [${DOCS_URL}](${DOCS_URL}) |
+
+*Updated automatically from commit \`${{ github.event.pull_request.head.sha }}\`.*
+${MARKER}
+EOF
+)
+
+          EXISTING_ID=$(gh api "repos/${{ github.repository }}/issues/${PR_NUMBER}/comments" --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" 2>/dev/null | head -n 1 || echo "")
+          if [ -n "$EXISTING_ID" ]; then
+            gh api -X PATCH "repos/${{ github.repository }}/issues/comments/${EXISTING_ID}" -f body="$BODY" || echo "Could not update PR comment"
+          else
+            gh pr comment "$PR_NUMBER" --body "$BODY" || echo "Could not post PR comment"
+          fi
