@@ -1,0 +1,214 @@
+name: Publish GitHub Pages with Branch Previews
+
+on:
+  push:
+    branches:
+      - "**"
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+  delete:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages-${{ github.event.pull_request.head.ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    if: |
+      github.event_name == 'push' ||
+      (github.event_name == 'delete' && github.event.ref_type == 'branch') ||
+      (github.event_name == 'pull_request' && github.event.action == 'closed')
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout main and all branches
+        uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v6
+
+      - name: Assemble main site and branch previews
+        run: |
+          rm -rf site ./_site
+          mkdir -p site
+          touch site/.nojekyll
+          git archive origin/main | tar -x -C site
+
+          CLOSED_BRANCH=""
+          if [ "${{ github.event_name }}" = "pull_request" ] && [ "${{ github.event.action }}" = "closed" ]; then
+            CLOSED_BRANCH="${{ github.event.pull_request.head.ref }}"
+          fi
+
+          for ref in $(git for-each-ref --format='%(refname)' refs/remotes/origin/); do
+            branch="${ref#refs/remotes/origin/}"
+            case "$branch" in
+              HEAD|main) continue ;;
+            esac
+
+            # Skip preview for branch if its PR was closed
+            if [ -n "$CLOSED_BRANCH" ] && [ "$branch" = "$CLOSED_BRANCH" ]; then
+              continue
+            fi
+
+            preview_dir="site/previews/$branch"
+            if git ls-tree -r --name-only "$ref" 2>/dev/null | grep -q '\.html$'; then
+              mkdir -p "$preview_dir"
+              git archive "$ref" | tar -x -C "$preview_dir"
+
+              if [ ! -f "$preview_dir/index.html" ]; then
+                if [ -f "$preview_dir/docs/index.html" ]; then
+                  cp "$preview_dir/docs/index.html" "$preview_dir/index.html"
+                else
+                  first_html=$(find "$preview_dir" -name "index.html" 2>/dev/null | head -n 1)
+                  if [ -n "$first_html" ]; then
+                    cp "$first_html" "$preview_dir/index.html"
+                  fi
+                fi
+              fi
+            fi
+          done
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./site
+          destination: ./_site
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v5
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
+
+      - name: Output preview link to summary and notice
+        env:
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          BRANCH: ${{ github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          if [ "$EVENT_NAME" = "delete" ]; then
+            echo "### 🗑️ Branch preview removed" >> $GITHUB_STEP_SUMMARY
+            echo "Branch \`${{ github.event.ref }}\` was deleted; its preview has been removed from GitHub Pages." >> $GITHUB_STEP_SUMMARY
+          elif [ "$EVENT_NAME" = "pull_request" ] && [ "$EVENT_ACTION" = "closed" ]; then
+            echo "### 🗑️ PR closed — preview removed" >> $GITHUB_STEP_SUMMARY
+            echo "Pull Request #${PR_NUMBER} was closed; preview for branch \`${PR_BRANCH}\` has been removed from GitHub Pages." >> $GITHUB_STEP_SUMMARY
+          elif [ "$BRANCH" = "main" ]; then
+            echo "### 🚀 GitHub Pages Deployed (main)" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Target | URL |" >> $GITHUB_STEP_SUMMARY
+            echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+            echo "| 📄 **Main Proposal** | [${PAGE_URL}docs/](${PAGE_URL}docs/) |" >> $GITHUB_STEP_SUMMARY
+            echo "| 🌐 **Site Root** | [${PAGE_URL}](${PAGE_URL})" >> $GITHUB_STEP_SUMMARY
+            echo "::notice title=Main Pages Deployed::${PAGE_URL}docs/"
+          else
+            PREVIEW_URL="${PAGE_URL}previews/${BRANCH}/"
+            echo "### 🚀 Branch Preview Deployed" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Target | URL |" >> $GITHUB_STEP_SUMMARY
+            echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+            echo "| 🔍 **Branch Preview** | [${PREVIEW_URL}](${PREVIEW_URL}) |" >> $GITHUB_STEP_SUMMARY
+            echo "| 📄 **Main Proposal** | [${PAGE_URL}docs/](${PAGE_URL}docs/) |" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Preview is live at: ${PREVIEW_URL}" >> $GITHUB_STEP_SUMMARY
+            echo "::notice title=Branch Preview URL::${PREVIEW_URL}"
+          fi
+
+      - name: Comment preview link on open PR (if exists)
+        if: github.event_name == 'push' && github.ref_name != 'main'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PAGE_URL: ${{ steps.deployment.outputs.page_url }}
+          BRANCH: ${{ github.ref_name }}
+          SHA: ${{ github.sha }}
+          REPO_FULL: ${{ github.repository }}
+        run: |
+          PREVIEW_URL="${PAGE_URL}previews/${BRANCH}/"
+          DOCS_URL="${PAGE_URL}docs/"
+          MARKER="<!-- branch-preview-comment -->"
+
+          PR_NUMBER=$(gh pr list --head "$BRANCH" --state open --json number --jq '.[0].number' 2>/dev/null || echo "")
+
+          if [ -n "$PR_NUMBER" ]; then
+            BODY=$(printf '### 🚀 Branch Preview Available\n\nChanges on branch `%s` can be previewed live at:\n👉 **[View Branch Preview](%s)**\n\n| Target | URL |\n|---|---|\n| 🔍 **Branch Preview** | [%s](%s) |\n| 📄 **Main Proposal** | [%s](%s) |\n\n*Updated automatically from commit `%s`.*\n%s\n' \
+              "$BRANCH" "$PREVIEW_URL" "$PREVIEW_URL" "$PREVIEW_URL" "$DOCS_URL" "$DOCS_URL" "$SHA" "$MARKER")
+
+            EXISTING_ID=$(gh api "repos/${REPO_FULL}/issues/${PR_NUMBER}/comments" --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" 2>/dev/null | head -n 1 || echo "")
+            if [ -n "$EXISTING_ID" ]; then
+              gh api -X PATCH "repos/${REPO_FULL}/issues/comments/${EXISTING_ID}" -f body="$BODY" || echo "Could not update PR comment"
+            else
+              gh pr comment "$PR_NUMBER" --body "$BODY" || echo "Could not post PR comment"
+            fi
+          fi
+
+      - name: Comment cleanup on closed PR
+        if: github.event_name == 'pull_request' && github.event.action == 'closed'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          REPO_FULL: ${{ github.repository }}
+        run: |
+          MARKER="<!-- branch-preview-comment -->"
+          BODY=$(printf '### 🗑️ Branch Preview Removed\n\nPull Request #%s has been closed. The preview for branch `%s` has been removed from GitHub Pages.\n%s\n' \
+            "$PR_NUMBER" "$BRANCH" "$MARKER")
+
+          EXISTING_ID=$(gh api "repos/${REPO_FULL}/issues/${PR_NUMBER}/comments" --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" 2>/dev/null | head -n 1 || echo "")
+          if [ -n "$EXISTING_ID" ]; then
+            gh api -X PATCH "repos/${REPO_FULL}/issues/comments/${EXISTING_ID}" -f body="$BODY" || echo "Could not update PR comment"
+          else
+            gh pr comment "$PR_NUMBER" --body "$BODY" || echo "Could not post PR comment"
+          fi
+
+  pr-preview-link:
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Output and comment preview link on Pull Request
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.event.pull_request.head.sha }}
+          REPO_FULL: ${{ github.repository }}
+        run: |
+          OWNER="${REPO_FULL%/*}"
+          NAME="${REPO_FULL#*/}"
+          PREVIEW_URL="https://${OWNER}.github.io/${NAME}/previews/${BRANCH}/"
+          DOCS_URL="https://${OWNER}.github.io/${NAME}/docs/"
+          MARKER="<!-- branch-preview-comment -->"
+
+          echo "### 🚀 Branch Preview for PR #${PR_NUMBER}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Target | URL |" >> $GITHUB_STEP_SUMMARY
+          echo "|---|---|" >> $GITHUB_STEP_SUMMARY
+          echo "| 🔍 **Branch Preview** | [${PREVIEW_URL}](${PREVIEW_URL}) |" >> $GITHUB_STEP_SUMMARY
+          echo "| 📄 **Main Proposal** | [${DOCS_URL}](${DOCS_URL}) |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Preview is live at: ${PREVIEW_URL}" >> $GITHUB_STEP_SUMMARY
+          echo "::notice title=Branch Preview URL::${PREVIEW_URL}"
+
+          BODY=$(printf '### 🚀 Branch Preview Available\n\nChanges on branch `%s` can be previewed live at:\n👉 **[View Branch Preview](%s)**\n\n| Target | URL |\n|---|---|\n| 🔍 **Branch Preview** | [%s](%s) |\n| 📄 **Main Proposal** | [%s](%s) |\n\n*Updated automatically from commit `%s`.*\n%s\n' \
+            "$BRANCH" "$PREVIEW_URL" "$PREVIEW_URL" "$PREVIEW_URL" "$DOCS_URL" "$DOCS_URL" "$SHA" "$MARKER")
+
+          EXISTING_ID=$(gh api "repos/${REPO_FULL}/issues/${PR_NUMBER}/comments" --jq ".[] | select(.body | contains(\"${MARKER}\")) | .id" 2>/dev/null | head -n 1 || echo "")
+          if [ -n "$EXISTING_ID" ]; then
+            gh api -X PATCH "repos/${REPO_FULL}/issues/comments/${EXISTING_ID}" -f body="$BODY" || echo "Could not update PR comment"
+          else
+            gh pr comment "$PR_NUMBER" --body "$BODY" || echo "Could not post PR comment"
+          fi
