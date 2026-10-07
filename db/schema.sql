@@ -774,9 +774,3 @@ WITH CHECK (
           AND public.is_assigned_organizer(b.event_id)
     )
 );
-
-
--- ============================================================
--- END OF SCHEMA
--- No INSERT statements or real client data are included.
--- ============================================================
