@@ -9,16 +9,17 @@ You write these in Phase 2, from what your client told you — not from imaginat
 
 ---
 
-## <!-- EXAMPLE — delete this persona --> Mariam, shop supervisor
+## Mohhamed ,  AUK Event Organizer
 
-Mariam runs the counter on the morning shift. She takes orders on paper because the till
-is slow, then types them in when it is quiet. By the afternoon she cannot remember whether
-an order was already entered, so she checks the last ten by eye and sometimes ships the
-same box twice. She is fast, she is not interested in computers, and she will stop using
-anything that takes more than a few seconds.
+The Event Organizer is responsible for managing attendee check-in and recording attendance during campus events and workshops. They need to access the list of registered attendees, verify their bookings, and record who attended each event. Currently, attendance information is not maintained in one unified system, making check-in and attendance tracking difficult to manage consistently. The Organizer needs a simple interface that displays confirmed bookings and allows attendance to be recorded accurately.
+
+---
+## Sayed ibrahim , AUK evevt cordinator
+
+The Event Coordinator is responsible for planning and managing campus events and workshops at the American University of Kuwait. They need to create events, select venues, set attendance capacities, and assign organizers. Currently, the registration process relies on a generic web form that does not effectively control the number of registrations against venue capacity. This can lead to overcrowding and attendees being turned away. The Coordinator needs a centralized system to manage event details, monitor bookings, and ensure that registration limits are respected. 
 
 ---
 
-## <name>, <role>
+## Essa , AUK Event Attendee
 
-<one paragraph>
+The Event Attendee is a student, staff/faculty member, or guest who wants to participate in campus events and workshops. They need to browse available events, reserve a seat, and know whether their registration is confirmed. Currently, the generic registration form does not provide clear capacity management or a waitlist, so attendees may register without knowing whether a seat is actually available. This can result in people arriving at an event only to be turned away. The Attendee needs a reliable booking system that clearly displays their registration status and supports waitlisting when an event is full.

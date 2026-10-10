@@ -10,8 +10,12 @@ the story ID, the title, who built it, and what happened to it.
 
 | Story | Title | Who | State at the tag |
 |---|---|---|---|
-| #1 | <!-- EXAMPLE — delete this row --> Flag duplicate orders | Sara | done |
-| #2 | <!-- EXAMPLE — delete this row --> Supervisor can log in | Ahmad | moved to phase 3 |
+| #11 | branch docs preview | Sayed | done |
+| #17 | addind ERD | Ismail | done |
+| #25 | supabase configuration | Ismail | done| 
+| #28 | finops ledger | Ayoub | done |
+| #29 | personas and backlog | Mustafa | done |
+
 
 ## Phase 3 — saved 21 October
 
