@@ -31,11 +31,11 @@ Seyed Esmaeili (build lead): made a preview link using github actions
 
 | Name | Stories |
 |---|---|
-|Seyed Esmaeili (Build Lead)|#13, #14|
-|Esmael Mahmud (Data Lead)| #15, #16 |
-|Ayoub Mohammed (FinOps & Quality Lead)|#18, #19|
-|Sulaiman Alhamlan	(Design Lead,phase lead)|#20, #21|
-|Mustafa Dashti (Client Lead)|#23, #24|
+|Seyed Esmaeili (Build Lead)| #11,#13, #14|
+|Esmael Mahmud (Data Lead)| #15, #16,#17,#25 |
+|Ayoub Mohammed (FinOps & Quality Lead)|#18, #19,#33|
+|Sulaiman Alhamlan	(Design Lead,phase lead)|#20, #21,#31|
+|Mustafa Dashti (Client Lead)|#23, #24,#29|
 
 ## Links to the stories
 All project artifacts are located within the team1 GitHub repository. The key documents and their paths are as follows:
