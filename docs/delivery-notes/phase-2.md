@@ -53,5 +53,5 @@ Prototype Files: Located in the /prototype directory.
      count for this phase. -->
 
 ## Anything not finished, and where it went
-Anything  is finsh  and  the two user story will be done in  phase 3
+Anything  is finshed  for phase two and we will start doing the user story in phase 3
 
