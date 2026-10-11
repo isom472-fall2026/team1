@@ -10,6 +10,20 @@ Esmael Mahmud (Data Lead): Developed the Database Schema and Entity Relationship
 Ayoub Mohammed (FinOps & Quality Lead): Developed the Ledger
 Seyed Esmaeili (build lead): made a preview link using github actions
 
+| deliverable | state |
+|---|---|
+|Personas|done|
+|Stories with acceptance criteria|done|
+|The split| done|
+|Boundaries between members|done|
+|Schema-the SQL|done|
+|Schema-the document|done|
+|Backlog copy|done|
+|Token plan and first leger entry|done|
+|Environment|done|
+|Delivery note|done|
+|Tag|done|
+
 
 ## Who did what
 
@@ -40,10 +54,6 @@ Team Working Agreement: docs/how-we-work.md
 
 Prototype Files: Located in the /prototype directory.
 
-
-
-
-- #__ —
 
 ## The tag cut for this phase
 
