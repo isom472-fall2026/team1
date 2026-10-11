@@ -7,8 +7,8 @@ whoever is free at the end.*
 User Stories (Team Effort): Each team member wrote exactly two User Stories 
 Mustafa Dashti (Client Lead): Wrote the Personas document.
 Esmael Mahmud (Data Lead): Developed the Database Schema and Entity Relationship Diagram (ERD).
-Ayoub Mohammed (FinOps & Quality Lead): Developed the  Ledger
-
+Ayoub Mohammed (FinOps & Quality Lead): Developed the Ledger
+Seyed Esmaeili (build lead): made a preview link using github actions
 
 
 ## Who did what
@@ -16,11 +16,12 @@ Ayoub Mohammed (FinOps & Quality Lead): Developed the  Ledger
 <!-- One line per team member: name, then the stories they built. Everybody appears. -->
 
 | Name | Stories |
-|Seyed Esmaeili (Build Lead)	|#13, #14|
-|Esmael Mahmud (Data Lead) | #15, #16 |
+|---|---|---|
+|Seyed Esmaeili (Build Lead)|#13, #14|
+|Esmael Mahmud (Data Lead)| #15, #16 |
 |Ayoub Mohammed (FinOps & Quality Lead)|#18, #19|
 |Sulaiman Alhamlan	(Design Lead,phase lead)|#20, #21|
-|Mustafa Dashti (Client Lead)  |#23, #24|
+|Mustafa Dashti (Client Lead)|#23, #24|
 
 ## Links to the stories
 All project artifacts are located within the team1 GitHub repository. The key documents and their paths are as follows:
