@@ -4,9 +4,12 @@
 whoever is free at the end.*
 
 ## What was delivered
+User Stories (Team Effort): Each team member wrote exactly two User Stories 
+Mustafa Dashti (Client Lead): Wrote the Personas document.
+Esmael Mahmud (Data Lead): Developed the Database Schema and Entity Relationship Diagram (ERD).
+Ayoub Mohammed (FinOps & Quality Lead): Developed the Ledger
+Seyed Esmaeili (build lead): made a preview link using github actions
 
-<!-- What works now that did not work at the start of the phase. Plain language, what a
-     user can do. Not a list of commits. -->
 
 ## Who did what
 
@@ -14,13 +17,31 @@ whoever is free at the end.*
 
 | Name | Stories |
 |---|---|
-|  |  |
+|Seyed Esmaeili (Build Lead)|#13, #14|
+|Esmael Mahmud (Data Lead)| #15, #16 |
+|Ayoub Mohammed (FinOps & Quality Lead)|#18, #19|
+|Sulaiman Alhamlan	(Design Lead,phase lead)|#20, #21|
+|Mustafa Dashti (Client Lead)|#23, #24|
 
 ## Links to the stories
+All project artifacts are located within the team1 GitHub repository. The key documents and their paths are as follows:
 
-*The full story list at this tag is saved in ../backlog.md — do not repeat it here.*
+User Stories: Managed in the GitHub Issues tab.
 
-<!-- Link each story listed above to its issue. -->
+Project Proposal: docs/proposal.md
+
+Personas: docs/personas.md
+
+Database Schema: docs/schema.md
+
+ERD: docs/erd.html
+
+Team Working Agreement: docs/how-we-work.md
+
+Prototype Files: Located in the /prototype directory.
+
+
+
 
 - #__ —
 
@@ -32,6 +53,5 @@ whoever is free at the end.*
      count for this phase. -->
 
 ## Anything not finished, and where it went
+everything  is finshed  for phase two and we will start doing the user story in phase 3
 
-<!-- What was planned and was not finished, and what happened to it: moved to the next phase,
-     dropped, or replaced. Say which. -->
