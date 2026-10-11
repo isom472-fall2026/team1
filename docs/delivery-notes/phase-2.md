@@ -16,7 +16,7 @@ Seyed Esmaeili (build lead): made a preview link using github actions
 <!-- One line per team member: name, then the stories they built. Everybody appears. -->
 
 | Name | Stories |
-|---|---|---|
+|---|---|
 |Seyed Esmaeili (Build Lead)|#13, #14|
 |Esmael Mahmud (Data Lead)| #15, #16 |
 |Ayoub Mohammed (FinOps & Quality Lead)|#18, #19|
