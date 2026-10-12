@@ -13,8 +13,19 @@ the story ID, the title, who built it, and what happened to it.
 | #11 | branch docs preview | Sayed | done |
 | #17 | addind ERD | Ismail | done |
 | #25 | supabase configuration | Ismail | done| 
-| #28 | finops ledger | Ayoub | done |
+| #33 | finops ledger | Ayoub | done |
 | #29 | personas and backlog | Mustafa | done |
+| #13 | Capacity-Capped Seat Reservation | Sayed | moved to phase 3|
+| #14 | Live Door Check-In Interface | Sayed | moved to phase 3 |
+| #15 | Create an event by coordinator | Ismail | moved to phase 3 |
+| #16 | Coordinator Can View All Events | Ismail | moved to phase 3|
+| #18 | Attendee Reservation Cancellation | Ayoub | moved to phase 3|
+| #19 | Coordinator Turnout Report Export | Ayoub | moved to phase 3|
+| #20 | Coordinator Roster Filtering and Search | Sulieman | moved to phase 3|
+| #21 | Door Organizer Walk-in Warning Alert | Sulieman | moved to phase 3| 
+| #23 | Automatic Waitlist Promotion | Mustafa | moved to phase 3| 
+| #24 | Attendee Views Booking Status  | Mustafa | moved to phase 3| 
+| #31 | phase 2 deliver note | Sulieman | done | 
 
 
 ## Phase 3 — saved 21 October
