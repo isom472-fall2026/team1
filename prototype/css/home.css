@@ -1221,3 +1221,18 @@ footer {
         font-size: 13px;
     }
 }
+
+@media (max-width: 768px) {
+
+    .nav-links .auth-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        margin-top: 8px;
+    }
+
+    .nav-links .auth-btn[hidden] {
+        display: none !important;
+    }
+
+}
