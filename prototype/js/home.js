@@ -71,7 +71,22 @@ const translations = {
         timeLabel: "Time",
         capacityLabel: "Capacity",
         addToCalendar: "Add to Google Calendar",
-        notConnected: "Unable to connect to Supabase."
+        notConnected: "Unable to connect to Supabase.",
+        signUp: "Sign Up",
+        signupTitle: "Create Your Account",
+        signupSubtitle: "Join the AUK Events community.",
+        fullName: "Full Name",
+        email: "Email Address",
+        phoneNumber: "Phone Number",
+        attendeeType: "Attendee Type",
+        student: "Student",
+        staffFaculty: "Staff / Faculty",
+        universityId: "University ID (8 digits)",
+        universityIdHint: "Required for students and staff/faculty.",
+        password: "Password",
+        confirmPassword: "Confirm Password",
+        createAccount: "Create Account",
+
     },
 
     ar: {
@@ -116,7 +131,21 @@ const translations = {
         timeLabel: "الوقت",
         capacityLabel: "السعة",
         addToCalendar: "أضف إلى تقويم Google",
-        notConnected: "تعذر الاتصال بقاعدة البيانات."
+        notConnected: "تعذر الاتصال بقاعدة البيانات.",
+        signUp: "إنشاء حساب",
+        signupTitle: "إنشاء حساب جديد",
+        signupSubtitle: "انضم إلى مجتمع فعاليات الجامعة.",
+        fullName: "الاسم الكامل",
+        email: "البريد الإلكتروني",
+        phoneNumber: "رقم الهاتف",
+        attendeeType: "نوع المشارك",
+        student: "طالب",
+        staffFaculty: "موظف / عضو هيئة تدريس",
+        universityId: "الرقم الجامعي (8 أرقام)",
+        universityIdHint: "مطلوب للطلاب والموظفين وأعضاء هيئة التدريس.",
+        password: "كلمة المرور",
+        confirmPassword: "تأكيد كلمة المرور",
+        createAccount: "إنشاء حساب",
     }
 };
 
@@ -738,6 +767,9 @@ async function initialize() {
         SUPABASE_URL,
         SUPABASE_ANON_KEY
     );
+
+    // Share the existing client with signup.js
+    window.aukDb = db;
 
     await loadEvents();
 }

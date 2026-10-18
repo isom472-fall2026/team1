@@ -7,6 +7,7 @@
     <meta name="theme-color" content="#7F1023">
 
     <title>AUK Events | American University of Kuwait</title>
+    <link rel="stylesheet" href="css/home.css">
 
     <script>
         (function () {
@@ -38,6 +39,7 @@
     </script>
 
     <script defer src="js/home.js"></script>
+    <script defer src="js/signup.js"></script>
 </head>
 
 <body>
@@ -69,6 +71,9 @@
             </div>
 
             <div class="nav-actions">
+                <button class="auth-btn" id="signup-btn" type="button" data-i18n="signUp">
+                    Sign Up
+                </button>
 
                 <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">
                     🌙
@@ -296,6 +301,120 @@
         </div>
 
     </div>
+
+    <!-- =====================================
+     US-02: ATTENDEE REGISTRATION
+===================================== -->
+
+    <div class="modal-backdrop" id="signup-modal" hidden>
+
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="signup-title">
+
+            <div class="modal-head">
+
+                <h3 id="signup-title" data-i18n="signupTitle">
+                    Create Your Account
+                </h3>
+
+                <button class="icon-btn modal-close" id="signup-close" type="button" aria-label="Close registration">
+                    ✕
+                </button>
+
+            </div>
+
+            <p data-i18n="signupSubtitle">
+                Join the AUK Events community.
+            </p>
+
+            <form id="signup-form" class="auth-form">
+
+                <!-- FULL NAME -->
+                <label for="signup-name" data-i18n="fullName">
+                    Full Name
+                </label>
+
+                <input id="signup-name" type="text" autocomplete="name" maxlength="100" required>
+
+                <!-- EMAIL -->
+                <label for="signup-email" data-i18n="email">
+                    Email Address
+                </label>
+
+                <input id="signup-email" type="email" autocomplete="email" required>
+
+                <!-- PHONE NUMBER -->
+                <label for="signup-phone" data-i18n="phoneNumber">
+                    Phone Number
+                </label>
+
+                <input id="signup-phone" type="tel" autocomplete="tel" maxlength="20" required>
+
+                <!-- ATTENDEE TYPE -->
+                <label for="signup-type" data-i18n="attendeeType">
+                    Attendee Type
+                </label>
+
+                <select id="signup-type" required>
+
+                    <option value="Student" data-i18n="student">
+                        Student
+                    </option>
+
+                    <option value="StaffFaculty" data-i18n="staffFaculty">
+                        Staff / Faculty
+                    </option>
+
+                    <option value="Guest" data-i18n="guest">
+                        Guest
+                    </option>
+
+                </select>
+
+                <!-- UNIVERSITY ID -->
+                <div id="university-id-group" class="auth-field">
+
+                    <label for="signup-university-id" data-i18n="universityId">
+                        University ID (8 digits)
+                    </label>
+
+                    <input id="signup-university-id" type="text" inputmode="numeric" pattern="[0-9]{8}" minlength="8"
+                        maxlength="8" autocomplete="off" required>
+
+                    <small class="field-hint" data-i18n="universityIdHint">
+                        Required for students and staff/faculty.
+                    </small>
+
+                </div>
+
+                <!-- PASSWORD -->
+                <label for="signup-password" data-i18n="password">
+                    Password
+                </label>
+
+                <input id="signup-password" type="password" autocomplete="new-password" minlength="8" required>
+
+                <!-- CONFIRM PASSWORD -->
+                <label for="signup-confirm" data-i18n="confirmPassword">
+                    Confirm Password
+                </label>
+
+                <input id="signup-confirm" type="password" autocomplete="new-password" minlength="8" required>
+
+                <!-- VALIDATION MESSAGE -->
+                <p id="signup-message" class="auth-message" role="status" aria-live="polite">
+                </p>
+
+                <!-- SUBMIT -->
+                <button class="btn" id="signup-submit" type="submit" data-i18n="createAccount">
+                    Create Account
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
 
     <!-- FOOTER -->
     <footer>
