@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7F1023">
+
+    <title>AUK Events | American University of Kuwait</title>
+
+    <script>
+        (function () {
+            try {
+                const language =
+                    localStorage.getItem("auk-language") || "en";
+
+                const theme =
+                    localStorage.getItem("auk-theme") || "light";
+
+                document.documentElement.lang =
+                    language === "ar" ? "ar" : "en";
+
+                document.documentElement.dir =
+                    language === "ar" ? "rtl" : "ltr";
+
+                document.documentElement.dataset.theme =
+                    theme === "dark" ? "dark" : "light";
+            } catch (error) {
+                console.warn("Preferences unavailable:", error);
+            }
+        })();
+    </script>
+
+    <link rel="stylesheet" href="css/home.css">
+
+    <!-- Supabase public client -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
+    </script>
+
+    <script defer src="js/home.js"></script>
+</head>
+
+<body>
+
+    <!-- NAVIGATION -->
+    <header>
+        <nav class="container" aria-label="Main navigation">
+
+            <a href="home.html" class="logo">
+                <span class="logo-icon">A</span>
+                <span>AUK Events</span>
+            </a>
+
+            <button class="icon-btn" id="menu-toggle" type="button" aria-label="Toggle navigation"
+                aria-controls="nav-links" aria-expanded="false">
+                ☰
+            </button>
+
+            <div class="nav-links" id="nav-links">
+
+                <button type="button" class="active" data-page="home" data-i18n="home">
+                    Home
+                </button>
+
+                <button type="button" data-page="events" data-i18n="events">
+                    Events
+                </button>
+
+            </div>
+
+            <div class="nav-actions">
+
+                <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle dark mode">
+                    🌙
+                </button>
+
+                <button class="icon-btn" id="language-toggle" type="button" aria-label="Change language">
+                    العربية
+                </button>
+
+            </div>
+
+        </nav>
+    </header>
+
+    <main class="container">
+
+        <!-- WELCOME -->
+        <section class="welcome">
+
+            <div>
+                <h2 id="welcome-title">
+                    Welcome Guest!
+                </h2>
+
+                <p class="muted" data-i18n="welcomeSubtitle">
+                    Your campus community starts here.
+                </p>
+            </div>
+
+            <span class="badge" id="user-role-badge" data-i18n="guest">
+                Guest
+            </span>
+
+        </section>
+
+        <!-- HERO -->
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <span class="eyebrow">
+                    AMERICAN UNIVERSITY OF KUWAIT
+                </span>
+
+                <h1 data-i18n="heroTitle">
+                    Discover Campus Events
+                </h1>
+
+                <p data-i18n="heroDescription">
+                    Explore workshops, discover upcoming
+                    activities, and connect with your
+                    university community.
+                </p>
+
+                <div class="hero-actions">
+
+                    <button class="btn btn-gold" type="button" data-page="events" data-i18n="browseEvents">
+                        Browse Events
+                    </button>
+
+                </div>
+
+            </div>
+
+            <div class="hero-visual" aria-hidden="true">
+                <div class="hero-symbol">A</div>
+            </div>
+
+        </section>
+
+        <!-- OVERVIEW -->
+        <section class="section" aria-labelledby="overview-title">
+
+            <div class="section-heading">
+                <div>
+                    <h2 id="overview-title" data-i18n="overview">
+                        Campus Overview
+                    </h2>
+
+                    <p class="muted" data-i18n="overviewSubtitle">
+                        A quick look at upcoming campus activities.
+                    </p>
+                </div>
+            </div>
+
+            <div class="stats-grid">
+
+                <article class="stat-card">
+
+                    <div class="stat-number" id="stat-events">
+                        —
+                    </div>
+
+                    <div class="stat-label" data-i18n="upcomingEvents">
+                        Upcoming Events
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+        <!-- QUICK ACTIONS -->
+        <section class="section">
+
+            <div class="section-heading">
+                <h2 data-i18n="quickActions">
+                    Quick Actions
+                </h2>
+            </div>
+
+            <div class="quick-grid">
+
+                <button class="quick-card" type="button" data-page="events">
+
+                    <span class="quick-icon">📅</span>
+
+                    <strong data-i18n="browseEvents">
+                        Browse Events
+                    </strong>
+
+                    <small data-i18n="browseDescription">
+                        Find workshops and activities
+                        around campus.
+                    </small>
+
+                </button>
+
+            </div>
+
+        </section>
+
+        <!-- UPCOMING EVENTS -->
+        <section class="section" id="events-section" aria-labelledby="events-title">
+
+            <div class="section-heading">
+
+                <div>
+                    <h2 id="events-title" data-i18n="upcomingEvents">
+                        Upcoming Events
+                    </h2>
+
+                    <p class="muted" data-i18n="eventsSubtitle">
+                        Explore what's happening next at AUK.
+                    </p>
+                </div>
+
+                <button class="btn btn-outline" id="show-all-events" type="button" data-i18n="viewAllEvents" hidden>
+                    View All Events
+                </button>
+
+            </div>
+
+            <!-- EVENT CATEGORY FILTERS -->
+            <div class="chip-row" id="chip-row" aria-label="Event categories" hidden>
+            </div>
+
+            <!-- EVENTS FROM SUPABASE -->
+            <div class="events-grid" id="home-events" aria-live="polite">
+            </div>
+
+        </section>
+
+        <!-- INFORMATION BANNER -->
+        <section class="section">
+
+            <div class="feature-banner">
+
+                <div>
+
+                    <h3 data-i18n="stayConnected">
+                        Stay Connected with Campus Life
+                    </h3>
+
+                    <p data-i18n="stayConnectedDescription">
+                        Discover new opportunities, workshops,
+                        and university events.
+                    </p>
+
+                </div>
+
+                <button class="btn" type="button" data-page="events" data-i18n="browseEvents">
+                    Browse Events
+                </button>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- EVENT DETAILS MODAL -->
+    <div class="modal-backdrop" id="event-modal" hidden>
+
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+            <div class="modal-head">
+
+                <span class="event-type" id="modal-type">
+                </span>
+
+                <button class="icon-btn modal-close" id="modal-close" type="button" aria-label="Close event details">
+                    ✕
+                </button>
+
+            </div>
+
+            <h3 id="modal-title"></h3>
+
+            <div class="modal-meta" id="modal-meta">
+            </div>
+
+            <p id="modal-description"></p>
+
+            <div class="modal-actions">
+
+                <a class="btn btn-gold" id="modal-gcal" target="_blank" rel="noopener noreferrer"
+                    data-i18n="addToCalendar" hidden>
+                    Add to Google Calendar
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+
+        <p>
+            © <span id="current-year"></span>
+            AUK Events &amp; Workshop Attendance System
+        </p>
+
+    </footer>
+
+    <!-- NOTIFICATION -->
+    <div class="toast" id="toast" role="status" hidden>
+    </div>
+
+</body>
+
+</html>
