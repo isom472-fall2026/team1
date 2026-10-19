@@ -1477,4 +1477,29 @@ html[dir="rtl"] .password-toggle-btn {
 
 [data-theme="dark"] .auth-switch a:hover {
     color: #ffffff;
-}
+}
+
+/* SIGN OUT BUTTON */
+.auth-signout-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    color: #ffffff;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.auth-signout-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #ffffff;
+}
+
+[data-theme="dark"] .auth-signout-btn {
+    border-color: #50303c;
+    color: #f5f5f5;
+}
+
+[data-theme="dark"] .auth-signout-btn:hover {
+    background: #39212c;
+    border-color: #f3c9d1;
+    color: #f3c9d1;
+}
+
