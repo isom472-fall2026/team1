@@ -79,7 +79,7 @@ jobs:
       - name: Output preview link to summary and notice
         env:
           PAGE_URL: ${{ steps.deployment.outputs.page_url }}
-          BRANCH: ${{ github.ref_name }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
           PREVIEW_URL="${PAGE_URL}previews/${BRANCH}/prototype/home.html"
           echo "### 🚀 Branch Preview Deployed" >> $GITHUB_STEP_SUMMARY
