@@ -107,6 +107,8 @@ END;
 $$;
 
 
+DROP TRIGGER IF EXISTS prevent_overlapping_events_trigger ON public.events;
+
 CREATE TRIGGER prevent_overlapping_events_trigger
 BEFORE INSERT OR UPDATE ON public.events
 FOR EACH ROW

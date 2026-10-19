@@ -104,3 +104,30 @@ html[data-theme="dark"] .create-event-card h1 {
         width: 100%;
     }
 }
+
+.nav-links a.nav-link {
+    display: inline-flex;
+    align-items: center;
+    color: #f5e9ed;
+    text-decoration: none;
+    padding: 10px 12px;
+    border-radius: 9px;
+    font-size: .9rem;
+    font-weight: 600;
+    transition: background .2s, color .2s;
+}
+
+.nav-links a.nav-link:hover {
+    background: rgba(255, 255, 255, .15);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .nav-links a.nav-link {
+        display: block;
+        width: 100%;
+        padding: 12px 14px;
+        text-align: start;
+        box-sizing: border-box;
+    }
+}

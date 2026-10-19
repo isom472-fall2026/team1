@@ -1,7 +1,9 @@
 "use strict";
 
 const SUPABASE_URL = window.SUPABASE_URL || "https://abhtxsufvhlixtqgcivk.supabase.co";
-const SUPABASE_ANON_KEY = window.SUPABASE_ANON_KEY || "******";
+const SUPABASE_ANON_KEY =
+    window.SUPABASE_ANON_KEY ||
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiaHR4c3VmdmhsaXh0cWdjaXZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUyMjQsImV4cCI6MjEwNjUzMTIyNH0.jw38FYru71ZH7O_maPl5Ceaict38kzEi9NuGUBE2pJU";
 
 const form = document.getElementById("create-event-form");
 const message = document.getElementById("access-message");
@@ -19,6 +21,10 @@ function setTheme(theme) {
     const value = theme === "dark" ? "dark" : "light";
     document.documentElement.dataset.theme = value;
     localStorage.setItem("auk-theme", value);
+    const themeToggle = document.getElementById("theme-toggle");
+    if (themeToggle) {
+        themeToggle.textContent = value === "dark" ? "☀️" : "🌙";
+    }
 }
 
 function setLanguage() {
@@ -45,14 +51,28 @@ function initializeNavigation() {
     document.addEventListener("click", event => {
         if (!event.target.closest("nav")) closeMenu();
     });
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
-    });
-    document.getElementById("language-toggle").addEventListener("click", setLanguage);
-    document.getElementById("signout-btn").addEventListener("click", async () => {
-        if (client) await client.auth.signOut();
-        window.location.assign("home.html");
-    });
+
+    const themeToggle = document.getElementById("theme-toggle");
+    if (themeToggle) {
+        themeToggle.textContent = document.documentElement.dataset.theme === "dark" ? "☀️" : "🌙";
+        themeToggle.addEventListener("click", () => {
+            setTheme(document.documentElement.dataset.theme === "dark" ? "light" : "dark");
+        });
+    }
+
+    const langToggle = document.getElementById("language-toggle");
+    if (langToggle) {
+        langToggle.textContent = document.documentElement.lang === "ar" ? "English" : "العربية";
+        langToggle.addEventListener("click", setLanguage);
+    }
+
+    const signoutBtn = document.getElementById("signout-btn");
+    if (signoutBtn) {
+        signoutBtn.addEventListener("click", async () => {
+            if (client) await client.auth.signOut();
+            window.location.assign("home.html");
+        });
+    }
 }
 
 async function loadVenues() {
@@ -124,6 +144,11 @@ async function initialize() {
         setMessage("Only coordinators can create events.", "error");
         return;
     }
+
+    const coordBadge = document.getElementById("coordinator-badge");
+    if (coordBadge) coordBadge.hidden = false;
+    const signoutBtn = document.getElementById("signout-btn");
+    if (signoutBtn) signoutBtn.hidden = false;
 
     try {
         await loadVenues();
