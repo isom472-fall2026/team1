@@ -106,7 +106,7 @@ BEGIN
 END;
 $$;
 
---- line 110 is a new addition from antigravity that were testing out. It drops the trigger if it already exists to avoid conflicts when re-running the schema.sql file. This is useful during development or when making changes to the trigger logic.
+--- line 110 is a new addition from antigravity that were testing out. It drops the trigger if it already exists to avoid conflicts when re-running the schema.sql file. This is useful during development or when making changes to the trigger logic. It also prevents 2 evetns from happening at the same time in the same venue.
 DROP TRIGGER IF EXISTS prevent_overlapping_events_trigger ON public.events;
 
 CREATE TRIGGER prevent_overlapping_events_trigger
