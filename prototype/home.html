@@ -33,13 +33,15 @@
     </script>
 
     <link rel="stylesheet" href="css/home.css">
-
+    <link rel="stylesheet" href="css/signup.css">
+    <link rel="stylesheet" href="css/signin.css">
     <!-- Supabase public client -->
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
 
     <script defer src="js/home.js"></script>
     <script defer src="js/signup.js"></script>
+    <script defer src="js/signin.js"></script>
 </head>
 
 <body>
@@ -75,6 +77,9 @@
                 <!-- SIGN UP -->
                 <button class="auth-btn" id="signup-btn" type="button" data-i18n="signUp">
                     Sign Up
+                </button>
+                <button class="auth-btn" id="signin-btn" type="button" data-i18n="signIn">
+                    Sign In
                 </button>
 
             </div>
@@ -417,11 +422,77 @@
                     Create Account
                 </button>
 
+                <!-- LINK TO SIGN IN -->
+                <p class="auth-switch">
+                    Already have an account? <a href="signin.html" id="signin-link" data-i18n="alreadyHaveAccount">Sign in</a>
+                </p>
+
             </form>
 
         </div>
 
     </div>
+
+    <!-- =====================================
+         USER STORY: ATTENDEE SIGN IN
+    ===================================== -->
+
+    <div class="modal-backdrop" id="signin-modal" hidden>
+
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="signin-title">
+
+            <div class="modal-head">
+
+                <h3 id="signin-title" data-i18n="signinTitle">
+                    Sign In
+                </h3>
+
+                <button class="icon-btn modal-close" id="signin-close" type="button" aria-label="Close sign in">
+                    ✕
+                </button>
+
+            </div>
+
+            <p data-i18n="signinSubtitle">
+                Access your AUK Events account.
+            </p>
+
+            <form id="signin-form" class="auth-form" novalidate>
+
+                <!-- EMAIL -->
+                <label for="signin-email" data-i18n="email">
+                    Email Address
+                </label>
+                <input id="signin-email" type="email" autocomplete="email" required placeholder="name@auk.edu.kw">
+
+                <!-- PASSWORD -->
+                <label for="signin-password" data-i18n="password">
+                    Password
+                </label>
+                <div class="password-wrapper">
+                    <input id="signin-password" type="password" autocomplete="current-password" required placeholder="••••••••">
+                    <button type="button" id="toggle-password" class="password-toggle-btn" aria-label="Toggle password visibility">Show</button>
+                </div>
+
+                <!-- VALIDATION / ERROR MESSAGE -->
+                <p id="signin-message" class="auth-message error" role="alert" aria-live="polite" hidden></p>
+
+                <!-- SUBMIT -->
+                <button class="btn" id="signin-submit" type="submit" data-i18n="signIn">
+                    Sign In
+                </button>
+
+                <!-- LINK TO SIGNUP -->
+                <p class="auth-switch">
+                    Don't have an account? <a href="signup.html" id="signup-link" data-i18n="dontHaveAccount">Sign up</a>
+                </p>
+
+            </form>
+
+        </div>
+
+    </div>
+
 
 
     <!-- FOOTER -->

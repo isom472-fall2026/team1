@@ -387,4 +387,18 @@
         registerAccount
     );
 
+    window.openSignupModal = openSignup;
+    window.closeSignupModal = closeSignup;
+
+    const signinLink = document.getElementById("signin-link");
+    if (signinLink) {
+        signinLink.addEventListener("click", event => {
+            event.preventDefault();
+            closeSignup();
+            if (typeof window.openSigninModal === "function") {
+                window.openSigninModal();
+            }
+        });
+    }
+
 })();

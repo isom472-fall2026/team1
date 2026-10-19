@@ -1,0 +1,8 @@
+/* =====================================
+   US-02: ATTENDEE REGISTRATION STYLING
+===================================== */
+
+/* Signup modal styles are also integrated in home.css */
+#signup-modal .modal {
+    max-width: 480px;
+}
