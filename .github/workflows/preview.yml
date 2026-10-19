@@ -93,6 +93,7 @@ jobs:
           echo "::notice title=Branch Preview URL::${PREVIEW_URL}"
 
   pr-preview-link:
+    needs: build-and-deploy
     if: github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: ubuntu-latest
     steps:
