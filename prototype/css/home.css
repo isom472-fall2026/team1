@@ -174,6 +174,35 @@ nav {
     color: white;
 }
 
+.create-event-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--gold);
+    color: var(--navy-dark);
+
+    border: none;
+    border-radius: 9px;
+    padding: 10px 14px;
+
+    font-size: .9rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+
+    transition: background .2s, transform .1s;
+}
+
+.create-event-btn:hover {
+    background: #e8c782;
+    transform: translateY(-1px);
+    color: var(--navy-dark);
+}
+
+.create-event-btn[hidden] {
+    display: none !important;
+}
+
 .nav-actions {
     display: flex;
     align-items: center;
@@ -1232,6 +1261,17 @@ footer {
     }
 
     .nav-links .auth-btn[hidden] {
+        display: none !important;
+    }
+
+    .nav-links .create-event-btn {
+        display: block;
+        width: 100%;
+        text-align: center;
+        margin-top: 8px;
+    }
+
+    .nav-links .create-event-btn[hidden] {
         display: none !important;
     }
 
