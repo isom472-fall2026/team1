@@ -15,6 +15,10 @@ const $ = id => document.getElementById(id);
 
 let db = null;
 
+let currentUser = null;
+let currentUserName = "";
+let currentUserRole = "Guest";
+
 let allEvents = [];
 let activeFilter = "all";
 let eventsState = "loading";
@@ -91,6 +95,10 @@ const translations = {
         signinSubtitle: "Access your AUK Events account.",
         dontHaveAccount: "Don't have an account? Sign up",
         alreadyHaveAccount: "Already have an account? Sign in",
+        signOut: "Sign Out",
+        signedInAs: "Signed in as",
+        signedOutSuccess: "Signed out successfully.",
+        stafffaculty: "Staff / Faculty",
     },
 
     ar: {
@@ -155,6 +163,10 @@ const translations = {
         signinSubtitle: "الدخول إلى حساب فعاليات الجامعة.",
         dontHaveAccount: "ليس لديك حساب؟ إنشاء حساب",
         alreadyHaveAccount: "لديك حساب بالفعل؟ تسجيل الدخول",
+        signOut: "تسجيل الخروج",
+        signedInAs: "تم تسجيل الدخول كـ",
+        signedOutSuccess: "تم تسجيل الخروج بنجاح.",
+        stafffaculty: "موظف / عضو هيئة تدريس",
     }
 };
 
@@ -229,8 +241,7 @@ function setLanguage(language) {
     $("language-toggle").textContent =
         value === "ar" ? "English" : "العربية";
 
-    $("welcome-title").textContent =
-        `${t("welcome")} ${t("guest")}!`;
+    renderUserWelcome();
 
     updateShowAllButton();
     renderChips();
@@ -725,6 +736,128 @@ async function loadEvents() {
 }
 
 /* ===================================
+   USER SESSION & WELCOME MANAGEMENT
+=================================== */
+
+function renderUserWelcome() {
+    const welcomeTitle = $("welcome-title");
+    const roleBadge = $("user-role-badge");
+    const welcomeSubtitle = $("welcome-subtitle");
+    const signupBtn = $("signup-btn");
+    const signinBtn = $("signin-btn");
+    const signoutBtn = $("signout-btn");
+
+    if (currentUser) {
+        const name = currentUserName || (currentUser.email ? currentUser.email.split("@")[0] : "Attendee");
+        if (welcomeTitle) {
+            welcomeTitle.textContent = `${t("welcome")} ${escapeHTML(name)}!`;
+        }
+        if (roleBadge) {
+            const roleKey = currentUserRole.toLowerCase().replace(/[^a-z]/g, "");
+            roleBadge.textContent = t(roleKey) || t(currentUserRole.toLowerCase()) || currentUserRole;
+        }
+        if (welcomeSubtitle) {
+            welcomeSubtitle.textContent = `${t("signedInAs")} ${currentUser.email || name}.`;
+        }
+        if (signupBtn) signupBtn.hidden = true;
+        if (signinBtn) signinBtn.hidden = true;
+        if (signoutBtn) signoutBtn.hidden = false;
+    } else {
+        if (welcomeTitle) {
+            welcomeTitle.textContent = `${t("welcome")} ${t("guest")}!`;
+        }
+        if (roleBadge) {
+            roleBadge.textContent = t("guest");
+        }
+        if (welcomeSubtitle) {
+            welcomeSubtitle.textContent = t("welcomeSubtitle");
+        }
+        if (signupBtn) signupBtn.hidden = false;
+        if (signinBtn) signinBtn.hidden = false;
+        if (signoutBtn) signoutBtn.hidden = true;
+    }
+}
+
+async function applyUserSession(user) {
+    if (!user) {
+        currentUser = null;
+        currentUserName = "";
+        currentUserRole = "Guest";
+        renderUserWelcome();
+        return;
+    }
+
+    currentUser = user;
+    currentUserName = user.user_metadata?.name || "";
+    currentUserRole = user.user_metadata?.attendee_type || "Student";
+
+    if (!currentUserName && db) {
+        try {
+            const { data, error } = await db
+                .from("users")
+                .select("name")
+                .eq("user_id", user.id)
+                .maybeSingle();
+
+            if (!error && data?.name) {
+                currentUserName = data.name;
+            }
+        } catch (e) {
+            console.warn("Unable to fetch user profile:", e);
+        }
+    }
+
+    if (!currentUserName) {
+        currentUserName = user.email ? user.email.split("@")[0] : "Attendee";
+    }
+
+    renderUserWelcome();
+}
+
+window.applyUserSession = applyUserSession;
+
+async function handleSignOut() {
+    if (db?.auth) {
+        try {
+            await db.auth.signOut();
+        } catch (e) {
+            console.error("Sign out error:", e);
+        }
+    }
+    await applyUserSession(null);
+    showToast(t("signedOutSuccess"));
+}
+
+async function initializeAuth() {
+    const signoutBtn = $("signout-btn");
+    if (signoutBtn) {
+        signoutBtn.addEventListener("click", handleSignOut);
+    }
+
+    if (!db?.auth) return;
+
+    try {
+        const { data, error } = await db.auth.getSession();
+        if (!error && data?.session?.user) {
+            await applyUserSession(data.session.user);
+        } else {
+            await applyUserSession(null);
+        }
+    } catch (e) {
+        console.warn("Session check error:", e);
+        await applyUserSession(null);
+    }
+
+    db.auth.onAuthStateChange(async (event, session) => {
+        if (event === "SIGNED_IN" && session?.user) {
+            await applyUserSession(session.user);
+        } else if (event === "SIGNED_OUT") {
+            await applyUserSession(null);
+        }
+    });
+}
+
+/* ===================================
    INITIALIZATION
 =================================== */
 
@@ -763,8 +896,6 @@ async function initialize() {
         loadPreference("auk-language") || "en"
     );
 
-    // This visitor story does not use authentication.
-
     if (!window.supabase?.createClient) {
         eventsState = "error";
         renderEvents();
@@ -777,10 +908,11 @@ async function initialize() {
         SUPABASE_ANON_KEY
     );
 
-    // Share the existing client with signup.js
+    // Share the existing client with signup.js and signin.js
     window.aukDb = db;
 
     await loadEvents();
+    await initializeAuth();
 }
 
 if (document.readyState === "loading") {

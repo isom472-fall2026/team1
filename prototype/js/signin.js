@@ -190,6 +190,12 @@
                 return;
             }
 
+            if (typeof window.applyUserSession === "function") {
+                await window.applyUserSession(data.user);
+            }
+
+            closeSignin();
+
             // Acceptance Criterion: Upon successful authentication, the user is redirected to the home.html page.
             window.location.assign("home.html");
         } catch (err) {
