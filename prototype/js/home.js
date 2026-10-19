@@ -86,7 +86,11 @@ const translations = {
         password: "Password",
         confirmPassword: "Confirm Password",
         createAccount: "Create Account",
-
+        signIn: "Sign In",
+        signinTitle: "Sign In",
+        signinSubtitle: "Access your AUK Events account.",
+        dontHaveAccount: "Don't have an account? Sign up",
+        alreadyHaveAccount: "Already have an account? Sign in",
     },
 
     ar: {
@@ -146,6 +150,11 @@ const translations = {
         password: "كلمة المرور",
         confirmPassword: "تأكيد كلمة المرور",
         createAccount: "إنشاء حساب",
+        signIn: "تسجيل الدخول",
+        signinTitle: "تسجيل الدخول",
+        signinSubtitle: "الدخول إلى حساب فعاليات الجامعة.",
+        dontHaveAccount: "ليس لديك حساب؟ إنشاء حساب",
+        alreadyHaveAccount: "لديك حساب بالفعل؟ تسجيل الدخول",
     }
 };
 
