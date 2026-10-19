@@ -99,6 +99,10 @@ const translations = {
         signedInAs: "Signed in as",
         signedOutSuccess: "Signed out successfully.",
         stafffaculty: "Staff / Faculty",
+        createEvent: "+ Create Event",
+        coordinator: "Coordinator",
+        organizer: "Organizer",
+        attendee: "Attendee",
     },
 
     ar: {
@@ -167,6 +171,10 @@ const translations = {
         signedInAs: "تم تسجيل الدخول كـ",
         signedOutSuccess: "تم تسجيل الخروج بنجاح.",
         stafffaculty: "موظف / عضو هيئة تدريس",
+        createEvent: "+ إنشاء فعالية",
+        coordinator: "منسق",
+        organizer: "منظم",
+        attendee: "مشارك",
     }
 };
 
@@ -305,6 +313,11 @@ function initializeNavigation() {
                 }
             });
         });
+
+    const createEventBtn = $("create-event-btn");
+    if (createEventBtn) {
+        createEventBtn.addEventListener("click", closeMenu);
+    }
 }
 
 /* ===================================
@@ -779,17 +792,71 @@ function renderUserWelcome() {
 }
 
 async function applyUserSession(user) {
+    const createEventBtn = $("create-event-btn");
+
     if (!user) {
         currentUser = null;
         currentUserName = "";
         currentUserRole = "Guest";
+        if (createEventBtn) createEventBtn.hidden = true;
         renderUserWelcome();
         return;
     }
 
     currentUser = user;
     currentUserName = user.user_metadata?.name || "";
-    currentUserRole = user.user_metadata?.attendee_type || "Student";
+    currentUserRole = user.user_metadata?.attendee_type || "Attendee";
+
+    let isCoordinator = false;
+
+    // Securely query coordinator table to verify Coordinator role
+    if (db) {
+        try {
+            const { data: coordData, error: coordError } = await db
+                .from("coordinator")
+                .select("user_id")
+                .eq("user_id", user.id)
+                .maybeSingle();
+
+            if (!coordError && coordData?.user_id) {
+                isCoordinator = true;
+                currentUserRole = "Coordinator";
+            }
+        } catch (e) {
+            console.warn("Coordinator check error:", e);
+        }
+
+        if (!isCoordinator) {
+            try {
+                const { data: orgData, error: orgError } = await db
+                    .from("organizer")
+                    .select("user_id")
+                    .eq("user_id", user.id)
+                    .maybeSingle();
+
+                if (!orgError && orgData?.user_id) {
+                    currentUserRole = "Organizer";
+                } else {
+                    const { data: attData } = await db
+                        .from("attendee")
+                        .select("attendee_type")
+                        .eq("user_id", user.id)
+                        .maybeSingle();
+
+                    if (attData?.attendee_type) {
+                        currentUserRole = attData.attendee_type;
+                    }
+                }
+            } catch (e) {
+                console.warn("Role check error:", e);
+            }
+        }
+    }
+
+    // Visible only for Coordinator; hidden for Attendee, Organizer, and Guest
+    if (createEventBtn) {
+        createEventBtn.hidden = !isCoordinator;
+    }
 
     if (!currentUserName && db) {
         try {
