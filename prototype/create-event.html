@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7F1023">
+    <title>Create Event | AUK Events</title>
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/create-event.css">
+    <script>
+        (function () {
+            const language = localStorage.getItem("auk-language") || "en";
+            const theme = localStorage.getItem("auk-theme") || "light";
+            document.documentElement.lang = language === "ar" ? "ar" : "en";
+            document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+            document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light";
+        })();
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script defer src="js/create-event.js"></script>
+</head>
+
+<body>
+    <header>
+        <nav class="container" aria-label="Main navigation">
+            <a href="home.html" class="logo">
+                <span class="logo-icon">A</span>
+                <span>AUK Events</span>
+            </a>
+            <button class="icon-btn" id="menu-toggle" type="button" aria-label="Toggle navigation"
+                aria-controls="nav-links" aria-expanded="false">☰</button>
+            <div class="nav-links" id="nav-links">
+                <a href="home.html" class="nav-link" data-i18n="home">Home</a>
+                <a href="home.html#events-section" class="nav-link" data-i18n="events">Events</a>
+                <a href="create-event.html" class="create-event-btn active" data-i18n="createEvent">+ Create Event</a>
+                <button class="auth-btn auth-signout-btn" id="signout-btn" type="button" data-i18n="signOut" hidden>Sign Out</button>
+            </div>
+            <div class="nav-actions">
+                <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle theme">🌙</button>
+                <button class="icon-btn" id="language-toggle" type="button" aria-label="Change language">العربية</button>
+            </div>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="create-event-card" aria-labelledby="create-event-title">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow create-event-eyebrow" data-i18n="eyebrow">AUK EVENTS</span>
+                    <h1 id="create-event-title" data-i18n="createEventHeading">Create a campus event</h1>
+                    <p class="muted" data-i18n="createEventSubtitle">Add the details attendees need to find and reserve seats.</p>
+                </div>
+                <span class="badge" id="coordinator-badge" data-i18n="coordinator" hidden>Coordinator</span>
+            </div>
+
+            <p id="access-message" class="form-message" role="status" aria-live="polite"></p>
+
+            <form id="create-event-form" class="event-form" hidden>
+                <div class="form-field form-field-wide">
+                    <label for="event-title" data-i18n="eventTitle">Event title</label>
+                    <input id="event-title" name="title" type="text" maxlength="150" required>
+                </div>
+
+                <div class="form-field form-field-wide">
+                    <label for="event-description" data-i18n="description">Description</label>
+                    <textarea id="event-description" name="description" maxlength="500" rows="4"></textarea>
+                </div>
+
+                <div class="form-field">
+                    <label for="event-date" data-i18n="dateLabel">Date</label>
+                    <input id="event-date" name="event_date" type="date" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="event-type" data-i18n="eventType">Event type</label>
+                    <select id="event-type" name="event_type" required>
+                        <option value="" data-i18n="selectType">Select a type</option>
+                        <option value="Play" data-i18n="typePlay">Play</option>
+                        <option value="Workshop" data-i18n="typeWorkshop">Workshop</option>
+                        <option value="Seminar" data-i18n="typeSeminar">Seminar</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="start-time" data-i18n="startTime">Start time</label>
+                    <input id="start-time" name="start_time" type="time" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="end-time" data-i18n="endTime">End time</label>
+                    <input id="end-time" name="end_time" type="time" required>
+                </div>
+
+                <div class="form-field">
+                    <label for="event-venue" data-i18n="venue">Venue</label>
+                    <select id="event-venue" name="venue_id" required>
+                        <option value="" data-i18n="loadingVenues">Loading venues...</option>
+                    </select>
+                </div>
+
+                <div class="form-field">
+                    <label for="event-capacity" data-i18n="capacityLabel">Capacity</label>
+                    <input id="event-capacity" name="capacity" type="number" min="1" step="1" required>
+                </div>
+
+                <div class="form-actions form-field-wide">
+                    <a class="btn btn-outline" href="home.html" data-i18n="cancel">Cancel</a>
+                    <button class="btn btn-gold" id="create-event-submit" type="submit" data-i18n="submitCreateEvent">Create Event</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+
+</html>

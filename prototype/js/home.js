@@ -6,7 +6,7 @@
 =================================== */
 
 const SUPABASE_URL =
-    "https://abhtxsufvhlixtqgcivk.supabase.co";
+    window.SUPABASE_URL || "https://abhtxsufvhlixtqgcivk.supabase.co";
 
 const SUPABASE_ANON_KEY =
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiaHR4c3VmdmhsaXh0cWdjaXZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUyMjQsImV4cCI6MjEwNjUzMTIyNH0.jw38FYru71ZH7O_maPl5Ceaict38kzEi9NuGUBE2pJU";
@@ -806,7 +806,6 @@ async function applyUserSession(user) {
     currentUser = user;
     currentUserName = user.user_metadata?.name || "";
     currentUserRole = user.user_metadata?.attendee_type || "Attendee";
-
     let isCoordinator = false;
 
     // Securely query coordinator table to verify Coordinator role
@@ -853,7 +852,8 @@ async function applyUserSession(user) {
         }
     }
 
-    // Visible only for Coordinator; hidden for Attendee, Organizer, and Guest
+    // Keep the entry point available after sign-in. Supabase RLS enforces
+    // coordinator authorization when the event is inserted.
     if (createEventBtn) {
         createEventBtn.hidden = !isCoordinator;
     }
