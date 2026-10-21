@@ -454,8 +454,8 @@ async function handleSignOut() {
             console.error("Sign out error:", e);
         }
     }
-    // Redirect to signin.html as unauthenticated user
-    window.location.assign("signin.html");
+    // Redirect to home.html and open sign in modal
+    window.location.assign("home.html?signin=true");
 }
 
 /* ===================================
@@ -485,8 +485,7 @@ async function initialize() {
     // Verify Supabase client availability
     if (!window.supabase?.createClient) {
         console.error("Supabase client unavailable.");
-        // Acceptance Criterion: If the user is not logged in, immediately redirect to signin.html
-        window.location.assign("signin.html");
+        window.location.assign("home.html?signin=true");
         return;
     }
 
@@ -495,21 +494,20 @@ async function initialize() {
     try {
         const { data, error } = await db.auth.getSession();
         if (error || !data?.session?.user) {
-            // Acceptance Criterion: If the user is not logged in, immediately redirect to signin.html
-            window.location.assign("signin.html");
+            window.location.assign("home.html?signin=true");
             return;
         }
 
         await fetchUserProfile(data.session.user);
     } catch (error) {
         console.error("Session verification error:", error);
-        window.location.assign("signin.html");
+        window.location.assign("home.html?signin=true");
         return;
     }
 
     db.auth.onAuthStateChange(async (event, session) => {
         if (event === "SIGNED_OUT" || !session?.user) {
-            window.location.assign("signin.html");
+            window.location.assign("home.html?signin=true");
         } else if (session?.user) {
             await fetchUserProfile(session.user);
         }
