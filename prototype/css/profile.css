@@ -3,11 +3,6 @@
    AUK Events & Workshop Attendance System
 =================================== */
 
-/* Keep navigation header in place when scrolling on profile page */
-header {
-    position: static;
-}
-
 .profile-section {
     max-width: 820px;
     margin: 20px auto 40px;
@@ -27,7 +22,6 @@ header {
 =================================== */
 
 .profile-header {
-    position: static;
     display: flex;
     align-items: center;
     gap: 22px;
@@ -160,21 +154,6 @@ html[data-theme="dark"] .badge-gold {
     gap: 4px;
 }
 
-.field-tag-required {
-    background: rgba(166, 25, 46, 0.12);
-    color: var(--burgundy);
-}
-
-.field-tag-optional {
-    background: var(--soft);
-    color: var(--muted);
-}
-
-html[data-theme="dark"] .field-tag-required {
-    background: rgba(255, 138, 128, 0.15);
-    color: #ff8a80;
-}
-
 .input-container {
     position: relative;
     display: flex;
@@ -207,29 +186,6 @@ html[data-theme="dark"] .field-tag-required {
     box-shadow: 0 0 0 3px rgba(214, 173, 96, 0.2);
 }
 
-.profile-input.editable-input {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    cursor: text;
-    padding: 11px 14px;
-    user-select: auto;
-}
-
-.profile-input.editable-input:focus {
-    border-color: var(--burgundy);
-    box-shadow: 0 0 0 3px rgba(166, 25, 46, 0.15);
-}
-
-html[data-theme="dark"] .profile-input.editable-input {
-    background: #1f1218;
-    border-color: var(--border);
-}
-
-html[data-theme="dark"] .profile-input.editable-input:focus {
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(214, 173, 96, 0.25);
-}
-
 .input-lock-icon {
     position: absolute;
     right: 14px;
@@ -243,61 +199,9 @@ html[dir="rtl"] .profile-input {
     padding: 11px 14px 11px 40px;
 }
 
-html[dir="rtl"] .profile-input.editable-input {
-    padding: 11px 14px;
-}
-
 html[dir="rtl"] .input-lock-icon {
     right: auto;
     left: 14px;
-}
-
-/* ===================================
-   PROFILE STATUS ALERT
-=================================== */
-
-.profile-alert {
-    padding: 13px 18px;
-    border-radius: 10px;
-    margin-bottom: 24px;
-    font-size: 0.94rem;
-    font-weight: 600;
-    line-height: 1.45;
-}
-
-.profile-alert.alert-success {
-    background: #e8f5e9;
-    color: #1b5e20;
-    border: 1px solid #a5d6a7;
-}
-
-.profile-alert.alert-error {
-    background: #ffebee;
-    color: #b71c1c;
-    border: 1px solid #ef9a9a;
-}
-
-html[data-theme="dark"] .profile-alert.alert-success {
-    background: rgba(46, 125, 50, 0.25);
-    color: #a5d6a7;
-    border-color: rgba(76, 175, 80, 0.4);
-}
-
-html[data-theme="dark"] .profile-alert.alert-error {
-    background: rgba(183, 28, 28, 0.25);
-    color: #ef9a9a;
-    border-color: rgba(239, 83, 80, 0.4);
-}
-
-#save-profile-btn[disabled] {
-    opacity: 0.65;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-.toast.toast-error {
-    background: #b71c1c;
-    color: #ffffff;
 }
 
 /* ===================================
