@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7F1023">
+
+    <title>My Profile | AUK Events</title>
+
+    <script>
+        (function () {
+            try {
+                const language =
+                    localStorage.getItem("auk-language") || "en";
+
+                const theme =
+                    localStorage.getItem("auk-theme") || "light";
+
+                document.documentElement.lang =
+                    language === "ar" ? "ar" : "en";
+
+                document.documentElement.dir =
+                    language === "ar" ? "rtl" : "ltr";
+
+                document.documentElement.dataset.theme =
+                    theme === "dark" ? "dark" : "light";
+            } catch (error) {
+                console.warn("Preferences unavailable:", error);
+            }
+        })();
+    </script>
+
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/profile.css">
+
+    <!-- Supabase public client -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script defer src="js/profile.js"></script>
+</head>
+
+<body>
+
+    <!-- NAVIGATION -->
+    <header>
+        <nav class="container" aria-label="Main navigation">
+
+            <!-- LOGO -->
+            <a href="home.html" class="logo">
+                <span class="logo-icon">A</span>
+                <span>AUK Events</span>
+            </a>
+
+            <!-- HAMBURGER MENU -->
+            <button class="icon-btn" id="menu-toggle" type="button" aria-label="Toggle navigation"
+                aria-controls="nav-links" aria-expanded="false">
+                ☰
+            </button>
+
+            <!-- NAVIGATION LINKS -->
+            <div class="nav-links" id="nav-links">
+
+                <a href="home.html" class="nav-link" data-i18n="home">
+                    Home
+                </a>
+
+                <a href="home.html#events-section" class="nav-link" data-i18n="events">
+                    Events
+                </a>
+
+                <a href="profile.html" class="nav-link active" data-i18n="profile">
+                    Profile
+                </a>
+
+                <a href="create-event.html" class="create-event-btn" id="create-event-btn" role="button" data-i18n="createEvent" hidden>
+                    + Create Event
+                </a>
+
+                <button class="auth-btn auth-signout-btn" id="signout-btn" type="button" data-i18n="signOut">
+                    Sign Out
+                </button>
+
+            </div>
+
+            <!-- THEME AND LANGUAGE -->
+            <div class="nav-actions">
+
+                <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle theme">
+                    🌙
+                </button>
+
+                <button class="icon-btn" id="language-toggle" type="button" aria-label="Change language">
+                    العربية
+                </button>
+
+            </div>
+
+        </nav>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container">
+
+        <section class="profile-section" aria-labelledby="profile-heading">
+
+            <div class="profile-card">
+
+                <!-- PROFILE HEADER -->
+                <header class="profile-header">
+
+                    <div class="profile-avatar" id="profile-avatar" aria-hidden="true">
+                        —
+                    </div>
+
+                    <div class="profile-header-info">
+
+                        <span class="eyebrow" data-i18n="profileEyebrow">
+                            AUK EVENTS
+                        </span>
+
+                        <h1 class="profile-name-title" id="profile-display-name">
+                            —
+                        </h1>
+
+                        <div class="profile-badges">
+
+                            <span class="badge" id="role-badge">
+                                —
+                            </span>
+
+                            <span class="badge badge-gold" id="attendee-type-badge" hidden>
+                                —
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                </header>
+
+                <!-- CREDENTIALS HEADING -->
+                <div class="credentials-heading">
+
+                    <h2 id="profile-heading" data-i18n="profileHeading">
+                        Account Information
+                    </h2>
+
+                    <p data-i18n="profileSubtitle">
+                        Your university account details and credentials. Protected information is read-only.
+                    </p>
+
+                </div>
+
+                <!-- PROFILE DETAILS GRID (READ-ONLY) -->
+                <div class="profile-grid">
+
+                    <!-- FULL NAME -->
+                    <div class="profile-field">
+
+                        <label class="field-label" for="profile-name">
+                            <span class="field-label-text">
+                                👤 <span data-i18n="fullName">Full Name</span>
+                            </span>
+                            <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
+                        </label>
+
+                        <div class="input-container">
+                            <input id="profile-name" class="profile-input" type="text" readonly
+                                aria-readonly="true" tabindex="-1" value="—">
+                            <span class="input-lock-icon" aria-hidden="true">🔒</span>
+                        </div>
+
+                    </div>
+
+                    <!-- EMAIL ADDRESS -->
+                    <div class="profile-field">
+
+                        <label class="field-label" for="profile-email">
+                            <span class="field-label-text">
+                                ✉️ <span data-i18n="email">Email Address</span>
+                            </span>
+                            <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
+                        </label>
+
+                        <div class="input-container">
+                            <input id="profile-email" class="profile-input" type="text" readonly
+                                aria-readonly="true" tabindex="-1" value="—">
+                            <span class="input-lock-icon" aria-hidden="true">🔒</span>
+                        </div>
+
+                    </div>
+
+                    <!-- UNIVERSITY ID -->
+                    <div class="profile-field">
+
+                        <label class="field-label" for="profile-university-id">
+                            <span class="field-label-text">
+                                🎓 <span data-i18n="universityId">University ID</span>
+                            </span>
+                            <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
+                        </label>
+
+                        <div class="input-container">
+                            <input id="profile-university-id" class="profile-input" type="text" readonly
+                                aria-readonly="true" tabindex="-1" value="—">
+                            <span class="input-lock-icon" aria-hidden="true">🔒</span>
+                        </div>
+
+                    </div>
+
+                    <!-- PHONE NUMBER -->
+                    <div class="profile-field">
+
+                        <label class="field-label" for="profile-phone">
+                            <span class="field-label-text">
+                                📞 <span data-i18n="phoneNumber">Phone Number</span>
+                            </span>
+                            <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
+                        </label>
+
+                        <div class="input-container">
+                            <input id="profile-phone" class="profile-input" type="text" readonly
+                                aria-readonly="true" tabindex="-1" value="—">
+                            <span class="input-lock-icon" aria-hidden="true">🔒</span>
+                        </div>
+
+                    </div>
+
+                    <!-- SYSTEM ROLE -->
+                    <div class="profile-field">
+
+                        <label class="field-label" for="profile-role">
+                            <span class="field-label-text">
+                                🛡️ <span data-i18n="systemRole">System Role</span>
+                            </span>
+                            <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
+                        </label>
+
+                        <div class="input-container">
+                            <input id="profile-role" class="profile-input" type="text" readonly
+                                aria-readonly="true" tabindex="-1" value="—">
+                            <span class="input-lock-icon" aria-hidden="true">🔒</span>
+                        </div>
+
+                    </div>
+
+                    <!-- ATTENDEE TYPE (CONDITIONAL FOR ATTENDEES) -->
+                    <div class="profile-field" id="attendee-type-group" hidden>
+
+                        <label class="field-label" for="profile-attendee-type">
+                            <span class="field-label-text">
+                                🏷️ <span data-i18n="attendeeType">Attendee Type</span>
+                            </span>
+                            <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
+                        </label>
+
+                        <div class="input-container">
+                            <input id="profile-attendee-type" class="profile-input" type="text" readonly
+                                aria-readonly="true" tabindex="-1" value="—">
+                            <span class="input-lock-icon" aria-hidden="true">🔒</span>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- PROFILE ACTIONS -->
+                <div class="profile-actions">
+
+                    <a href="home.html" class="btn btn-outline" data-i18n="backToHome">
+                        ← Back to Home
+                    </a>
+
+                    <div class="action-buttons-group">
+
+                        <a href="create-event.html" class="btn btn-gold" id="coordinator-create-event-btn" data-i18n="createEvent" hidden>
+                            + Create Event
+                        </a>
+
+                        <button class="btn btn-signout" id="profile-signout-btn" type="button" data-i18n="signOut">
+                            Sign Out
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>
+            © <span id="current-year"></span>
+            AUK Events &amp; Workshop Attendance System
+        </p>
+    </footer>
+
+    <!-- NOTIFICATION -->
+    <div class="toast" id="toast" role="status" hidden>
+    </div>
+
+</body>
+
+</html>
