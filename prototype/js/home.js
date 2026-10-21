@@ -35,6 +35,7 @@ const translations = {
     en: {
         home: "Home",
         events: "Events",
+        profile: "Profile",
         guest: "Guest",
         welcome: "Welcome",
         welcomeSubtitle: "Your campus community starts here.",
@@ -108,6 +109,7 @@ const translations = {
     ar: {
         home: "الرئيسية",
         events: "الفعاليات",
+        profile: "الملف الشخصي",
         guest: "زائر",
         welcome: "مرحباً",
         welcomeSubtitle: "مجتمعك الجامعي يبدأ هنا.",
@@ -317,6 +319,11 @@ function initializeNavigation() {
     const createEventBtn = $("create-event-btn");
     if (createEventBtn) {
         createEventBtn.addEventListener("click", closeMenu);
+    }
+
+    const profileLink = $("profile-link");
+    if (profileLink) {
+        profileLink.addEventListener("click", closeMenu);
     }
 }
 

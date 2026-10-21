@@ -156,7 +156,8 @@ nav {
     margin-inline-start: auto;
 }
 
-.nav-links button {
+.nav-links button,
+.nav-links a.nav-link {
     border: none;
     background: transparent;
     color: #f5e9ed;
@@ -166,10 +167,16 @@ nav {
 
     font-size: .9rem;
     font-weight: 600;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    transition: background .2s, color .2s;
 }
 
 .nav-links button:hover,
-.nav-links button.active {
+.nav-links button.active,
+.nav-links a.nav-link:hover,
+.nav-links a.nav-link.active {
     background: rgba(255, 255, 255, .15);
     color: white;
 }
@@ -797,9 +804,12 @@ footer {
         display: flex;
     }
 
-    .nav-links button {
+    .nav-links button,
+    .nav-links a.nav-link {
         text-align: start;
         padding: 12px 14px;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .stats-grid {
