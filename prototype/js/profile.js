@@ -38,7 +38,7 @@ const translations = {
         profileEyebrow: "AUK EVENTS",
         profileHeading: "Account Information",
         profileSubtitle:
-            "Update your contact details below. University credentials and roles are read-only.",
+            "Your university account details and credentials. Protected information is read-only.",
         fullName: "Full Name",
         email: "Email Address",
         universityId: "University ID",
@@ -46,15 +46,6 @@ const translations = {
         systemRole: "System Role",
         attendeeType: "Attendee Type",
         readOnly: "🔒 Read-only",
-        requiredTag: "* Required",
-        optionalTag: "Optional",
-        saveChanges: "Save Changes",
-        savingChanges: "Saving...",
-        profileUpdatedSuccess: "Profile updated successfully",
-        couldNotUpdateProfile: "Could not update profile",
-        nameRequired: "Full name cannot be empty.",
-        fullNamePlaceholder: "Enter full name",
-        phonePlaceholder: "+965 ...",
         backToHome: "← Back to Home",
         coordinator: "Coordinator",
         organizer: "Organizer",
@@ -81,7 +72,7 @@ const translations = {
         profileEyebrow: "فعاليات الجامعة",
         profileHeading: "معلومات الحساب",
         profileSubtitle:
-            "قم بتحديث بيانات الاتصال الخاصة بك أدناه. البيانات الجامعية والأدوار للقراءة فقط.",
+            "بيانات حسابك الجامعي واعتماداتك. البيانات المحمية متاحة للقراءة فقط.",
         fullName: "الاسم الكامل",
         email: "البريد الإلكتروني",
         universityId: "الرقم الجامعي",
@@ -89,15 +80,6 @@ const translations = {
         systemRole: "دور النظام",
         attendeeType: "نوع المشارك",
         readOnly: "🔒 للقراءة فقط",
-        requiredTag: "* إجباري",
-        optionalTag: "اختياري",
-        saveChanges: "حفظ التغييرات",
-        savingChanges: "جارٍ الحفظ...",
-        profileUpdatedSuccess: "تم تحديث الملف الشخصي بنجاح.",
-        couldNotUpdateProfile: "تعذر تحديث الملف الشخصي",
-        nameRequired: "لا يمكن ترك الاسم الكامل فارغاً.",
-        fullNamePlaceholder: "أدخل الاسم الكامل",
-        phonePlaceholder: "965+ ...",
         backToHome: "← العودة إلى الرئيسية",
         coordinator: "منسق",
         organizer: "منظم",
@@ -229,8 +211,9 @@ function initializeNavigation() {
 =================================== */
 
 function lockReadonlyInputs() {
-    const inputs = document.querySelectorAll(".profile-input[readonly]");
+    const inputs = document.querySelectorAll(".profile-input");
     inputs.forEach(input => {
+        input.readOnly = true;
         input.setAttribute("aria-readonly", "true");
         input.addEventListener("keydown", event => {
             // Prevent typing while still allowing tab navigation
@@ -245,41 +228,6 @@ function lockReadonlyInputs() {
             event.preventDefault();
         });
     });
-}
-
-/* ===================================
-   NOTIFICATIONS & STATUS ALERTS
-=================================== */
-
-let toastTimeout = null;
-
-function showToast(message, isError = false) {
-    const toast = $("toast");
-    if (!toast) return;
-
-    toast.textContent = message;
-    toast.hidden = false;
-    if (isError) {
-        toast.classList.add("toast-error");
-    } else {
-        toast.classList.remove("toast-error");
-    }
-
-    clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => {
-        toast.hidden = true;
-        toast.classList.remove("toast-error");
-    }, 4000);
-}
-
-function showStatusAlert(message, type) {
-    const alertEl = $("profile-alert");
-    if (alertEl) {
-        alertEl.textContent = message;
-        alertEl.className = `profile-alert alert-${type}`;
-        alertEl.hidden = false;
-    }
-    showToast(message, type === "error");
 }
 
 /* ===================================
@@ -321,6 +269,7 @@ function renderProfile() {
     // Sensible defaults if profile data is missing
     const displayName = name || t("nameUnavailable");
     const displayEmail = email || t("emailUnavailable");
+    const displayPhone = phone || t("phoneUnavailable");
     const isGuest =
         (attendeeType || "").toLowerCase() === "guest";
     const displayUnivId =
@@ -343,25 +292,18 @@ function renderProfile() {
         roleBadgeEl.textContent = displayRole;
     }
 
-    // Editable contact inputs
+    // Role inputs
     const nameInput = $("profile-name");
-    if (nameInput) {
-        nameInput.value = name || "";
-        nameInput.placeholder = t("fullNamePlaceholder");
-    }
+    if (nameInput) nameInput.value = displayName;
 
-    const phoneInput = $("profile-phone");
-    if (phoneInput) {
-        phoneInput.value = phone || "";
-        phoneInput.placeholder = t("phonePlaceholder");
-    }
-
-    // Read-only credentials
     const emailInput = $("profile-email");
     if (emailInput) emailInput.value = displayEmail;
 
     const univIdInput = $("profile-university-id");
     if (univIdInput) univIdInput.value = displayUnivId;
+
+    const phoneInput = $("profile-phone");
+    if (phoneInput) phoneInput.value = displayPhone;
 
     const roleInput = $("profile-role");
     if (roleInput) roleInput.value = displayRole;
@@ -501,85 +443,6 @@ async function fetchUserProfile(user) {
 }
 
 /* ===================================
-   PROFILE UPDATE HANDLER
-=================================== */
-
-async function handleProfileSubmit(event) {
-    if (event) event.preventDefault();
-
-    const nameInput = $("profile-name");
-    const phoneInput = $("profile-phone");
-    const saveBtn = $("save-profile-btn");
-    const alertEl = $("profile-alert");
-
-    if (alertEl) alertEl.hidden = true;
-
-    if (!nameInput) return;
-
-    const trimmedName = (nameInput.value || "").trim();
-    const trimmedPhone = phoneInput ? (phoneInput.value || "").trim() : "";
-
-    // Reject updates where the full name field is left entirely empty
-    if (!trimmedName) {
-        showStatusAlert(t("nameRequired"), "error");
-        nameInput.focus();
-        return;
-    }
-
-    if (!profileState.user?.id || !db) {
-        showStatusAlert(t("couldNotUpdateProfile"), "error");
-        return;
-    }
-
-    // Disable button to prevent duplicate submissions
-    if (saveBtn) {
-        saveBtn.disabled = true;
-        saveBtn.setAttribute("aria-busy", "true");
-        saveBtn.textContent = t("savingChanges");
-    }
-
-    try {
-        const { error } = await db
-            .from("users")
-            .update({
-                name: trimmedName,
-                phone: trimmedPhone || null
-            })
-            .eq("user_id", profileState.user.id);
-
-        if (error) {
-            console.error("Profile update error:", error);
-            const errorMsg = error.message
-                ? `${t("couldNotUpdateProfile")}: ${error.message}`
-                : t("couldNotUpdateProfile");
-            showStatusAlert(errorMsg, "error");
-            return;
-        }
-
-        profileState.name = trimmedName;
-        profileState.phone = trimmedPhone;
-        nameInput.value = trimmedName;
-        if (phoneInput) phoneInput.value = trimmedPhone;
-
-        const avatarEl = $("profile-avatar");
-        if (avatarEl) avatarEl.textContent = getInitials(trimmedName);
-        const nameTitleEl = $("profile-display-name");
-        if (nameTitleEl) nameTitleEl.textContent = trimmedName;
-
-        showStatusAlert(t("profileUpdatedSuccess"), "success");
-    } catch (err) {
-        console.error("Unexpected error saving profile:", err);
-        showStatusAlert(t("couldNotUpdateProfile"), "error");
-    } finally {
-        if (saveBtn) {
-            saveBtn.disabled = false;
-            saveBtn.removeAttribute("aria-busy");
-            saveBtn.textContent = t("saveChanges");
-        }
-    }
-}
-
-/* ===================================
    SIGN OUT
 =================================== */
 
@@ -608,11 +471,6 @@ async function initialize() {
 
     setTheme(loadPreference("auk-theme") || "light");
     setLanguage(loadPreference("auk-language") || "en");
-
-    const profileForm = $("profile-form");
-    if (profileForm) {
-        profileForm.addEventListener("submit", handleProfileSubmit);
-    }
 
     const navSignoutBtn = $("signout-btn");
     if (navSignoutBtn) {
