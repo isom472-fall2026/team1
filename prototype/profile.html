@@ -31,13 +31,13 @@
         })();
     </script>
 
-    <link rel="stylesheet" href="css/home.css">
-    <link rel="stylesheet" href="css/profile.css">
+    <link rel="stylesheet" href="css/home.css?v=39">
+    <link rel="stylesheet" href="css/profile.css?v=39">
 
     <!-- Supabase public client -->
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/config.js"></script>
-    <script defer src="js/profile.js"></script>
+    <script defer src="js/profile.js?v=39"></script>
 </head>
 
 <body>
@@ -171,8 +171,8 @@
                             </label>
 
                             <div class="input-container">
-                                <input id="profile-name" name="name" class="profile-input editable-input" type="text"
-                                    required maxlength="150" autocomplete="name" value="—">
+                                <input id="profile-name" name="name" class="profile-input-editable" type="text"
+                                    required maxlength="150" autocomplete="name" placeholder="Enter full name">
                             </div>
 
                         </div>
@@ -224,8 +224,8 @@
                             </label>
 
                             <div class="input-container">
-                                <input id="profile-phone" name="phone" class="profile-input editable-input" type="tel"
-                                    maxlength="30" autocomplete="tel" value="—">
+                                <input id="profile-phone" name="phone" class="profile-input-editable" type="tel"
+                                    maxlength="30" autocomplete="tel" placeholder="+965 ...">
                             </div>
 
                         </div>

@@ -229,7 +229,9 @@ function initializeNavigation() {
 =================================== */
 
 function lockReadonlyInputs() {
-    const inputs = document.querySelectorAll(".profile-input[readonly]");
+    const inputs = document.querySelectorAll(
+        ".profile-input[readonly]:not(#profile-name):not(#profile-phone)"
+    );
     inputs.forEach(input => {
         input.setAttribute("aria-readonly", "true");
         input.addEventListener("keydown", event => {
@@ -346,12 +348,18 @@ function renderProfile() {
     // Editable contact inputs
     const nameInput = $("profile-name");
     if (nameInput) {
+        nameInput.readOnly = false;
+        nameInput.removeAttribute("readonly");
+        nameInput.removeAttribute("aria-readonly");
         nameInput.value = name || "";
         nameInput.placeholder = t("fullNamePlaceholder");
     }
 
     const phoneInput = $("profile-phone");
     if (phoneInput) {
+        phoneInput.readOnly = false;
+        phoneInput.removeAttribute("readonly");
+        phoneInput.removeAttribute("aria-readonly");
         phoneInput.value = phone || "";
         phoneInput.placeholder = t("phonePlaceholder");
     }
@@ -605,6 +613,19 @@ async function initialize() {
 
     initializeNavigation();
     lockReadonlyInputs();
+
+    const nameInput = $("profile-name");
+    if (nameInput) {
+        nameInput.readOnly = false;
+        nameInput.removeAttribute("readonly");
+        nameInput.removeAttribute("aria-readonly");
+    }
+    const phoneInput = $("profile-phone");
+    if (phoneInput) {
+        phoneInput.readOnly = false;
+        phoneInput.removeAttribute("readonly");
+        phoneInput.removeAttribute("aria-readonly");
+    }
 
     setTheme(loadPreference("auk-theme") || "light");
     setLanguage(loadPreference("auk-language") || "en");

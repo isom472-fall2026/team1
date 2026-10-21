@@ -207,25 +207,38 @@ html[data-theme="dark"] .field-tag-required {
     box-shadow: 0 0 0 3px rgba(214, 173, 96, 0.2);
 }
 
-.profile-input.editable-input {
+.profile-input.editable-input,
+.profile-input-editable {
+    width: 100%;
+    min-height: 46px;
     background: var(--card);
     border: 1.5px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-size: 0.94rem;
+    font-family: inherit;
+    box-sizing: border-box;
     cursor: text;
     padding: 11px 14px;
     user-select: auto;
+    outline: none;
+    transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
 }
 
-.profile-input.editable-input:focus {
+.profile-input.editable-input:focus,
+.profile-input-editable:focus {
     border-color: var(--burgundy);
     box-shadow: 0 0 0 3px rgba(166, 25, 46, 0.15);
 }
 
-html[data-theme="dark"] .profile-input.editable-input {
+html[data-theme="dark"] .profile-input.editable-input,
+html[data-theme="dark"] .profile-input-editable {
     background: #1f1218;
     border-color: var(--border);
 }
 
-html[data-theme="dark"] .profile-input.editable-input:focus {
+html[data-theme="dark"] .profile-input.editable-input:focus,
+html[data-theme="dark"] .profile-input-editable:focus {
     border-color: var(--gold);
     box-shadow: 0 0 0 3px rgba(214, 173, 96, 0.25);
 }
@@ -243,7 +256,8 @@ html[dir="rtl"] .profile-input {
     padding: 11px 14px 11px 40px;
 }
 
-html[dir="rtl"] .profile-input.editable-input {
+html[dir="rtl"] .profile-input.editable-input,
+html[dir="rtl"] .profile-input-editable {
     padding: 11px 14px;
 }
 
