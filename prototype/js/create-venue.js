@@ -292,3 +292,4 @@ form.addEventListener("submit", async event => {
 });
 
 initialize();
+
