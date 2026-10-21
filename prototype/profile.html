@@ -107,7 +107,7 @@
             <div class="profile-card">
 
                 <!-- PROFILE HEADER -->
-                <header class="profile-header">
+                <div class="profile-header">
 
                     <div class="profile-avatar" id="profile-avatar" aria-hidden="true">
                         —
@@ -137,7 +137,10 @@
 
                     </div>
 
-                </header>
+                </div>
+
+                <!-- STATUS ALERT -->
+                <div class="profile-alert" id="profile-alert" role="alert" hidden></div>
 
                 <!-- CREDENTIALS HEADING -->
                 <div class="credentials-heading">
@@ -147,144 +150,150 @@
                     </h2>
 
                     <p data-i18n="profileSubtitle">
-                        Your university account details and credentials. Protected information is read-only.
+                        Update your contact details below. University credentials and roles are read-only.
                     </p>
 
                 </div>
 
-                <!-- PROFILE DETAILS GRID (READ-ONLY) -->
-                <div class="profile-grid">
+                <!-- PROFILE FORM -->
+                <form id="profile-form" novalidate>
 
-                    <!-- FULL NAME -->
-                    <div class="profile-field">
+                    <div class="profile-grid">
 
-                        <label class="field-label" for="profile-name">
-                            <span class="field-label-text">
-                                👤 <span data-i18n="fullName">Full Name</span>
-                            </span>
-                            <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
-                        </label>
+                        <!-- FULL NAME (EDITABLE) -->
+                        <div class="profile-field">
 
-                        <div class="input-container">
-                            <input id="profile-name" class="profile-input" type="text" readonly
-                                aria-readonly="true" tabindex="-1" value="—">
-                            <span class="input-lock-icon" aria-hidden="true">🔒</span>
+                            <label class="field-label" for="profile-name">
+                                <span class="field-label-text">
+                                    👤 <span data-i18n="fullName">Full Name</span>
+                                </span>
+                                <span class="field-tag field-tag-required" data-i18n="requiredTag">* Required</span>
+                            </label>
+
+                            <div class="input-container">
+                                <input id="profile-name" name="name" class="profile-input editable-input" type="text"
+                                    required maxlength="150" autocomplete="name" value="—">
+                            </div>
+
+                        </div>
+
+                        <!-- EMAIL ADDRESS (READ-ONLY) -->
+                        <div class="profile-field">
+
+                            <label class="field-label" for="profile-email">
+                                <span class="field-label-text">
+                                    ✉️ <span data-i18n="email">Email Address</span>
+                                </span>
+                                <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
+                            </label>
+
+                            <div class="input-container">
+                                <input id="profile-email" class="profile-input" type="text" readonly
+                                    aria-readonly="true" tabindex="-1" value="—">
+                                <span class="input-lock-icon" aria-hidden="true">🔒</span>
+                            </div>
+
+                        </div>
+
+                        <!-- UNIVERSITY ID (READ-ONLY) -->
+                        <div class="profile-field">
+
+                            <label class="field-label" for="profile-university-id">
+                                <span class="field-label-text">
+                                    🎓 <span data-i18n="universityId">University ID</span>
+                                </span>
+                                <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
+                            </label>
+
+                            <div class="input-container">
+                                <input id="profile-university-id" class="profile-input" type="text" readonly
+                                    aria-readonly="true" tabindex="-1" value="—">
+                                <span class="input-lock-icon" aria-hidden="true">🔒</span>
+                            </div>
+
+                        </div>
+
+                        <!-- PHONE NUMBER (EDITABLE) -->
+                        <div class="profile-field">
+
+                            <label class="field-label" for="profile-phone">
+                                <span class="field-label-text">
+                                    📞 <span data-i18n="phoneNumber">Phone Number</span>
+                                </span>
+                                <span class="field-tag field-tag-optional" data-i18n="optionalTag">Optional</span>
+                            </label>
+
+                            <div class="input-container">
+                                <input id="profile-phone" name="phone" class="profile-input editable-input" type="tel"
+                                    maxlength="30" autocomplete="tel" value="—">
+                            </div>
+
+                        </div>
+
+                        <!-- SYSTEM ROLE (READ-ONLY) -->
+                        <div class="profile-field">
+
+                            <label class="field-label" for="profile-role">
+                                <span class="field-label-text">
+                                    🛡️ <span data-i18n="systemRole">System Role</span>
+                                </span>
+                                <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
+                            </label>
+
+                            <div class="input-container">
+                                <input id="profile-role" class="profile-input" type="text" readonly
+                                    aria-readonly="true" tabindex="-1" value="—">
+                                <span class="input-lock-icon" aria-hidden="true">🔒</span>
+                            </div>
+
+                        </div>
+
+                        <!-- ATTENDEE TYPE (CONDITIONAL FOR ATTENDEES, READ-ONLY) -->
+                        <div class="profile-field" id="attendee-type-group" hidden>
+
+                            <label class="field-label" for="profile-attendee-type">
+                                <span class="field-label-text">
+                                    🏷️ <span data-i18n="attendeeType">Attendee Type</span>
+                                </span>
+                                <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
+                            </label>
+
+                            <div class="input-container">
+                                <input id="profile-attendee-type" class="profile-input" type="text" readonly
+                                    aria-readonly="true" tabindex="-1" value="—">
+                                <span class="input-lock-icon" aria-hidden="true">🔒</span>
+                            </div>
+
                         </div>
 
                     </div>
 
-                    <!-- EMAIL ADDRESS -->
-                    <div class="profile-field">
+                    <!-- PROFILE ACTIONS -->
+                    <div class="profile-actions">
 
-                        <label class="field-label" for="profile-email">
-                            <span class="field-label-text">
-                                ✉️ <span data-i18n="email">Email Address</span>
-                            </span>
-                            <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
-                        </label>
-
-                        <div class="input-container">
-                            <input id="profile-email" class="profile-input" type="text" readonly
-                                aria-readonly="true" tabindex="-1" value="—">
-                            <span class="input-lock-icon" aria-hidden="true">🔒</span>
-                        </div>
-
-                    </div>
-
-                    <!-- UNIVERSITY ID -->
-                    <div class="profile-field">
-
-                        <label class="field-label" for="profile-university-id">
-                            <span class="field-label-text">
-                                🎓 <span data-i18n="universityId">University ID</span>
-                            </span>
-                            <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
-                        </label>
-
-                        <div class="input-container">
-                            <input id="profile-university-id" class="profile-input" type="text" readonly
-                                aria-readonly="true" tabindex="-1" value="—">
-                            <span class="input-lock-icon" aria-hidden="true">🔒</span>
-                        </div>
-
-                    </div>
-
-                    <!-- PHONE NUMBER -->
-                    <div class="profile-field">
-
-                        <label class="field-label" for="profile-phone">
-                            <span class="field-label-text">
-                                📞 <span data-i18n="phoneNumber">Phone Number</span>
-                            </span>
-                            <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
-                        </label>
-
-                        <div class="input-container">
-                            <input id="profile-phone" class="profile-input" type="text" readonly
-                                aria-readonly="true" tabindex="-1" value="—">
-                            <span class="input-lock-icon" aria-hidden="true">🔒</span>
-                        </div>
-
-                    </div>
-
-                    <!-- SYSTEM ROLE -->
-                    <div class="profile-field">
-
-                        <label class="field-label" for="profile-role">
-                            <span class="field-label-text">
-                                🛡️ <span data-i18n="systemRole">System Role</span>
-                            </span>
-                            <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
-                        </label>
-
-                        <div class="input-container">
-                            <input id="profile-role" class="profile-input" type="text" readonly
-                                aria-readonly="true" tabindex="-1" value="—">
-                            <span class="input-lock-icon" aria-hidden="true">🔒</span>
-                        </div>
-
-                    </div>
-
-                    <!-- ATTENDEE TYPE (CONDITIONAL FOR ATTENDEES) -->
-                    <div class="profile-field" id="attendee-type-group" hidden>
-
-                        <label class="field-label" for="profile-attendee-type">
-                            <span class="field-label-text">
-                                🏷️ <span data-i18n="attendeeType">Attendee Type</span>
-                            </span>
-                            <span class="field-tag" data-i18n="readOnly">🔒 Read-only</span>
-                        </label>
-
-                        <div class="input-container">
-                            <input id="profile-attendee-type" class="profile-input" type="text" readonly
-                                aria-readonly="true" tabindex="-1" value="—">
-                            <span class="input-lock-icon" aria-hidden="true">🔒</span>
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!-- PROFILE ACTIONS -->
-                <div class="profile-actions">
-
-                    <a href="home.html" class="btn btn-outline" data-i18n="backToHome">
-                        ← Back to Home
-                    </a>
-
-                    <div class="action-buttons-group">
-
-                        <a href="create-event.html" class="btn btn-gold" id="coordinator-create-event-btn" data-i18n="createEvent" hidden>
-                            + Create Event
+                        <a href="home.html" class="btn btn-outline" data-i18n="backToHome">
+                            ← Back to Home
                         </a>
 
-                        <button class="btn btn-signout" id="profile-signout-btn" type="button" data-i18n="signOut">
-                            Sign Out
-                        </button>
+                        <div class="action-buttons-group">
+
+                            <a href="create-event.html" class="btn btn-gold" id="coordinator-create-event-btn" data-i18n="createEvent" hidden>
+                                + Create Event
+                            </a>
+
+                            <button type="submit" class="btn btn-gold" id="save-profile-btn" data-i18n="saveChanges">
+                                Save Changes
+                            </button>
+
+                            <button class="btn btn-signout" id="profile-signout-btn" type="button" data-i18n="signOut">
+                                Sign Out
+                            </button>
+
+                        </div>
 
                     </div>
 
-                </div>
+                </form>
 
             </div>
 
