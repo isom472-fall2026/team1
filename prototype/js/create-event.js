@@ -19,6 +19,7 @@ const translations = {
         profile: "Profile",
         coordinatorEvents: "Coordinator Events",
         createEvent: "+ Create Event",
+        createVenue: "+ Create Venue",
         signOut: "Sign Out",
         eyebrow: "AUK EVENTS",
         createEventHeading: "Create a campus event",
@@ -61,6 +62,7 @@ const translations = {
         profile: "الملف الشخصي",
         coordinatorEvents: "فعاليات المنسق",
         createEvent: "+ إنشاء فعالية",
+        createVenue: "+ إنشاء قاعة",
         signOut: "تسجيل الخروج",
         eyebrow: "فعاليات الجامعة",
         createEventHeading: "إنشاء فعالية جامعية",
@@ -277,6 +279,8 @@ async function initialize() {
     if (signoutBtn) signoutBtn.hidden = false;
     const coordEventsLink = document.getElementById("coordinator-events-link");
     if (coordEventsLink) coordEventsLink.hidden = false;
+    const createVenueBtn = document.getElementById("create-venue-btn");
+    if (createVenueBtn) createVenueBtn.hidden = false;
 
     try {
         await loadVenues();
