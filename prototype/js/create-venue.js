@@ -221,6 +221,9 @@ async function initialize() {
     const createEventBtn = document.getElementById("create-event-btn");
     if (createEventBtn) createEventBtn.hidden = false;
 
+    const createVenueBtn = document.getElementById("create-venue-btn");
+    if (createVenueBtn) createVenueBtn.hidden = false;
+
     const coordEventsLink = document.getElementById("coordinator-events-link");
     if (coordEventsLink) coordEventsLink.hidden = false;
 
