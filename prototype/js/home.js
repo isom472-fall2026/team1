@@ -36,6 +36,7 @@ const translations = {
         home: "Home",
         events: "Events",
         profile: "Profile",
+        coordinatorEvents: "Coordinator Events",
         guest: "Guest",
         welcome: "Welcome",
         welcomeSubtitle: "Your campus community starts here.",
@@ -110,6 +111,7 @@ const translations = {
         home: "الرئيسية",
         events: "الفعاليات",
         profile: "الملف الشخصي",
+        coordinatorEvents: "فعاليات المنسق",
         guest: "زائر",
         welcome: "مرحباً",
         welcomeSubtitle: "مجتمعك الجامعي يبدأ هنا.",
@@ -811,11 +813,14 @@ function renderUserWelcome() {
 async function applyUserSession(user) {
     const createEventBtn = $("create-event-btn");
 
+    const coordEventsLink = $("coordinator-events-link");
+
     if (!user) {
         currentUser = null;
         currentUserName = "";
         currentUserRole = "Guest";
         if (createEventBtn) createEventBtn.hidden = true;
+        if (coordEventsLink) coordEventsLink.hidden = false;
         renderUserWelcome();
         return;
     }
@@ -873,6 +878,9 @@ async function applyUserSession(user) {
     // coordinator authorization when the event is inserted.
     if (createEventBtn) {
         createEventBtn.hidden = !isCoordinator;
+    }
+    if (coordEventsLink) {
+        coordEventsLink.hidden = Boolean(user && !isCoordinator);
     }
 
     if (!currentUserName && db) {

@@ -33,6 +33,7 @@ const translations = {
         home: "Home",
         events: "Events",
         profile: "Profile",
+        coordinatorEvents: "Coordinator Events",
         createEvent: "+ Create Event",
         signOut: "Sign Out",
         profileEyebrow: "AUK EVENTS",
@@ -76,6 +77,7 @@ const translations = {
         home: "الرئيسية",
         events: "الفعاليات",
         profile: "الملف الشخصي",
+        coordinatorEvents: "فعاليات المنسق",
         createEvent: "+ إنشاء فعالية",
         signOut: "تسجيل الخروج",
         profileEyebrow: "فعاليات الجامعة",
@@ -402,9 +404,17 @@ function renderProfile() {
     if (createEventNavBtn) {
         createEventNavBtn.hidden = !isCoordinator;
     }
+    const coordEventsLink = $("coordinator-events-link");
+    if (coordEventsLink) {
+        coordEventsLink.hidden = !isCoordinator;
+    }
     const coordinatorActionBtn = $("coordinator-create-event-btn");
     if (coordinatorActionBtn) {
         coordinatorActionBtn.hidden = !isCoordinator;
+    }
+    const coordinatorViewEventsBtn = $("coordinator-view-events-btn");
+    if (coordinatorViewEventsBtn) {
+        coordinatorViewEventsBtn.hidden = !isCoordinator;
     }
 }
 

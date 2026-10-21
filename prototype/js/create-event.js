@@ -16,6 +16,8 @@ const translations = {
     en: {
         home: "Home",
         events: "Events",
+        profile: "Profile",
+        coordinatorEvents: "Coordinator Events",
         createEvent: "+ Create Event",
         signOut: "Sign Out",
         eyebrow: "AUK EVENTS",
@@ -56,6 +58,8 @@ const translations = {
     ar: {
         home: "الرئيسية",
         events: "الفعاليات",
+        profile: "الملف الشخصي",
+        coordinatorEvents: "فعاليات المنسق",
         createEvent: "+ إنشاء فعالية",
         signOut: "تسجيل الخروج",
         eyebrow: "فعاليات الجامعة",

@@ -1,0 +1,426 @@
+/* ===================================
+   COORDINATOR EVENTS STYLES
+=================================== */
+
+.coordinator-header-card {
+    margin: 22px auto 0;
+    padding: clamp(24px, 4vw, 36px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.coordinator-header-card h1 {
+    margin: 4px 0 8px;
+    color: var(--navy);
+    font-size: clamp(1.7rem, 4vw, 2.3rem);
+}
+
+html[data-theme="dark"] .coordinator-header-card h1 {
+    color: #f3c9d1;
+}
+
+.header-badges {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+/* Stats Row */
+.stats-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+    margin: 24px 0 20px;
+}
+
+.stat-box {
+    display: flex;
+    flex-direction: column;
+    padding: 16px 20px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    transition: transform .2s ease;
+}
+
+.stat-number {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: var(--navy);
+}
+
+html[data-theme="dark"] .stat-number {
+    color: #f3c9d1;
+}
+
+.stat-number.stat-upcoming {
+    color: #16794a;
+}
+
+html[data-theme="dark"] .stat-number.stat-upcoming {
+    color: #6ee7b7;
+}
+
+.stat-number.stat-past {
+    color: var(--muted);
+}
+
+.stat-label {
+    font-size: .85rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+/* Controls & Filter Bar */
+.coordinator-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding-top: 18px;
+    border-top: 1px solid var(--border);
+}
+
+.filter-tabs {
+    display: flex;
+    gap: 8px;
+    background: var(--bg);
+    padding: 4px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+}
+
+.tab-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    border-radius: 9px;
+    color: var(--text);
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all .2s ease;
+}
+
+.tab-btn:hover {
+    background: var(--soft);
+}
+
+.tab-btn.active {
+    background: var(--burgundy);
+    color: white;
+}
+
+.tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    font-size: .75rem;
+    font-weight: 700;
+    background: rgba(0, 0, 0, 0.08);
+}
+
+.tab-btn.active .tab-count {
+    background: rgba(255, 255, 255, 0.25);
+    color: white;
+}
+
+.controls-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+}
+
+.search-box input {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 13px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: .9rem;
+    min-width: 240px;
+}
+
+.search-box input:focus {
+    outline: 2px solid var(--gold);
+}
+
+.controls-actions select {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 9px 13px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: .9rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.controls-actions select:focus {
+    outline: 2px solid var(--gold);
+}
+
+.new-event-link {
+    text-decoration: none;
+    white-space: nowrap;
+}
+
+/* Events Section */
+.events-section {
+    margin: 28px 0 50px;
+}
+
+.coordinator-events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 22px;
+}
+
+/* Coordinator Event Card */
+.coordinator-card {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    padding: 22px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    transition: transform .2s ease, box-shadow .2s ease;
+    position: relative;
+}
+
+.coordinator-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(100, 15, 35, 0.12);
+}
+
+.card-top-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    font-size: .78rem;
+    font-weight: 700;
+    letter-spacing: .02em;
+    text-transform: uppercase;
+}
+
+.status-badge.status-upcoming {
+    background: rgba(22, 121, 74, 0.12);
+    color: #16794a;
+    border: 1px solid rgba(22, 121, 74, 0.28);
+}
+
+html[data-theme="dark"] .status-badge.status-upcoming {
+    background: rgba(46, 178, 114, 0.2);
+    color: #6ee7b7;
+    border-color: rgba(46, 178, 114, 0.4);
+}
+
+.status-badge.status-past {
+    background: rgba(112, 106, 115, 0.12);
+    color: var(--muted);
+    border: 1px solid var(--border);
+}
+
+.coordinator-card.card-past {
+    opacity: 0.92;
+}
+
+.coordinator-card h3 {
+    margin: 0;
+    font-size: 1.18rem;
+    line-height: 1.35;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.card-meta-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    font-size: .88rem;
+    color: var(--text);
+}
+
+.card-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.card-meta-item .meta-icon {
+    font-size: .95rem;
+    opacity: 0.85;
+}
+
+.card-meta-item.venue-missing {
+    color: #b42318;
+    font-style: italic;
+}
+
+html[data-theme="dark"] .card-meta-item.venue-missing {
+    color: #fca5a5;
+}
+
+.card-description {
+    flex: 1;
+    margin: 2px 0 0;
+    font-size: .88rem;
+    color: var(--muted);
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.card-description.missing-desc {
+    font-style: italic;
+    opacity: 0.8;
+}
+
+.card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+}
+
+.capacity-indicator {
+    font-size: .82rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+/* Modal details */
+.modal-head-tags {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 14px;
+    margin: 18px 0;
+    padding: 14px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+}
+
+.meta-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+}
+
+.meta-item .meta-icon {
+    font-size: 1.2rem;
+    margin-top: 2px;
+}
+
+.meta-item strong {
+    display: block;
+    font-size: .78rem;
+    text-transform: uppercase;
+    color: var(--muted);
+    letter-spacing: .03em;
+}
+
+.meta-item span {
+    font-size: .92rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.modal-description-box {
+    margin: 16px 0;
+}
+
+.modal-description-box h4 {
+    margin: 0 0 8px;
+    font-size: .92rem;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: .03em;
+}
+
+.modal-description-box p {
+    margin: 0;
+    font-size: .95rem;
+    line-height: 1.6;
+    color: var(--text);
+    overflow-wrap: anywhere;
+}
+
+.modal-description-box p.missing-desc {
+    font-style: italic;
+    color: var(--muted);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .coordinator-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .filter-tabs {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .tab-btn {
+        flex: 1;
+        justify-content: center;
+        padding: 8px 10px;
+        font-size: .82rem;
+    }
+
+    .controls-actions {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .search-box input {
+        width: 100%;
+        min-width: 0;
+    }
+
+    .controls-actions select,
+    .new-event-link {
+        width: 100%;
+        text-align: center;
+    }
+
+    .coordinator-events-grid {
+        grid-template-columns: 1fr;
+    }
+}

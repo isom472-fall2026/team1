@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7F1023">
+
+    <title>All Events | AUK Events</title>
+
+    <script>
+        (function () {
+            try {
+                const language = localStorage.getItem("auk-language") || "en";
+                const theme = localStorage.getItem("auk-theme") || "light";
+
+                document.documentElement.lang = language === "ar" ? "ar" : "en";
+                document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+                document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light";
+            } catch (error) {
+                console.warn("Preferences unavailable:", error);
+            }
+        })();
+    </script>
+
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/coordinator-events.css">
+
+    <!-- Supabase public client -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script defer src="js/coordinator-events.js"></script>
+</head>
+
+<body>
+
+    <!-- NAVIGATION -->
+    <header>
+        <nav class="container" aria-label="Main navigation">
+
+            <!-- LOGO -->
+            <a href="home.html" class="logo">
+                <span class="logo-icon">A</span>
+                <span>AUK Events</span>
+            </a>
+
+            <!-- HAMBURGER MENU -->
+            <button class="icon-btn" id="menu-toggle" type="button" aria-label="Toggle navigation"
+                aria-controls="nav-links" aria-expanded="false">
+                ☰
+            </button>
+
+            <!-- NAVIGATION LINKS -->
+            <div class="nav-links" id="nav-links">
+
+                <a href="home.html" class="nav-link" data-i18n="home">
+                    Home
+                </a>
+
+                <a href="home.html#events-section" class="nav-link" data-i18n="events">
+                    Events
+                </a>
+
+                <a href="profile.html" class="nav-link" id="profile-link" data-i18n="profile">
+                    Profile
+                </a>
+
+                <a href="coordinator-events.html" class="nav-link active" id="coordinator-events-link" data-i18n="coordinatorEvents">
+                    Coordinator Events
+                </a>
+
+                <a href="create-event.html" class="create-event-btn" id="create-event-btn" role="button" data-i18n="createEvent">
+                    + Create Event
+                </a>
+
+                <button class="auth-btn auth-signout-btn" id="signout-btn" type="button" data-i18n="signOut" hidden>
+                    Sign Out
+                </button>
+
+            </div>
+
+            <!-- THEME AND LANGUAGE -->
+            <div class="nav-actions">
+
+                <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle theme">
+                    🌙
+                </button>
+
+                <button class="icon-btn" id="language-toggle" type="button" aria-label="Change language">
+                    العربية
+                </button>
+
+            </div>
+
+        </nav>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container">
+
+        <!-- DASHBOARD HEADER CARD -->
+        <section class="coordinator-header-card" aria-labelledby="page-title">
+
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow" data-i18n="coordinatorEyebrow">COORDINATOR DASHBOARD</span>
+                    <h1 id="page-title" data-i18n="allEventsHeading">All Campus Events</h1>
+                    <p class="muted" data-i18n="allEventsSubtitle">
+                        View and manage all past and upcoming campus events in one centralized schedule.
+                    </p>
+                </div>
+
+                <div class="header-badges">
+                    <span class="badge" id="coordinator-badge" data-i18n="coordinator" hidden>Coordinator</span>
+                </div>
+            </div>
+
+            <p id="access-message" class="form-message" role="status" aria-live="polite"></p>
+
+            <!-- STATS COUNTERS -->
+            <div class="stats-row" aria-label="Events statistics">
+
+                <div class="stat-box">
+                    <span class="stat-number" id="stat-total">0</span>
+                    <span class="stat-label" data-i18n="statTotalEvents">Total Events</span>
+                </div>
+
+                <div class="stat-box">
+                    <span class="stat-number stat-upcoming" id="stat-upcoming">0</span>
+                    <span class="stat-label" data-i18n="statUpcomingEvents">Upcoming Events</span>
+                </div>
+
+                <div class="stat-box">
+                    <span class="stat-number stat-past" id="stat-past">0</span>
+                    <span class="stat-label" data-i18n="statPastEvents">Past Events</span>
+                </div>
+
+            </div>
+
+            <!-- CONTROLS & FILTER BAR -->
+            <div class="coordinator-controls">
+
+                <div class="filter-tabs" role="tablist" aria-label="Filter events by timing">
+
+                    <button type="button" class="tab-btn active" id="tab-all" data-filter="all" role="tab"
+                        aria-selected="true">
+                        <span data-i18n="filterAll">All Events</span>
+                        <span class="tab-count" id="count-all">0</span>
+                    </button>
+
+                    <button type="button" class="tab-btn" id="tab-upcoming" data-filter="upcoming" role="tab"
+                        aria-selected="false">
+                        <span data-i18n="filterUpcoming">Upcoming</span>
+                        <span class="tab-count" id="count-upcoming">0</span>
+                    </button>
+
+                    <button type="button" class="tab-btn" id="tab-past" data-filter="past" role="tab"
+                        aria-selected="false">
+                        <span data-i18n="filterPast">Past</span>
+                        <span class="tab-count" id="count-past">0</span>
+                    </button>
+
+                </div>
+
+                <div class="controls-actions">
+
+                    <div class="search-box">
+                        <input type="search" id="event-search" placeholder="Search by title, venue, or type..."
+                            data-i18n-placeholder="searchPlaceholder" aria-label="Search events">
+                    </div>
+
+                    <select id="type-filter" aria-label="Filter by event type">
+                        <option value="all" data-i18n="allTypes">All Types</option>
+                        <option value="Workshop" data-i18n="typeWorkshop">Workshop</option>
+                        <option value="Seminar" data-i18n="typeSeminar">Seminar</option>
+                        <option value="Play" data-i18n="typePlay">Play</option>
+                    </select>
+
+                    <a href="create-event.html" class="btn btn-gold new-event-link" id="header-create-event-btn"
+                        data-i18n="createEvent">
+                        + Create Event
+                    </a>
+
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- EVENTS GRID SECTION -->
+        <section class="events-section" aria-label="Events list">
+
+            <div id="events-grid" class="coordinator-events-grid" aria-live="polite">
+                <div class="empty-state" data-i18n="loadingEvents">Loading events...</div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- EVENT DETAILS MODAL (AC 4) -->
+    <div class="modal-backdrop" id="event-modal" hidden>
+
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+            <div class="modal-head">
+
+                <div class="modal-head-tags">
+                    <span class="event-type" id="modal-type">—</span>
+                    <span class="status-badge" id="modal-status">—</span>
+                </div>
+
+                <button class="icon-btn modal-close" id="modal-close" type="button" aria-label="Close event details">
+                    ✕
+                </button>
+
+            </div>
+
+            <h3 id="modal-title"></h3>
+
+            <div class="modal-meta-grid" id="modal-meta">
+
+                <div class="meta-item">
+                    <span class="meta-icon" aria-hidden="true">📅</span>
+                    <div>
+                        <strong data-i18n="dateLabel">Date</strong>
+                        <span id="modal-date">—</span>
+                    </div>
+                </div>
+
+                <div class="meta-item">
+                    <span class="meta-icon" aria-hidden="true">🕒</span>
+                    <div>
+                        <strong data-i18n="timeLabel">Time</strong>
+                        <span id="modal-time">—</span>
+                    </div>
+                </div>
+
+                <div class="meta-item">
+                    <span class="meta-icon" aria-hidden="true">📍</span>
+                    <div>
+                        <strong data-i18n="venueLabel">Venue</strong>
+                        <span id="modal-venue">—</span>
+                    </div>
+                </div>
+
+                <div class="meta-item">
+                    <span class="meta-icon" aria-hidden="true">👥</span>
+                    <div>
+                        <strong data-i18n="capacityLabel">Capacity</strong>
+                        <span id="modal-capacity">—</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="modal-description-box">
+                <h4 data-i18n="descriptionHeading">Description</h4>
+                <p id="modal-description"></p>
+            </div>
+
+            <div class="modal-actions">
+
+                <a class="btn btn-gold" id="modal-gcal" target="_blank" rel="noopener noreferrer"
+                    data-i18n="addToCalendar" hidden>
+                    Add to Google Calendar
+                </a>
+
+                <button type="button" class="btn btn-outline" id="modal-close-btn" data-i18n="close">
+                    Close
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>
+            © <span id="current-year"></span>
+            AUK Events &amp; Workshop Attendance System
+        </p>
+    </footer>
+
+    <!-- NOTIFICATION TOAST -->
+    <div class="toast" id="toast" role="status" hidden></div>
+
+</body>
+
+</html>
