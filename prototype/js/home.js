@@ -820,7 +820,7 @@ async function applyUserSession(user) {
         currentUserName = "";
         currentUserRole = "Guest";
         if (createEventBtn) createEventBtn.hidden = true;
-        if (coordEventsLink) coordEventsLink.hidden = false;
+        if (coordEventsLink) coordEventsLink.hidden = true;
         renderUserWelcome();
         return;
     }

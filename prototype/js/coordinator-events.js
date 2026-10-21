@@ -20,7 +20,6 @@ let typeFilter = "all";
 let searchQuery = "";
 
 let lastFocusedElement = null;
-let toastTimeout = null;
 
 /* ===================================
    TRANSLATIONS
@@ -67,8 +66,10 @@ const translations = {
         noFilteredEvents: "No events match this filter.",
         loadingEvents: "Loading events...",
         errorLoading: "Unable to load events. Please try again later.",
-        signedInCoordinator: "Signed in as authorized coordinator.",
-        viewingAsGuest: "Viewing all campus events as guest. Sign in as coordinator for event management."
+        pleaseSignIn: "Please sign in as a coordinator to view coordinator events.",
+        onlyCoordinators: "Only coordinators can view coordinator events.",
+        unableToConnect: "Unable to connect to Supabase.",
+        unableToVerify: "Unable to verify coordinator access. Check the Supabase configuration."
     },
     ar: {
         home: "الرئيسية",
@@ -110,8 +111,10 @@ const translations = {
         noFilteredEvents: "لا توجد فعاليات تطابق هذا الفلتر.",
         loadingEvents: "جارٍ تحميل الفعاليات...",
         errorLoading: "تعذر تحميل الفعاليات. يرجى المحاولة لاحقاً.",
-        signedInCoordinator: "تم تسجيل الدخول كمنسق معتمد.",
-        viewingAsGuest: "عرض جميع الفعاليات كزائر. يرجى تسجيل الدخول كمنسق لإدارة الفعاليات."
+        pleaseSignIn: "يرجى تسجيل الدخول كمنسق لعرض فعاليات المنسق.",
+        onlyCoordinators: "يمكن للمنسقين فقط عرض فعاليات المنسق.",
+        unableToConnect: "تعذر الاتصال بقاعدة البيانات.",
+        unableToVerify: "تعذر التحقق من صلاحيات المنسق. يرجى التحقق من الإعدادات."
     }
 };
 
@@ -121,6 +124,22 @@ function lang() {
 
 function t(key) {
     return translations[lang()]?.[key] || key;
+}
+
+function setMessage(keyOrText, type) {
+    const message = $("access-message");
+    if (!message) return;
+
+    if (!keyOrText) {
+        message.textContent = "";
+        message.className = "form-message";
+        delete message.dataset.i18nKey;
+        return;
+    }
+
+    message.dataset.i18nKey = keyOrText;
+    message.textContent = t(keyOrText);
+    message.className = `form-message ${type || ""}`.trim();
 }
 
 function escapeHTML(value) {
@@ -528,7 +547,14 @@ function setLanguage(language) {
     const currentYear = $("current-year");
     if (currentYear) currentYear.textContent = new Date().getFullYear();
 
-    renderEvents();
+    const accessMsg = $("access-message");
+    if (accessMsg && accessMsg.dataset.i18nKey) {
+        accessMsg.textContent = t(accessMsg.dataset.i18nKey);
+    }
+
+    if (isCoordinator) {
+        renderEvents();
+    }
 }
 
 /* ===================================
@@ -679,7 +705,7 @@ async function loadAllEvents() {
 }
 
 /* ===================================
-   INITIALIZATION
+   INITIALIZATION (MIRRORS CREATE-EVENT)
 =================================== */
 
 async function initialize() {
@@ -691,52 +717,62 @@ async function initialize() {
     setLanguage(initialLang);
 
     if (!window.supabase?.createClient) {
-        const grid = $("events-grid");
-        if (grid) grid.innerHTML = `<div class="empty-state">${escapeHTML(t("errorLoading"))}</div>`;
+        setMessage("unableToConnect", "error");
         return;
     }
 
     client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    // Check user session
-    const { data: sessionData } = await client.auth.getSession();
-    const accessMsg = $("access-message");
-
-    if (sessionData?.session?.user) {
-        currentUser = sessionData.session.user;
-
-        // Check if user is in coordinator table
-        const { data: coordData } = await client
-            .from("coordinator")
-            .select("user_id")
-            .eq("user_id", currentUser.id)
-            .maybeSingle();
-
-        if (coordData) {
-            isCoordinator = true;
-            const badge = $("coordinator-badge");
-            if (badge) badge.hidden = false;
-            const signoutBtn = $("signout-btn");
-            if (signoutBtn) signoutBtn.hidden = false;
-            if (accessMsg) {
-                accessMsg.textContent = t("signedInCoordinator");
-                accessMsg.className = "form-message success";
-            }
-        } else {
-            if (accessMsg) {
-                accessMsg.textContent = t("viewingAsGuest");
-                accessMsg.className = "form-message";
-            }
-        }
-    } else {
-        if (accessMsg) {
-            accessMsg.textContent = t("viewingAsGuest");
-            accessMsg.className = "form-message";
-        }
+    const { data, error } = await client.auth.getSession();
+    if (error) {
+        console.error("Session check error:", error);
+        setMessage("unableToConnect", "error");
+        return;
     }
+
+    // Must be signed in
+    if (!data.session?.user) {
+        setMessage("pleaseSignIn", "error");
+        return;
+    }
+
+    currentUser = data.session.user;
+
+    // Must be an authorized coordinator in coordinator table
+    const { data: coordinator, error: coordinatorError } = await client
+        .from("coordinator")
+        .select("user_id")
+        .eq("user_id", currentUser.id)
+        .maybeSingle();
+
+    if (coordinatorError) {
+        console.error("Coordinator check error:", coordinatorError);
+        setMessage("unableToVerify", "error");
+        return;
+    }
+
+    if (!coordinator) {
+        setMessage("onlyCoordinators", "error");
+        return;
+    }
+
+    // Authorized Coordinator Verified
+    isCoordinator = true;
+    setMessage(""); // Clear error message
+
+    const badge = $("coordinator-badge");
+    if (badge) badge.hidden = false;
+
+    const signoutBtn = $("signout-btn");
+    if (signoutBtn) signoutBtn.hidden = false;
+
+    const createEventBtn = $("create-event-btn");
+    if (createEventBtn) createEventBtn.hidden = false;
+
+    const content = $("coordinator-content");
+    if (content) content.hidden = false;
 
     await loadAllEvents();
 }
 
 initialize();
-

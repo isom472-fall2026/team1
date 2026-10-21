@@ -69,7 +69,7 @@
                     Coordinator Events
                 </a>
 
-                <a href="create-event.html" class="create-event-btn" id="create-event-btn" role="button" data-i18n="createEvent">
+                <a href="create-event.html" class="create-event-btn" id="create-event-btn" role="button" data-i18n="createEvent" hidden>
                     + Create Event
                 </a>
 
@@ -117,81 +117,86 @@
 
             <p id="access-message" class="form-message" role="status" aria-live="polite"></p>
 
-            <!-- STATS COUNTERS -->
-            <div class="stats-row" aria-label="Events statistics">
+            <!-- COORDINATOR CONTENT (HIDDEN UNTIL AUTHORIZED COORDINATOR SIGNS IN) -->
+            <div id="coordinator-content" hidden>
 
-                <div class="stat-box">
-                    <span class="stat-number" id="stat-total">0</span>
-                    <span class="stat-label" data-i18n="statTotalEvents">Total Events</span>
-                </div>
+                <!-- STATS COUNTERS -->
+                <div class="stats-row" aria-label="Events statistics">
 
-                <div class="stat-box">
-                    <span class="stat-number stat-upcoming" id="stat-upcoming">0</span>
-                    <span class="stat-label" data-i18n="statUpcomingEvents">Upcoming Events</span>
-                </div>
-
-                <div class="stat-box">
-                    <span class="stat-number stat-past" id="stat-past">0</span>
-                    <span class="stat-label" data-i18n="statPastEvents">Past Events</span>
-                </div>
-
-            </div>
-
-            <!-- CONTROLS & FILTER BAR -->
-            <div class="coordinator-controls">
-
-                <div class="filter-tabs" role="tablist" aria-label="Filter events by timing">
-
-                    <button type="button" class="tab-btn active" id="tab-all" data-filter="all" role="tab"
-                        aria-selected="true">
-                        <span data-i18n="filterAll">All Events</span>
-                        <span class="tab-count" id="count-all">0</span>
-                    </button>
-
-                    <button type="button" class="tab-btn" id="tab-upcoming" data-filter="upcoming" role="tab"
-                        aria-selected="false">
-                        <span data-i18n="filterUpcoming">Upcoming</span>
-                        <span class="tab-count" id="count-upcoming">0</span>
-                    </button>
-
-                    <button type="button" class="tab-btn" id="tab-past" data-filter="past" role="tab"
-                        aria-selected="false">
-                        <span data-i18n="filterPast">Past</span>
-                        <span class="tab-count" id="count-past">0</span>
-                    </button>
-
-                </div>
-
-                <div class="controls-actions">
-
-                    <div class="search-box">
-                        <input type="search" id="event-search" placeholder="Search by title, venue, or type..."
-                            data-i18n-placeholder="searchPlaceholder" aria-label="Search events">
+                    <div class="stat-box">
+                        <span class="stat-number" id="stat-total">0</span>
+                        <span class="stat-label" data-i18n="statTotalEvents">Total Events</span>
                     </div>
 
-                    <select id="type-filter" aria-label="Filter by event type">
-                        <option value="all" data-i18n="allTypes">All Types</option>
-                        <option value="Workshop" data-i18n="typeWorkshop">Workshop</option>
-                        <option value="Seminar" data-i18n="typeSeminar">Seminar</option>
-                        <option value="Play" data-i18n="typePlay">Play</option>
-                    </select>
+                    <div class="stat-box">
+                        <span class="stat-number stat-upcoming" id="stat-upcoming">0</span>
+                        <span class="stat-label" data-i18n="statUpcomingEvents">Upcoming Events</span>
+                    </div>
 
-                    <a href="create-event.html" class="btn btn-gold new-event-link" id="header-create-event-btn"
-                        data-i18n="createEvent">
-                        + Create Event
-                    </a>
+                    <div class="stat-box">
+                        <span class="stat-number stat-past" id="stat-past">0</span>
+                        <span class="stat-label" data-i18n="statPastEvents">Past Events</span>
+                    </div>
 
                 </div>
 
-            </div>
+                <!-- CONTROLS & FILTER BAR -->
+                <div class="coordinator-controls">
 
-        </section>
+                    <div class="filter-tabs" role="tablist" aria-label="Filter events by timing">
 
-        <!-- EVENTS GRID SECTION -->
-        <section class="events-section" aria-label="Events list">
+                        <button type="button" class="tab-btn active" id="tab-all" data-filter="all" role="tab"
+                            aria-selected="true">
+                            <span data-i18n="filterAll">All Events</span>
+                            <span class="tab-count" id="count-all">0</span>
+                        </button>
 
-            <div id="events-grid" class="coordinator-events-grid" aria-live="polite">
-                <div class="empty-state" data-i18n="loadingEvents">Loading events...</div>
+                        <button type="button" class="tab-btn" id="tab-upcoming" data-filter="upcoming" role="tab"
+                            aria-selected="false">
+                            <span data-i18n="filterUpcoming">Upcoming</span>
+                            <span class="tab-count" id="count-upcoming">0</span>
+                        </button>
+
+                        <button type="button" class="tab-btn" id="tab-past" data-filter="past" role="tab"
+                            aria-selected="false">
+                            <span data-i18n="filterPast">Past</span>
+                            <span class="tab-count" id="count-past">0</span>
+                        </button>
+
+                    </div>
+
+                    <div class="controls-actions">
+
+                        <div class="search-box">
+                            <input type="search" id="event-search" placeholder="Search by title, venue, or type..."
+                                data-i18n-placeholder="searchPlaceholder" aria-label="Search events">
+                        </div>
+
+                        <select id="type-filter" aria-label="Filter by event type">
+                            <option value="all" data-i18n="allTypes">All Types</option>
+                            <option value="Workshop" data-i18n="typeWorkshop">Workshop</option>
+                            <option value="Seminar" data-i18n="typeSeminar">Seminar</option>
+                            <option value="Play" data-i18n="typePlay">Play</option>
+                        </select>
+
+                        <a href="create-event.html" class="btn btn-gold new-event-link" id="header-create-event-btn"
+                            data-i18n="createEvent">
+                            + Create Event
+                        </a>
+
+                    </div>
+
+                </div>
+
+                <!-- EVENTS GRID SECTION -->
+                <section class="events-section" aria-label="Events list">
+
+                    <div id="events-grid" class="coordinator-events-grid" aria-live="polite">
+                        <div class="empty-state" data-i18n="loadingEvents">Loading events...</div>
+                    </div>
+
+                </section>
+
             </div>
 
         </section>
@@ -290,4 +295,3 @@
 </body>
 
 </html>
-

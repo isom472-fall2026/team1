@@ -275,6 +275,8 @@ async function initialize() {
     if (coordBadge) coordBadge.hidden = false;
     const signoutBtn = document.getElementById("signout-btn");
     if (signoutBtn) signoutBtn.hidden = false;
+    const coordEventsLink = document.getElementById("coordinator-events-link");
+    if (coordEventsLink) coordEventsLink.hidden = false;
 
     try {
         await loadVenues();
