@@ -11,7 +11,7 @@ It also gives event organizers a simple digital checklist to check students in a
 > Update this line at the start of every phase. It is the first thing your team sees.
 
 - **Proposal page:** [Published proposal](https://isom472-fall2026.github.io/team1/docs/)
-- **Running system:** TODO: link to the deployed system once it exists
+- **Running system:** [AUK Events](https://isom472-fall2026.github.io/team1/prototype/home.html)
 - **Board:** TODO: link to your Project board
 
 ## Where do I go?
