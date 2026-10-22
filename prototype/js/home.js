@@ -37,6 +37,7 @@ const translations = {
         events: "Events",
         profile: "Profile",
         coordinatorEvents: "Coordinator Events",
+        createVenue: "+ Create Venue",
         guest: "Guest",
         welcome: "Welcome",
         welcomeSubtitle: "Your campus community starts here.",
@@ -112,6 +113,7 @@ const translations = {
         events: "الفعاليات",
         profile: "الملف الشخصي",
         coordinatorEvents: "فعاليات المنسق",
+        createVenue: "+ إنشاء قاعة",
         guest: "زائر",
         welcome: "مرحباً",
         welcomeSubtitle: "مجتمعك الجامعي يبدأ هنا.",
@@ -319,6 +321,7 @@ function initializeNavigation() {
         });
 
     const createEventBtn = $("create-event-btn");
+    const createVenueBtn = $("create-venue-btn");
     if (createEventBtn) {
         createEventBtn.addEventListener("click", closeMenu);
     }
@@ -812,6 +815,7 @@ function renderUserWelcome() {
 
 async function applyUserSession(user) {
     const createEventBtn = $("create-event-btn");
+    const createVenueBtn = $("create-venue-btn");
 
     const coordEventsLink = $("coordinator-events-link");
 
@@ -820,6 +824,7 @@ async function applyUserSession(user) {
         currentUserName = "";
         currentUserRole = "Guest";
         if (createEventBtn) createEventBtn.hidden = true;
+        if (createVenueBtn) createVenueBtn.hidden = true;
         if (coordEventsLink) coordEventsLink.hidden = true;
         renderUserWelcome();
         return;
@@ -878,6 +883,9 @@ async function applyUserSession(user) {
     // coordinator authorization when the event is inserted.
     if (createEventBtn) {
         createEventBtn.hidden = !isCoordinator;
+    }
+    if (createVenueBtn) {
+        createVenueBtn.hidden = !isCoordinator;
     }
     if (coordEventsLink) {
         coordEventsLink.hidden = Boolean(user && !isCoordinator);

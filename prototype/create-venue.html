@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7F1023">
+    <title>Create Venue | AUK Events</title>
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/create-event.css">
+    <script>
+        (function () {
+            const language = localStorage.getItem("auk-language") || "en";
+            const theme = localStorage.getItem("auk-theme") || "light";
+            document.documentElement.lang = language === "ar" ? "ar" : "en";
+            document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+            document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light";
+        })();
+    </script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script defer src="js/create-venue.js"></script>
+</head>
+
+<body>
+    <!-- NAVIGATION -->
+    <header>
+        <nav class="container" aria-label="Main navigation">
+            <a href="home.html" class="logo">
+                <span class="logo-icon">A</span>
+                <span>AUK Events</span>
+            </a>
+            <button class="icon-btn" id="menu-toggle" type="button" aria-label="Toggle navigation"
+                aria-controls="nav-links" aria-expanded="false">☰</button>
+            <div class="nav-links" id="nav-links">
+                <a href="home.html" class="nav-link" data-i18n="home">Home</a>
+                <a href="home.html#events-section" class="nav-link" data-i18n="events">Events</a>
+                <a href="profile.html" class="nav-link" id="profile-link" data-i18n="profile">Profile</a>
+                <a href="coordinator-events.html" class="nav-link" id="coordinator-events-link" data-i18n="coordinatorEvents" hidden>Coordinator Events</a>
+                <a href="create-event.html" class="create-event-btn" id="create-event-btn" role="button" data-i18n="createEvent" hidden>+ Create Event</a>
+                <a href="create-venue.html" class="create-event-btn active" id="create-venue-btn" role="button" data-i18n="createVenue" hidden>+ Create Venue</a>
+                <button class="auth-btn auth-signout-btn" id="signout-btn" type="button" data-i18n="signOut" hidden>Sign Out</button>
+            </div>
+            <div class="nav-actions">
+                <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle theme">🌙</button>
+                <button class="icon-btn" id="language-toggle" type="button" aria-label="Change language">العربية</button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="container">
+        <section class="create-event-card" aria-labelledby="create-venue-title">
+            <div class="section-heading">
+                <div>
+                    <span class="eyebrow create-event-eyebrow" data-i18n="eyebrow">AUK EVENTS</span>
+                    <h1 id="create-venue-title" data-i18n="createVenueHeading">Create a campus venue</h1>
+                    <p class="muted" data-i18n="createVenueSubtitle">Register a new campus venue with its location and physical room capacity.</p>
+                </div>
+                <span class="badge" id="coordinator-badge" data-i18n="coordinator" hidden>Coordinator</span>
+            </div>
+
+            <p id="access-message" class="form-message" role="status" aria-live="polite"></p>
+
+            <form id="create-venue-form" class="event-form" hidden novalidate>
+                <div class="form-field form-field-wide">
+                    <label for="venue-name" data-i18n="venueName">Venue name</label>
+                    <input id="venue-name" name="venue_name" type="text" maxlength="150" required placeholder="e.g. AUK Auditorium">
+                </div>
+
+                <div class="form-field form-field-wide">
+                    <label for="venue-location" data-i18n="venueLocation">Campus location</label>
+                    <input id="venue-location" name="location" type="text" maxlength="150" required placeholder="e.g. Main Building, Ground Floor">
+                </div>
+
+                <div class="form-field form-field-wide">
+                    <label for="room-capacity" data-i18n="roomCapacity">Room capacity</label>
+                    <input id="room-capacity" name="room_capacity" type="number" min="1" step="1" required placeholder="e.g. 100">
+                </div>
+
+                <div class="form-actions form-field-wide">
+                    <a class="btn btn-outline" href="home.html" data-i18n="cancel">Cancel</a>
+                    <button class="btn btn-gold" id="create-venue-submit" type="submit" data-i18n="submitCreateVenue">Create Venue</button>
+                </div>
+            </form>
+        </section>
+    </main>
+</body>
+
+</html>
+

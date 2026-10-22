@@ -32,6 +32,7 @@ const translations = {
         profile: "Profile",
         coordinatorEvents: "Coordinator Events",
         createEvent: "+ Create Event",
+        createVenue: "+ Create Venue",
         signOut: "Sign Out",
         coordinator: "Coordinator",
         coordinatorEyebrow: "COORDINATOR DASHBOARD",
@@ -77,6 +78,7 @@ const translations = {
         profile: "الملف الشخصي",
         coordinatorEvents: "فعاليات المنسق",
         createEvent: "+ إنشاء فعالية",
+        createVenue: "+ إنشاء قاعة",
         signOut: "تسجيل الخروج",
         coordinator: "منسق",
         coordinatorEyebrow: "لوحة تحكم المنسق",
@@ -768,6 +770,9 @@ async function initialize() {
 
     const createEventBtn = $("create-event-btn");
     if (createEventBtn) createEventBtn.hidden = false;
+
+    const createVenueBtn = $("create-venue-btn");
+    if (createVenueBtn) createVenueBtn.hidden = false;
 
     const content = $("coordinator-content");
     if (content) content.hidden = false;
