@@ -5,8 +5,15 @@ whoever is free at the end.*
 
 ## What was delivered
 
-<!-- What works now that did not work at the start of the phase. Plain language, what a
-     user can do. Not a list of commits. -->
+During Phase 3, our team developed and improved the AUK Event & Workshop Attendance Tracking System.
+
+Visitors can now access the home page and explore the system without signing in. New users can create accounts, and registered users can securely sign in and sign out.
+
+The system also provides role-based navigation, allowing users to see the features available to their roles. Users can view their profile information and update their contact details.
+
+Coordinators can create events, and additional event-related functionality was developed to improve the overall system.
+
+These features make the system more functional, user-friendly, and ready for further development.
 
 ## Who did what
 
@@ -14,15 +21,27 @@ whoever is free at the end.*
 
 | Name | Stories |
 |---|---|
-|  |  |
+| Ismail | #46, #36 |
+| Ayoub | #37, #41 |
+| Mustafa | #38, #39 |
+| Sulieman | #16, #56 |
+| Sayed | #15, #40 |
 
 ## Links to the stories
 
 *The full story list at this tag is saved in ../backlog.md — do not repeat it here.*
 
-<!-- Link each story listed above to its issue. -->
+- #46 — Guest Access to the AUK Events Home Page
+- #36 — User Account Creation
+- #37 — User Sign In
+- #41 — User Sign Out
+- #15 — Create an event by coordinator
+- #40 — Role-Specific Navigation Visibility
+- #38 — Profile View & Information Retrieval
+- #39 — User Contact Information Update
+- #16 — Coordinator Can View All Events
+- #56 — Coordinator Creates a New Venue
 
-- #__ —
 
 ## The tag cut for this phase
 
@@ -33,5 +52,4 @@ whoever is free at the end.*
 
 ## Anything not finished, and where it went
 
-<!-- What was planned and was not finished, and what happened to it: moved to the next phase,
-     dropped, or replaced. Say which. -->
+All user stories assigned to Phase 3 were completed and delivered. No unfinished stories were carried over to Phase 4. The team will continue developing additional features and improving the system in Phase 4.
