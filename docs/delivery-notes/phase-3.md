@@ -42,6 +42,20 @@ These features make the system more functional, user-friendly, and ready for fur
 - [#16](https://github.com/isom472-fall2026/team1/issues/16) — Coordinator Can View All Events
 - [#56](https://github.com/isom472-fall2026/team1/issues/56) — Coordinator Creates a New Venue
 
+## where every thing is:
+
+
+| **Item** | **Done** | **Where it is** |
+| :--- | :---: | :--- |
+| Phase 3 user stories and acceptance criteria | ☑ | [GitHub Issues](https://github.com/isom472-fall2026/team1/issues) |
+| Completed Phase 3 features | ☑ | [Running AUK Events System](https://isom472-fall2026.github.io/team1/prototype/home.html) |
+| HTML, CSS, and JavaScript implementation | ☑ | [prototype/](https://github.com/isom472-fall2026/team1/tree/main/prototype) |
+| Database schema and RLS policies | ☑ | [db/schema.sql](https://github.com/isom472-fall2026/team1/blob/main/db/schema.sql) |
+| Phase 3 backlog | ☐ | [docs/backlog.md](https://github.com/isom472-fall2026/team1/blob/main/docs/backlog.md) |
+| Team contributions | ☑ | See **Who did what** section above |
+| FinOps ledger | ☐ | [docs/finops-ledger.md](https://github.com/isom472-fall2026/team1/blob/main/docs/finops-ledger.md) |
+| Phase 3 delivery note | ☑ | This document |
+| Phase 3 Git tag | ☐ | `phase-3` |
 
 ## The tag cut for this phase
 
