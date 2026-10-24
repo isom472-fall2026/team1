@@ -5,8 +5,15 @@ whoever is free at the end.*
 
 ## What was delivered
 
-<!-- What works now that did not work at the start of the phase. Plain language, what a
-     user can do. Not a list of commits. -->
+During Phase 3, our team developed and improved the AUK Event & Workshop Attendance Tracking System.
+
+Visitors can now access the home page and explore the system without signing in. New users can create accounts, and registered users can securely sign in and sign out.
+
+The system also provides role-based navigation, allowing users to see the features available to their roles. Users can view their profile information and update their contact details.
+
+Coordinators can create events, and additional event-related functionality was developed to improve the overall system.
+
+These features make the system more functional, user-friendly, and ready for further development.
 
 ## Who did what
 
@@ -14,15 +21,42 @@ whoever is free at the end.*
 
 | Name | Stories |
 |---|---|
-|  |  |
+| Ismail | #46, #36 |
+| Ayoub | #37, #41 |
+| Mustafa | #38, #39 |
+| Sulieman | #16, #56 |
+| Sayed | #15, #40 |
 
 ## Links to the stories
 
 *The full story list at this tag is saved in ../backlog.md — do not repeat it here.*
 
-<!-- Link each story listed above to its issue. -->
+- [#46](https://github.com/isom472-fall2026/team1/issues/46) — Guest Access to the AUK Events Home Page
+- [#36](https://github.com/isom472-fall2026/team1/issues/36) — User Account Creation
+- [#37](https://github.com/isom472-fall2026/team1/issues/37) — User Sign In
+- [#41](https://github.com/isom472-fall2026/team1/issues/41) — User Sign Out
+- [#15](https://github.com/isom472-fall2026/team1/issues/15) — Create an Event by Coordinator
+- [#40](https://github.com/isom472-fall2026/team1/issues/40) — Role-Specific Navigation Visibility
+- [#38](https://github.com/isom472-fall2026/team1/issues/38) — Profile View & Information Retrieval
+- [#39](https://github.com/isom472-fall2026/team1/issues/39) — User Contact Information Update
+- [#16](https://github.com/isom472-fall2026/team1/issues/16) — Coordinator Can View All Events
+- [#56](https://github.com/isom472-fall2026/team1/issues/56) — Coordinator Creates a New Venue
 
-- #__ —
+## where every thing is:
+
+
+| **Item** | **Done** | **Where it is** |
+| :--- | :---: | :--- |
+| Phase 3 user stories and acceptance criteria | ☑ | [GitHub Issues](https://github.com/isom472-fall2026/team1/issues) |
+| Completed Phase 3 features | ☑ | [Running AUK Events System](https://isom472-fall2026.github.io/team1/prototype/home.html) |
+| HTML, CSS, and JavaScript implementation | ☑ | [prototype/](https://github.com/isom472-fall2026/team1/tree/main/prototype) |
+| Database schema and RLS policies | ☑ | [db/schema.sql](https://github.com/isom472-fall2026/team1/blob/main/db/schema.sql) |
+| Phase 3 backlog | ☑ | [docs/backlog.md](https://github.com/isom472-fall2026/team1/blob/main/docs/backlog.md) |
+| Team contributions | ☑ | See **Who did what** section above |
+| FinOps ledger | ☑ | [docs/finops-ledger.md](https://github.com/isom472-fall2026/team1/blob/main/docs/finops-ledger.md) |
+| what we learned |☑ | [docs/blog.md](https://github.com/isom472-fall2026/team1/blob/main/docs/blog.md) |
+| Phase 3 delivery note | ☑ | This document |
+| Phase 3 Git tag | ☑ | `phase-3` |
 
 ## The tag cut for this phase
 
@@ -33,5 +67,4 @@ whoever is free at the end.*
 
 ## Anything not finished, and where it went
 
-<!-- What was planned and was not finished, and what happened to it: moved to the next phase,
-     dropped, or replaced. Say which. -->
+All user stories assigned to Phase 3 were completed and delivered. No unfinished stories were carried over to Phase 4. The team will continue developing additional features and improving the system in Phase 4.
