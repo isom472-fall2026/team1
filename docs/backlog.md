@@ -29,8 +29,9 @@ the story ID, the title, who built it, and what happened to it.
 
 
 ## Phase 3 — saved 21 October
-
+|---|---|---|---|
 | Story | Title | Who | State at the tag |
+|---|---|---|---|
 |#56|Coordinator Creates a New Venue|Suleiman|done|
 |#15| Create an event by coordinator|Sayed|done|
 |#16|Coordinator Can View All Events|Suleiman|done| 
