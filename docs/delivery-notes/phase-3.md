@@ -51,11 +51,12 @@ These features make the system more functional, user-friendly, and ready for fur
 | Completed Phase 3 features | ☑ | [Running AUK Events System](https://isom472-fall2026.github.io/team1/prototype/home.html) |
 | HTML, CSS, and JavaScript implementation | ☑ | [prototype/](https://github.com/isom472-fall2026/team1/tree/main/prototype) |
 | Database schema and RLS policies | ☑ | [db/schema.sql](https://github.com/isom472-fall2026/team1/blob/main/db/schema.sql) |
-| Phase 3 backlog | ☐ | [docs/backlog.md](https://github.com/isom472-fall2026/team1/blob/main/docs/backlog.md) |
+| Phase 3 backlog | ☑ | [docs/backlog.md](https://github.com/isom472-fall2026/team1/blob/main/docs/backlog.md) |
 | Team contributions | ☑ | See **Who did what** section above |
-| FinOps ledger | ☐ | [docs/finops-ledger.md](https://github.com/isom472-fall2026/team1/blob/main/docs/finops-ledger.md) |
+| FinOps ledger | ☑ | [docs/finops-ledger.md](https://github.com/isom472-fall2026/team1/blob/main/docs/finops-ledger.md) |
+| what we learned |☑ | [docs/blog.md](https://github.com/isom472-fall2026/team1/blob/main/docs/blog.md) |
 | Phase 3 delivery note | ☑ | This document |
-| Phase 3 Git tag | ☐ | `phase-3` |
+| Phase 3 Git tag | ☑ | `phase-3` |
 
 ## The tag cut for this phase
 
