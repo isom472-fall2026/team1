@@ -31,16 +31,16 @@ These features make the system more functional, user-friendly, and ready for fur
 
 *The full story list at this tag is saved in ../backlog.md — do not repeat it here.*
 
-- #46 — Guest Access to the AUK Events Home Page
-- #36 — User Account Creation
-- #37 — User Sign In
-- #41 — User Sign Out
-- #15 — Create an event by coordinator
-- #40 — Role-Specific Navigation Visibility
-- #38 — Profile View & Information Retrieval
-- #39 — User Contact Information Update
-- #16 — Coordinator Can View All Events
-- #56 — Coordinator Creates a New Venue
+- [#46](https://github.com/isom472-fall2026/team1/issues/46) — Guest Access to the AUK Events Home Page
+- [#36](https://github.com/isom472-fall2026/team1/issues/36) — User Account Creation
+- [#37](https://github.com/isom472-fall2026/team1/issues/37) — User Sign In
+- [#41](https://github.com/isom472-fall2026/team1/issues/41) — User Sign Out
+- [#15](https://github.com/isom472-fall2026/team1/issues/15) — Create an Event by Coordinator
+- [#40](https://github.com/isom472-fall2026/team1/issues/40) — Role-Specific Navigation Visibility
+- [#38](https://github.com/isom472-fall2026/team1/issues/38) — Profile View & Information Retrieval
+- [#39](https://github.com/isom472-fall2026/team1/issues/39) — User Contact Information Update
+- [#16](https://github.com/isom472-fall2026/team1/issues/16) — Coordinator Can View All Events
+- [#56](https://github.com/isom472-fall2026/team1/issues/56) — Coordinator Creates a New Venue
 
 
 ## The tag cut for this phase
