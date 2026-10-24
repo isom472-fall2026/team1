@@ -29,7 +29,7 @@ the story ID, the title, who built it, and what happened to it.
 
 
 ## Phase 3 — saved 21 October
-|---|---|---|---|
+
 | Story | Title | Who | State at the tag |
 |---|---|---|---|
 |#56|Coordinator Creates a New Venue|Suleiman|done|
@@ -72,6 +72,8 @@ the story ID, the title, who built it, and what happened to it.
 |#84| Attendee Updates Attendee Classification Type | Ayoub| Moved to phase 5|
 |#85| Coordinator Exports Pre-Event Confirmed Attendee Roster | Ayoub | Moved to phase 5|
 |#58| Coordinator Assigns Door Organizer to an Event | Sayed | Moved to phase 5|
+|74| Attendee Reserve a Seat | Ismail | Moved to phase 4|
+
 
 ## Phase 4 — saved 4 November
 
