@@ -47,6 +47,7 @@ These features make the system more functional, user-friendly, and ready for fur
 
 | **Item** | **Done** | **Where it is** |
 | :--- | :---: | :--- |
+| GitHub Project Board | ☑ | [Team 1 — Seas](https://github.com/orgs/isom472-fall2026/projects/2) |
 | Phase 3 user stories and acceptance criteria | ☑ | [GitHub Issues](https://github.com/isom472-fall2026/team1/issues) |
 | Completed Phase 3 features | ☑ | [Running AUK Events System](https://isom472-fall2026.github.io/team1/prototype/home.html) |
 | HTML, CSS, and JavaScript implementation | ☑ | [prototype/](https://github.com/isom472-fall2026/team1/tree/main/prototype) |
@@ -67,4 +68,10 @@ These features make the system more functional, user-friendly, and ready for fur
 
 ## Anything not finished, and where it went
 
-All user stories assigned to Phase 3 were completed and delivered. No unfinished stories were carried over to Phase 4. The team will continue developing additional features and improving the system in Phase 4.
+Anything not finished, and where it went
+
+All ten user stories committed to Phase 3 were successfully completed and delivered.
+
+Eight additional user stories remain outstanding and have been formally carried forward to Phase 4: #13, #14, #18, #19, #20, #21, #23, and #24.
+
+These outstanding stories are documented in the project backlog and will be prioritized for implementation during Phase 4.
