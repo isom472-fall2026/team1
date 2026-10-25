@@ -38,10 +38,10 @@ the story ID, the title, who built it, and what happened to it.
 |#41| User Sign Out|Ayoub|done|
 |#46| Guest Access to the AUK Events Home Page |Ismail|done| 
 |#37| User sign in | Ayoub|done|
-|#36| User Account Creation |Sayed|done|
+|#36| User Account Creation |ismail|done|
 |#40| Role-Specific Navigation Visibility| Sayed |done| 
 |#38| Profile View & Information Retrieval| Mustafa |done|
-|#39| User Contact Information Update| Suleiman |done|
+|#39| User Contact Information Update| mustafa |done|
 |#13| Capacity-Capped Seat Reservation| Sayed |Moved to phase 4 |
 |#14| Live Door Check-In Interface | Sayed | moved to phase 4|
 |#18| Attendee Reservation Cancellation| Ayoub | moved to phase 4|
