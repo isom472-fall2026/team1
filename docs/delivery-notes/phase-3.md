@@ -47,7 +47,7 @@ These features make the system more functional, user-friendly, and ready for fur
 
 | **Item** | **Done** | **Where it is** |
 | :--- | :---: | :--- |
-| GitHub Project Board | ☑ | Team 1 — Seas |
+| GitHub Project Board | ☑ | [Team 1 — Seas](https://github.com/isom472-fall2026/team1/projects/2) |
 | Phase 3 user stories and acceptance criteria | ☑ | [GitHub Issues](https://github.com/isom472-fall2026/team1/issues) |
 | Completed Phase 3 features | ☑ | [Running AUK Events System](https://isom472-fall2026.github.io/team1/prototype/home.html) |
 | HTML, CSS, and JavaScript implementation | ☑ | [prototype/](https://github.com/isom472-fall2026/team1/tree/main/prototype) |
