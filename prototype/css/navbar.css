@@ -33,11 +33,14 @@ html[data-theme="dark"] {
 ========================================================= */
 
 .site-header {
-    position: relative;
+    position: sticky;
+    top: 0;
     z-index: 1000;
     width: 100%;
     background: var(--navbar-maroon);
     color: #ffffff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transition: box-shadow 0.2s ease;
 }
 
 .site-header .modern-navbar {
