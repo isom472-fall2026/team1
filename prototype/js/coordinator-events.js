@@ -11,6 +11,7 @@ const $ = id => document.getElementById(id);
 
 let client = null;
 let currentUser = null;
+let coordinatorRecord = null;
 let isCoordinator = false;
 
 let allEvents = [];
@@ -36,12 +37,12 @@ const translations = {
         signOut: "Sign Out",
         coordinator: "Coordinator",
         coordinatorEyebrow: "COORDINATOR DASHBOARD",
-        allEventsHeading: "All Campus Events",
+        allEventsHeading: "My Coordinator Events",
         allEventsSubtitle:
-            "View and manage all past and upcoming campus events in one centralized schedule.",
-        statTotalEvents: "Total Events",
-        statUpcomingEvents: "Upcoming Events",
-        statPastEvents: "Past Events",
+            "View and manage events created by you in one centralized schedule.",
+        statTotalEvents: "My Total Events",
+        statUpcomingEvents: "My Upcoming Events",
+        statPastEvents: "My Past Events",
         filterAll: "All Events",
         filterUpcoming: "Upcoming",
         filterPast: "Past",
@@ -63,7 +64,7 @@ const translations = {
         past: "Past",
         venueUnavailable: "Venue unavailable",
         noDescriptionAvailable: "No description available.",
-        noEventsAvailable: "No events available.",
+        noEventsAvailable: "No events created by you yet.",
         noFilteredEvents: "No events match this filter.",
         loadingEvents: "Loading events...",
         errorLoading: "Unable to load events. Please try again later.",
@@ -82,12 +83,12 @@ const translations = {
         signOut: "تسجيل الخروج",
         coordinator: "منسق",
         coordinatorEyebrow: "لوحة تحكم المنسق",
-        allEventsHeading: "جميع فعاليات الحرم الجامعي",
+        allEventsHeading: "فعالياتي كمنسق",
         allEventsSubtitle:
-            "عرض وإدارة جميع الفعاليات السابقة والقادمة في جدول مركزي واحد.",
-        statTotalEvents: "إجمالي الفعاليات",
-        statUpcomingEvents: "الفعاليات القادمة",
-        statPastEvents: "الفعاليات السابقة",
+            "عرض وإدارة الفعاليات التي أنشأتها السابقة والقادمة في جدول مركزي واحد.",
+        statTotalEvents: "إجمالي فعالياتي",
+        statUpcomingEvents: "فعالياتي القادمة",
+        statPastEvents: "فعالياتي السابقة",
         filterAll: "جميع الفعاليات",
         filterUpcoming: "القادمة",
         filterPast: "السابقة",
@@ -677,20 +678,41 @@ async function loadVenues() {
     }
 }
 
-// Criterion 1: Coordinator can view a list of all created events
+// Criterion: Coordinator can only view events created by themselves
 async function loadAllEvents() {
     try {
         await loadVenues();
 
-        const { data, error } = await client
+        const coordId = coordinatorRecord?.coordinator_id;
+        const userId = currentUser?.id;
+
+        let query = client
             .from("events")
             .select("event_id, title, description, event_type, event_date, start_time, end_time, capacity, coordinator_id, venue_id")
             .order("event_date", { ascending: false })
             .order("start_time", { ascending: false });
 
+        if (coordId && userId && String(coordId) !== String(userId)) {
+            query = query.or(`coordinator_id.eq.${coordId},coordinator_id.eq.${userId}`);
+        } else {
+            const filterId = coordId || userId;
+            if (filterId) {
+                query = query.eq("coordinator_id", filterId);
+            }
+        }
+
+        const { data, error } = await query;
+
         if (error) throw error;
 
-        allEvents = data || [];
+        allEvents = (data || []).filter(e => {
+            if (!coordId && !userId) return false;
+            return (
+                (coordId && String(e.coordinator_id) === String(coordId)) ||
+                (userId && String(e.coordinator_id) === String(userId))
+            );
+        });
+
         renderEvents();
     } catch (error) {
         console.error("Failed to load events:", error);
@@ -743,7 +765,7 @@ async function initialize() {
     // Must be an authorized coordinator in coordinator table
     const { data: coordinator, error: coordinatorError } = await client
         .from("coordinator")
-        .select("user_id")
+        .select("*")
         .eq("user_id", currentUser.id)
         .maybeSingle();
 
@@ -759,6 +781,7 @@ async function initialize() {
     }
 
     // Authorized Coordinator Verified
+    coordinatorRecord = coordinator;
     isCoordinator = true;
     setMessage(""); // Clear error message
 
