@@ -37,7 +37,6 @@ const translations = {
         events: "Events",
         profile: "Profile",
         coordinatorEvents: "Coordinator Events",
-        createVenue: "+ Create Venue",
         guest: "Guest",
         welcome: "Welcome",
         welcomeSubtitle: "Your campus community starts here.",
@@ -60,7 +59,7 @@ const translations = {
         stayConnectedDescription:
             "Discover new opportunities, workshops, and university events.",
         noEvents:
-            "There are no upcoming events at the moment.",
+            "There are no upcoming events.",
         noEventsFiltered:
             "No upcoming events match this filter.",
         eventError:
@@ -106,6 +105,8 @@ const translations = {
         coordinator: "Coordinator",
         organizer: "Organizer",
         attendee: "Attendee",
+        capacityLabel: "Capacity",
+        venueLabel: "Venue",
     },
 
     ar: {
@@ -113,7 +114,6 @@ const translations = {
         events: "الفعاليات",
         profile: "الملف الشخصي",
         coordinatorEvents: "فعاليات المنسق",
-        createVenue: "+ إنشاء قاعة",
         guest: "زائر",
         welcome: "مرحباً",
         welcomeSubtitle: "مجتمعك الجامعي يبدأ هنا.",
@@ -181,6 +181,8 @@ const translations = {
         coordinator: "منسق",
         organizer: "منظم",
         attendee: "مشارك",
+        capacityLabel: "السعة",
+        venueLabel: "المكان",
     }
 };
 
@@ -321,7 +323,6 @@ function initializeNavigation() {
         });
 
     const createEventBtn = $("create-event-btn");
-    const createVenueBtn = $("create-venue-btn");
     if (createEventBtn) {
         createEventBtn.addEventListener("click", closeMenu);
     }
@@ -536,35 +537,27 @@ function renderChips() {
 =================================== */
 
 function updateShowAllButton() {
-    const button = $("show-all-events");
+    const button = document.getElementById("show-all-events");
 
-    const filtered =
-        activeFilter === "all"
-            ? allEvents
-            : allEvents.filter(event =>
-                normalizeType(event.event_type) === activeFilter
-            );
+    if (!button) return;
 
-    button.hidden =
-        eventsState !== "loaded" ||
-        filtered.length <= 6;
-
-    button.textContent =
-        showAllEvents
-            ? t("showLess")
-            : t("viewAllEvents");
+    button.hidden = false;
 }
 
 /* ===================================
    RENDER UPCOMING EVENTS
 =================================== */
 
+
 function renderEvents() {
     const container = $("home-events");
 
+    if (!container) return;
+
+    // Loading state
     if (eventsState === "loading") {
         container.innerHTML = `
-            <div class="empty-state">
+            <div class="empty-state" role="status">
                 ${escapeHTML(t("loadingEvents"))}
             </div>
         `;
@@ -573,9 +566,10 @@ function renderEvents() {
         return;
     }
 
+    // Error state
     if (eventsState === "error") {
         container.innerHTML = `
-            <div class="empty-state">
+            <div class="empty-state" role="alert">
                 ${escapeHTML(t("eventError"))}
             </div>
         `;
@@ -584,6 +578,7 @@ function renderEvents() {
         return;
     }
 
+    // Filter events by category
     const filtered =
         activeFilter === "all"
             ? allEvents
@@ -591,11 +586,9 @@ function renderEvents() {
                 normalizeType(event.event_type) === activeFilter
             );
 
-    const visible =
-        showAllEvents
-            ? filtered
-            : filtered.slice(0, 6);
-
+    // Show 3 initially, then all when requested
+    const visible = filtered.slice(0, 3);
+    // Empty state
     if (!visible.length) {
         container.innerHTML = `
             <div class="empty-state">
@@ -611,56 +604,88 @@ function renderEvents() {
         return;
     }
 
-    container.innerHTML = visible.map((event, index) => `
-        <article class="event-card">
+    // Render event cards
+    container.innerHTML = visible.map((event, index) => {
 
-            <span class="event-type">
-                ${escapeHTML(event.event_type || t("event"))}
-            </span>
+        const venueName =
+            event.venues?.venue_name || "To be announced";
 
-            <h3>
-                ${escapeHTML(event.title)}
-            </h3>
+        return `
+            <article class="event-card">
 
-            <span class="event-date">
-                📅 ${escapeHTML(formatDate(event.event_date))}
-                ·
-                🕒 ${escapeHTML(formatTimeRange(event))}
-            </span>
+                <span class="event-type">
+                    ${escapeHTML(event.event_type || t("event"))}
+                </span>
 
-            <p class="event-description">
-                ${escapeHTML(event.description || "")}
-            </p>
+                <h3>
+                    ${escapeHTML(event.title)}
+                </h3>
 
-            <div class="event-footer">
+                <p class="event-description">
+                    ${escapeHTML(
+            event.description || "No description available."
+        )}
+                </p>
 
-                <button
-                    class="btn event-detail-btn"
-                    type="button"
-                    data-index="${index}">
-                    ${escapeHTML(t("viewDetails"))}
-                </button>
+                <div class="event-info">
 
-            </div>
+                    <p>
+                        <strong>${escapeHTML(t("dateLabel"))}:</strong>
+                        ${escapeHTML(formatDate(event.event_date))}
+                    </p>
 
-        </article>
-    `).join("");
+                    <p>
+                        <strong>${escapeHTML(t("timeLabel"))}:</strong>
+                        ${escapeHTML(formatTimeRange(event))}
+                    </p>
 
+                    <p>
+                        <strong>${escapeHTML(t("venueLabel"))}:</strong>
+                        ${escapeHTML(venueName)}
+                    </p>
+
+                    <p>
+                        <strong>${escapeHTML(t("capacityLabel"))}:</strong>
+                        ${escapeHTML(event.capacity ?? "—")}
+                    </p>
+
+                </div>
+
+                <div class="event-footer">
+
+                    <button
+                        class="btn event-detail-btn"
+                        type="button"
+                        data-index="${index}">
+                        ${escapeHTML(t("viewDetails"))}
+                    </button>
+
+                </div>
+
+            </article>
+        `;
+    }).join("");
+
+    // View Details buttons
     container.querySelectorAll(".event-detail-btn")
         .forEach(button => {
+
             button.addEventListener("click", () => {
                 const index = Number(button.dataset.index);
 
                 openEventModal(visible[index]);
             });
+
         });
 
     updateShowAllButton();
 }
 
+
 /* ===================================
    EVENT DETAILS
 =================================== */
+
 
 function openEventModal(event) {
     if (!event) return;
@@ -674,6 +699,9 @@ function openEventModal(event) {
     $("modal-description").textContent =
         event.description || "";
 
+    const venueName =
+        event.venues?.venue_name || "To be announced";
+
     $("modal-meta").innerHTML = `
         <span>
             <strong>${escapeHTML(t("dateLabel"))}:</strong>
@@ -683,6 +711,11 @@ function openEventModal(event) {
         <span>
             <strong>${escapeHTML(t("timeLabel"))}:</strong>
             ${escapeHTML(formatTimeRange(event))}
+        </span>
+
+        <span>
+            <strong>${escapeHTML(t("venueLabel"))}:</strong>
+            ${escapeHTML(venueName)}
         </span>
 
         <span>
@@ -710,9 +743,9 @@ function openEventModal(event) {
         const params = new URLSearchParams({
             action: "TEMPLATE",
             text: `[AUK] ${event.title || "Event"}`,
-            dates:
-                `${ymd}T${start}00/${ymd}T${end}00`,
-            details: event.description || ""
+            dates: `${ymd}T${start}00/${ymd}T${end}00`,
+            details: event.description || "",
+            location: venueName
         });
 
         calendarLink.href =
@@ -731,45 +764,66 @@ function openEventModal(event) {
    LOAD EVENTS FROM SUPABASE
 =================================== */
 
+function updateUpcomingEventsCount() {
+    const counter = document.getElementById("stat-events");
+
+    if (!counter) return;
+
+    counter.textContent = allEvents.length;
+}
+
 async function loadEvents() {
     eventsState = "loading";
     renderEvents();
 
     try {
+        const today = localToday();
+
         const { data, error } = await db
             .from("events")
-            .select(
-                "event_id,title,description,event_type,event_date,start_time,end_time,capacity"
-            )
-            .gte("event_date", localToday())
-            .order("event_date", {
-                ascending: true
-            })
-            .order("start_time", {
-                ascending: true
-            });
+            .select(`
+                event_id,
+                title,
+                description,
+                event_type,
+                event_date,
+                start_time,
+                end_time,
+                capacity,
+                venues (
+                    venue_name
+                )
+            `)
+            .gte("event_date", today)
+            .order("event_date", { ascending: true })
+            .order("start_time", { ascending: true });
 
         if (error) throw error;
 
-        allEvents = data || [];
+        const now = new Date();
+
+        allEvents = (data || []).filter(event => {
+            if (!event.end_time) return true;
+
+            const end = new Date(
+                `${event.event_date}T${event.end_time}`
+            );
+
+            return !Number.isNaN(end.getTime()) && end >= now;
+        });
+
         eventsState = "loaded";
 
-        $("stat-events").textContent =
-            allEvents.length;
-
     } catch (error) {
-        console.error("Events error:", error);
-
+        console.error("Unable to load events:", error);
         allEvents = [];
         eventsState = "error";
-
-        $("stat-events").textContent = "—";
     }
 
+    updateUpcomingEventsCount();
     renderChips();
     renderEvents();
 }
-
 /* ===================================
    USER SESSION & WELCOME MANAGEMENT
 =================================== */
@@ -781,8 +835,10 @@ function renderUserWelcome() {
     const signupBtn = $("signup-btn");
     const signinBtn = $("signin-btn");
     const signoutBtn = $("signout-btn");
+    const profileLink = $("profile-link");
 
     if (currentUser) {
+        if (profileLink) profileLink.hidden = false;
         const name = currentUserName || (currentUser.email ? currentUser.email.split("@")[0] : "Attendee");
         if (welcomeTitle) {
             welcomeTitle.textContent = `${t("welcome")} ${escapeHTML(name)}!`;
@@ -798,6 +854,7 @@ function renderUserWelcome() {
         if (signinBtn) signinBtn.hidden = true;
         if (signoutBtn) signoutBtn.hidden = false;
     } else {
+        if (profileLink) profileLink.hidden = true;
         if (welcomeTitle) {
             welcomeTitle.textContent = `${t("welcome")} ${t("guest")}!`;
         }
@@ -815,7 +872,6 @@ function renderUserWelcome() {
 
 async function applyUserSession(user) {
     const createEventBtn = $("create-event-btn");
-    const createVenueBtn = $("create-venue-btn");
 
     const coordEventsLink = $("coordinator-events-link");
 
@@ -824,7 +880,6 @@ async function applyUserSession(user) {
         currentUserName = "";
         currentUserRole = "Guest";
         if (createEventBtn) createEventBtn.hidden = true;
-        if (createVenueBtn) createVenueBtn.hidden = true;
         if (coordEventsLink) coordEventsLink.hidden = true;
         renderUserWelcome();
         return;
@@ -884,9 +939,6 @@ async function applyUserSession(user) {
     if (createEventBtn) {
         createEventBtn.hidden = !isCoordinator;
     }
-    if (createVenueBtn) {
-        createVenueBtn.hidden = !isCoordinator;
-    }
     if (coordEventsLink) {
         coordEventsLink.hidden = Boolean(user && !isCoordinator);
     }
@@ -912,6 +964,9 @@ async function applyUserSession(user) {
     }
 
     renderUserWelcome();
+    if (typeof window.applyNavbarUser === "function") {
+        window.applyNavbarUser(user);
+    }
 }
 
 window.applyUserSession = applyUserSession;
@@ -981,11 +1036,6 @@ async function initialize() {
         setLanguage(
             lang() === "ar" ? "en" : "ar"
         );
-    });
-
-    $("show-all-events").addEventListener("click", () => {
-        showAllEvents = !showAllEvents;
-        renderEvents();
     });
 
     setTheme(

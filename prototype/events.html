@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="theme-color" content="#7F1023">
+
+    <meta name="description"
+        content="Browse upcoming workshops, seminars, and campus activities at the American University of Kuwait.">
+
+    <title>Events | AUK Events</title>
+
+    <!-- FAVICON -->
+    <link rel="icon" type="image/png" href="../docs/images/favicon.png">
+
+    <!-- LOAD SAVED THEME AND LANGUAGE -->
+    <script>
+        (function () {
+            try {
+                const language =
+                    localStorage.getItem("auk-language") || "en";
+
+                const theme =
+                    localStorage.getItem("auk-theme") || "light";
+
+                document.documentElement.lang =
+                    language === "ar" ? "ar" : "en";
+
+                document.documentElement.dir =
+                    language === "ar" ? "rtl" : "ltr";
+
+                document.documentElement.dataset.theme =
+                    theme === "dark" ? "dark" : "light";
+
+            } catch (error) {
+                console.warn("Unable to load preferences:", error);
+            }
+        })();
+    </script>
+
+    <!-- STYLES -->
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/events.css">
+
+    <!-- SUPABASE -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+    <!-- EXISTING SUPABASE CONFIGURATION -->
+    <script defer src="../js/config.js"></script>
+
+    <!-- NAVBAR & EVENTS JAVASCRIPT -->
+    <script defer src="js/navbar.js"></script>
+    <script defer src="js/events.js"></script>
+
+</head>
+
+<body>
+
+    <!-- =====================================================
+         HEADER / NAVIGATION
+    ====================================================== -->
+
+    <header class="site-header">
+
+        <nav class="container modern-navbar" aria-label="Main navigation">
+
+            <!-- LOGO -->
+            <a href="home.html" class="logo">
+
+                <span class="logo-icon" aria-hidden="true">
+                    A
+                </span>
+
+                <span>
+                    AUK Events
+                </span>
+
+            </a>
+
+
+            <!-- =====================================================
+                 MAIN NAVIGATION LINKS
+            ====================================================== -->
+
+            <div class="modern-nav-links" id="nav-links">
+
+                <!-- HOME -->
+                <a href="home.html" class="nav-link" data-i18n="home">
+
+                    Home
+
+                </a>
+
+
+                <!-- EVENTS -->
+                <a href="events.html" class="nav-link active" data-i18n="events" aria-current="page">
+
+                    Events
+
+                </a>
+
+
+                <!-- MY BOOKINGS -->
+                <a href="my-bookings.html" class="nav-link" id="my-bookings-link" data-i18n="myBookings" hidden>
+
+                    My Bookings
+
+                </a>
+
+
+                <!-- =====================================================
+                     COORDINATOR DROPDOWN
+                ====================================================== -->
+
+                <div class="nav-dropdown" id="coordinator-menu" hidden>
+
+                    <button type="button" class="nav-dropdown-toggle" aria-expanded="false"
+                        aria-controls="coordinator-dropdown">
+
+                        <span data-i18n="coordinator">
+                            Coordinator
+                        </span>
+
+                        <span aria-hidden="true">
+                            ⌄
+                        </span>
+
+                    </button>
+
+
+                    <div class="nav-dropdown-menu" id="coordinator-dropdown">
+
+                        <!-- COORDINATOR EVENTS -->
+                        <a href="coordinator-events.html" id="coordinator-events-link" data-i18n="coordinatorEvents">
+
+                            Coordinator Events
+
+                        </a>
+
+
+                        <!-- CREATE EVENT -->
+                        <a href="create-event.html" id="create-event-btn" data-i18n="createEvent">
+
+                            Create Event
+
+                        </a>
+
+
+                        <!-- CREATE VENUE -->
+                        <a href="create-venue.html" id="create-venue-btn" data-i18n="createVenue">
+
+                            Create Venue
+
+                        </a>
+
+
+                        <!-- ASSIGN ORGANIZERS -->
+                        <a href="assign-organizers.html" id="assign-organizers-btn" data-i18n="assignOrganizers">
+
+                            Assign Organizers
+
+                        </a>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 RIGHT SIDE NAVIGATION
+            ====================================================== -->
+
+            <div class="modern-nav-actions">
+
+                <!-- THEME BUTTON -->
+                <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle theme">
+
+                    🌙
+
+                </button>
+
+
+                <!-- LANGUAGE BUTTON -->
+                <button class="icon-btn" id="language-toggle" type="button" aria-label="Change language"
+                    title="Change language">
+
+                    العربية
+
+                </button>
+
+
+                <!-- =====================================================
+                     GUEST AUTHENTICATION
+                ====================================================== -->
+
+                <!-- SIGN IN -->
+                <a href="home.html?signin=true" class="nav-auth-link" id="signin-btn" data-i18n="signIn">
+
+                    Sign In
+
+                </a>
+
+
+                <!-- SIGN UP -->
+                <a href="home.html?signup=true" class="nav-signup-btn" id="signup-btn" data-i18n="signUp">
+
+                    Sign Up
+
+                </a>
+
+
+                <!-- =====================================================
+                     USER ACCOUNT DROPDOWN
+                ====================================================== -->
+
+                <div class="nav-dropdown" id="user-menu" hidden>
+
+                    <button type="button" class="nav-dropdown-toggle user-menu-toggle" aria-expanded="false"
+                        aria-controls="user-dropdown">
+
+                        <span aria-hidden="true">
+                            👤
+                        </span>
+
+                        <span data-i18n="account">
+                            Account
+                        </span>
+
+                        <span aria-hidden="true">
+                            ⌄
+                        </span>
+
+                    </button>
+
+
+                    <div class="nav-dropdown-menu nav-dropdown-right" id="user-dropdown">
+
+                        <!-- PROFILE -->
+                        <a href="profile.html" id="profile-link" data-i18n="profile">
+
+                            My Profile
+
+                        </a>
+
+
+                        <!-- SIGN OUT -->
+                        <button type="button" id="signout-btn" data-i18n="signOut">
+
+                            Sign Out
+
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 MOBILE MENU
+            ====================================================== -->
+
+            <button class="icon-btn mobile-menu-toggle" id="menu-toggle" type="button" aria-label="Toggle navigation"
+                aria-controls="nav-links" aria-expanded="false">
+
+                ☰
+
+            </button>
+
+        </nav>
+
+    </header>
+
+
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
+
+    <main class="container">
+
+
+        <!-- =====================================================
+             PAGE HEADER
+        ====================================================== -->
+
+        <section class="events-page-header" aria-labelledby="events-page-title">
+
+            <div class="events-header-content">
+
+                <span class="eyebrow" data-i18n="eventsEyebrow">
+
+                    AUK CAMPUS ACTIVITIES
+
+                </span>
+
+
+                <h1 id="events-page-title" data-i18n="allEventsHeading">
+
+                    Discover Upcoming Events
+
+                </h1>
+
+
+                <p class="muted" data-i18n="allEventsSubtitle">
+
+                    Explore upcoming workshops, seminars,
+                    and campus activities at the
+                    American University of Kuwait.
+
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             EVENTS STATISTICS
+        ====================================================== -->
+
+        <section class="section" aria-label="Events overview">
+
+            <div class="stats-grid">
+
+                <article class="stat-card">
+
+                    <div class="stat-number" id="stat-events">
+
+                        —
+
+                    </div>
+
+
+                    <div class="stat-label" data-i18n="upcomingEvents">
+
+                        Upcoming Events
+
+                    </div>
+
+                </article>
+
+            </div>
+
+        </section>
+
+
+        <!-- =====================================================
+             BROWSE EVENTS
+        ====================================================== -->
+
+        <section class="section" aria-labelledby="browse-events-title">
+
+
+            <!-- SECTION HEADING -->
+            <div class="section-heading">
+
+                <div>
+
+                    <h2 id="browse-events-title" data-i18n="browseEvents">
+
+                        Browse Events
+
+                    </h2>
+
+
+                    <p class="muted" data-i18n="eventsSubtitle">
+
+                        Find events that interest you.
+
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 SEARCH AND FILTERS
+            ====================================================== -->
+
+            <div class="events-toolbar">
+
+
+                <!-- SEARCH INPUT -->
+                <div class="events-search">
+
+                    <label for="event-search" class="sr-only">
+
+                        Search Events
+
+                    </label>
+
+
+                    <input type="search" id="event-search" placeholder="Search by title, description, or venue..."
+                        data-i18n-placeholder="searchEventsPlaceholder" autocomplete="off">
+
+                </div>
+
+
+                <!-- EVENT TYPE FILTER -->
+                <div class="events-filter">
+
+                    <label for="event-type-filter" class="sr-only">
+
+                        Event Type
+
+                    </label>
+
+
+                    <select id="event-type-filter">
+
+                        <option value="all" data-i18n="all">
+
+                            All Events
+
+                        </option>
+
+
+                        <option value="Workshop" data-i18n="workshop">
+
+                            Workshop
+
+                        </option>
+
+
+                        <option value="Seminar" data-i18n="seminar">
+
+                            Seminar
+
+                        </option>
+
+
+                        <option value="Play" data-i18n="play">
+
+                            Play
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 RESULTS HEADER
+            ====================================================== -->
+
+            <div class="events-results-header">
+
+                <h3 data-i18n="availableEvents">
+
+                    Available Events
+
+                </h3>
+
+
+                <span class="muted" id="events-count" aria-live="polite">
+
+                    Loading...
+
+                </span>
+
+            </div>
+
+
+            <!-- =====================================================
+                 EVENTS GRID
+            ====================================================== -->
+
+            <div class="events-grid" id="events-grid" aria-live="polite" aria-busy="true">
+
+                <div class="empty-state">
+
+                    Loading events...
+
+                </div>
+
+            </div>
+
+
+            <!-- =====================================================
+                 EMPTY STATE
+            ====================================================== -->
+
+            <div class="empty-state" id="events-empty" hidden>
+
+                <h3 data-i18n="noEvents">
+
+                    No upcoming events
+
+                </h3>
+
+
+                <p class="muted" data-i18n="noEventsDescription">
+
+                    There are currently no events matching
+                    your search or filters.
+
+                </p>
+
+
+                <button type="button" class="btn btn-outline" id="clear-filters" data-i18n="clearFilters">
+
+                    Clear Filters
+
+                </button>
+
+            </div>
+
+
+            <!-- =====================================================
+                 ERROR MESSAGE
+            ====================================================== -->
+
+            <p class="form-message" id="events-error" role="alert" hidden>
+            </p>
+
+        </section>
+
+
+        <!-- =====================================================
+             INFORMATION BANNER
+        ====================================================== -->
+
+        <section class="section">
+
+            <div class="feature-banner">
+
+                <div>
+
+                    <h3 data-i18n="stayConnected">
+
+                        Stay Connected with Campus Life
+
+                    </h3>
+
+
+                    <p data-i18n="stayConnectedDescription">
+
+                        Discover new opportunities,
+                        workshops, and university events.
+
+                    </p>
+
+                </div>
+
+
+                <a href="home.html" class="btn" data-i18n="backToHome">
+
+                    Back to Home
+
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- =====================================================
+         EVENT DETAILS MODAL
+    ====================================================== -->
+
+    <div class="modal-backdrop" id="event-modal" hidden>
+
+        <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+
+            <!-- MODAL HEADER -->
+            <div class="modal-head">
+
+                <span class="event-type" id="modal-type">
+
+                    —
+
+                </span>
+
+
+                <button class="icon-btn modal-close" id="modal-close" type="button" aria-label="Close event details">
+
+                    ✕
+
+                </button>
+
+            </div>
+
+
+            <!-- EVENT TITLE -->
+            <h3 id="modal-title">
+
+                Event Title
+
+            </h3>
+
+
+            <!-- EVENT META -->
+            <div class="modal-meta" id="modal-meta">
+
+            </div>
+
+
+            <!-- EVENT DESCRIPTION -->
+            <div class="modal-description">
+
+                <h4 data-i18n="description">
+
+                    Description
+
+                </h4>
+
+
+                <p id="modal-description">
+
+                </p>
+
+            </div>
+
+
+            <!-- MODAL ACTIONS -->
+            <div class="modal-actions">
+
+                <!-- GOOGLE CALENDAR -->
+                <a class="btn btn-gold" id="modal-gcal" target="_blank" rel="noopener noreferrer"
+                    data-i18n="addToCalendar" hidden>
+
+                    Add to Google Calendar
+
+                </a>
+
+
+                <!-- CLOSE -->
+                <button type="button" class="btn btn-outline" id="modal-close-btn" data-i18n="close">
+
+                    Close
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- =====================================================
+         FOOTER
+    ====================================================== -->
+
+    <footer>
+
+        <p>
+
+            © <span id="current-year"></span>
+
+            AUK Events &amp; Workshop Attendance System
+
+        </p>
+
+    </footer>
+
+
+    <!-- =====================================================
+         NOTIFICATION TOAST
+    ====================================================== -->
+
+    <div class="toast" id="toast" role="status" aria-live="polite" hidden>
+    </div>
+
+</body>
+
+</html>
