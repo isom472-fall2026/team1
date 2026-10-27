@@ -887,20 +887,19 @@ function initializeCustomEventFilter() {
             });
 
             // Apply the selected event filter
-            activeType = value.toLowerCase();
+            activeFilter = value.toLowerCase();
+
             renderEvents();
 
             closeDropdown();
         });
     });
-
     // Close when clicking outside
     document.addEventListener("click", event => {
         if (!dropdown.contains(event.target)) {
             closeDropdown();
         }
     });
-
     // Close with Escape
     document.addEventListener("keydown", event => {
         if (event.key === "Escape") {
@@ -909,3 +908,4 @@ function initializeCustomEventFilter() {
         }
     });
 }
+
