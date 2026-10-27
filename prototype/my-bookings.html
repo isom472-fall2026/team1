@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#7F1023">
+    <title>My Bookings | AUK Events</title>
+
+    <script>
+        (function () {
+            try {
+                const language = localStorage.getItem("auk-language") || "en";
+                const theme = localStorage.getItem("auk-theme") || "light";
+                document.documentElement.lang = language === "ar" ? "ar" : "en";
+                document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
+                document.documentElement.dataset.theme = theme === "dark" ? "dark" : "light";
+            } catch (error) {
+                console.warn("Preferences unavailable:", error);
+            }
+        })();
+    </script>
+
+    <link rel="stylesheet" href="css/home.css">
+    <link rel="stylesheet" href="css/navbar.css">
+
+    <!-- Supabase public client -->
+    <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/config.js"></script>
+    <script defer src="js/navbar.js"></script>
+</head>
+
+<body>
+    <!-- NAVIGATION -->
+    <header class="site-header">
+        <nav class="container modern-navbar" aria-label="Main navigation">
+            <!-- LOGO -->
+            <a href="home.html" class="logo">
+                <span class="logo-icon" aria-hidden="true">A</span>
+                <span>AUK Events</span>
+            </a>
+
+            <!-- MAIN NAVIGATION LINKS -->
+            <div class="modern-nav-links" id="nav-links">
+                <a href="home.html" class="nav-link" data-i18n="home">
+                    Home
+                </a>
+
+                <a href="events.html" class="nav-link" data-i18n="events">
+                    Events
+                </a>
+
+                <a href="my-bookings.html" class="nav-link active" id="my-bookings-link" data-i18n="myBookings" aria-current="page">
+                    My Bookings
+                </a>
+
+                <!-- COORDINATOR DROPDOWN -->
+                <div class="nav-dropdown" id="coordinator-menu" hidden>
+                    <button type="button" class="nav-dropdown-toggle" aria-expanded="false"
+                        aria-controls="coordinator-dropdown">
+                        <span data-i18n="coordinator">Coordinator</span>
+                        <span aria-hidden="true">⌄</span>
+                    </button>
+
+                    <div class="nav-dropdown-menu" id="coordinator-dropdown">
+                        <a href="coordinator-events.html" id="coordinator-events-link" data-i18n="coordinatorEvents">
+                            Coordinator Events
+                        </a>
+                        <a href="create-event.html" id="create-event-btn" data-i18n="createEvent">
+                            Create Event
+                        </a>
+                        <a href="create-venue.html" id="create-venue-btn" data-i18n="createVenue">
+                            Create Venue
+                        </a>
+                        <a href="assign-organizers.html" id="assign-organizers-btn" data-i18n="assignOrganizers">
+                            Assign Organizers
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT SIDE NAVIGATION -->
+            <div class="modern-nav-actions">
+                <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle theme" title="Toggle theme">
+                    🌙
+                </button>
+
+                <button class="icon-btn" id="language-toggle" type="button" aria-label="Change language" title="Change language">
+                    العربية
+                </button>
+
+                <!-- GUEST AUTHENTICATION -->
+                <a href="home.html?signin=true" class="nav-auth-link" id="signin-btn" data-i18n="signIn">
+                    Sign In
+                </a>
+                <a href="home.html?signup=true" class="nav-signup-btn" id="signup-btn" data-i18n="signUp">
+                    Sign Up
+                </a>
+
+                <!-- USER ACCOUNT DROPDOWN -->
+                <div class="nav-dropdown" id="user-menu" hidden>
+                    <button type="button" class="nav-dropdown-toggle user-menu-toggle" aria-expanded="false"
+                        aria-controls="user-dropdown">
+                        <span aria-hidden="true">👤</span>
+                        <span data-i18n="account">Account</span>
+                        <span aria-hidden="true">⌄</span>
+                    </button>
+
+                    <div class="nav-dropdown-menu nav-dropdown-right" id="user-dropdown">
+                        <a href="profile.html" id="profile-link" data-i18n="profile">
+                            My Profile
+                        </a>
+                        <button type="button" id="signout-btn" data-i18n="signOut">
+                            Sign Out
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MOBILE MENU -->
+            <button class="icon-btn mobile-menu-toggle" id="menu-toggle" type="button" aria-label="Toggle navigation"
+                aria-controls="nav-links" aria-expanded="false">
+                ☰
+            </button>
+        </nav>
+    </header>
+
+    <main class="container">
+        <section class="section" style="padding: 40px 0;">
+            <div class="section-heading">
+                <div>
+                    <h1 data-i18n="myBookings">My Bookings</h1>
+                    <p class="muted">View and manage your registered campus events and workshops.</p>
+                </div>
+            </div>
+
+            <div class="empty-state" style="padding: 40px 20px; text-align: center; background: var(--navbar-surface); border: 1px solid var(--navbar-border); border-radius: var(--navbar-radius);">
+                <p class="muted">No event bookings found.</p>
+                <a href="events.html" class="btn btn-gold" data-i18n="browseEvents" style="margin-top: 15px; display: inline-block;">Browse Events</a>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>© <span id="current-year">2026</span> AUK Events &amp; Workshop Attendance System</p>
+    </footer>
+</body>
+
+</html>
