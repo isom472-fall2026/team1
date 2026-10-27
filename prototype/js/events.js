@@ -903,7 +903,6 @@ function initializeCustomEventFilter() {
     });
 
     // Close with Escape
-
     document.addEventListener("keydown", event => {
         if (event.key === "Escape") {
             closeDropdown();
