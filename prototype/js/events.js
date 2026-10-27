@@ -782,6 +782,8 @@ function initializeEventControls() {
 ========================================================= */
 
 async function initialize() {
+    // Initialize custom event filter
+    initializeCustomEventFilter();
     const year = $("current-year");
 
     if (year) {
@@ -835,3 +837,76 @@ async function initialize() {
 }
 
 document.addEventListener("DOMContentLoaded", initialize);
+function initializeCustomEventFilter() {
+    const dropdown = document.getElementById("event-filter-dropdown");
+    const trigger = document.getElementById("event-filter-trigger");
+    const menu = document.getElementById("event-filter-menu");
+    const selected = document.getElementById("selected-event-type");
+
+    if (!dropdown || !trigger || !menu || !selected) return;
+
+    const options = [...menu.querySelectorAll(".dropdown-option")];
+
+    function openDropdown() {
+        dropdown.classList.add("open");
+        menu.hidden = false;
+        trigger.setAttribute("aria-expanded", "true");
+    }
+
+    function closeDropdown() {
+        dropdown.classList.remove("open");
+        menu.hidden = true;
+        trigger.setAttribute("aria-expanded", "false");
+    }
+
+    // Open when hovering
+    dropdown.addEventListener("mouseenter", openDropdown);
+
+    // Stay open while hovering, close when leaving
+    dropdown.addEventListener("mouseleave", closeDropdown);
+
+    // Also support clicking on mobile
+    trigger.addEventListener("click", () => {
+        if (menu.hidden) {
+            openDropdown();
+        } else {
+            closeDropdown();
+        }
+    });
+
+    options.forEach(option => {
+        option.addEventListener("click", () => {
+            const value = option.dataset.value;
+
+            selected.textContent = option.textContent.trim();
+
+            options.forEach(item => {
+                const active = item === option;
+                item.classList.toggle("active", active);
+                item.setAttribute("aria-selected", String(active));
+            });
+
+            // Apply the selected event filter
+            activeFilter = value.toLowerCase();
+
+            renderEvents();
+
+            closeDropdown();
+        });
+    });
+
+    // Close when clicking outside
+    document.addEventListener("click", event => {
+        if (!dropdown.contains(event.target)) {
+            closeDropdown();
+        }
+    });
+
+    // Close with Escape
+    document.addEventListener("keydown", event => {
+        if (event.key === "Escape") {
+            closeDropdown();
+            trigger.focus();
+        }
+    });
+}

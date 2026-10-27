@@ -388,64 +388,53 @@
             <div class="events-toolbar">
 
 
-                <!-- SEARCH INPUT -->
-                <div class="events-search">
+                <div class="events-toolbar">
 
-                    <label for="event-search" class="sr-only">
+                    <!-- SEARCH BAR -->
+                    <input type="search" id="event-search" placeholder="Search by title, description, or venue...">
 
-                        Search Events
+                    <div class="event-filter">
+                        <div class="custom-dropdown" id="event-filter-dropdown">
 
-                    </label>
+                            <button type="button" class="dropdown-trigger" id="event-filter-trigger"
+                                aria-haspopup="listbox" aria-expanded="false" aria-controls="event-filter-menu">
 
+                                <span class="dropdown-icon">☰</span>
 
-                    <input type="search" id="event-search" placeholder="Search by title, description, or venue..."
-                        data-i18n-placeholder="searchEventsPlaceholder" autocomplete="off">
+                                <span id="selected-event-type">All Events</span>
 
-                </div>
+                                <span class="dropdown-arrow">⌄</span>
+                            </button>
 
+                            <div class="dropdown-menu" id="event-filter-menu" role="listbox" aria-label="Event category"
+                                hidden>
 
-                <!-- EVENT TYPE FILTER -->
-                <div class="events-filter">
+                                <button type="button" role="option" class="dropdown-option active" data-value="all"
+                                    aria-selected="true">
+                                    All Events
+                                </button>
 
-                    <label for="event-type-filter" class="sr-only">
+                                <button type="button" role="option" class="dropdown-option" data-value="Workshop"
+                                    aria-selected="false">
+                                    Workshop
+                                </button>
 
-                        Event Type
+                                <button type="button" role="option" class="dropdown-option" data-value="Seminar"
+                                    aria-selected="false">
+                                    Seminar
+                                </button>
 
-                    </label>
+                                <button type="button" role="option" class="dropdown-option" data-value="Play"
+                                    aria-selected="false">
+                                    Play
+                                </button>
 
-
-                    <select id="event-type-filter">
-
-                        <option value="all" data-i18n="all">
-
-                            All Events
-
-                        </option>
-
-
-                        <option value="Workshop" data-i18n="workshop">
-
-                            Workshop
-
-                        </option>
-
-
-                        <option value="Seminar" data-i18n="seminar">
-
-                            Seminar
-
-                        </option>
-
-
-                        <option value="Play" data-i18n="play">
-
-                            Play
-
-                        </option>
-
-                    </select>
+                            </div>
+                        </div>
+                    </div>
 
                 </div>
+            </div>
 
             </div>
 
