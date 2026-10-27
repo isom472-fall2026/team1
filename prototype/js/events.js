@@ -883,12 +883,11 @@ function initializeCustomEventFilter() {
             options.forEach(item => {
                 const active = item === option;
                 item.classList.toggle("active", active);
-                item.setAttribute("aria-selected", String(active));
+                item.setAttribute("aria-pressed", String(active));
             });
 
             // Apply the selected event filter
-            activeFilter = value.toLowerCase();
-
+            activeType = value.toLowerCase();
             renderEvents();
 
             closeDropdown();
