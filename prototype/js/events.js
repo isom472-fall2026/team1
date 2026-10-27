@@ -894,12 +894,14 @@ function initializeCustomEventFilter() {
             closeDropdown();
         });
     });
+
     // Close when clicking outside
     document.addEventListener("click", event => {
         if (!dropdown.contains(event.target)) {
             closeDropdown();
         }
     });
+
     // Close with Escape
 
     document.addEventListener("keydown", event => {
