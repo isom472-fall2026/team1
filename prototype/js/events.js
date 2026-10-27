@@ -887,8 +887,7 @@ function initializeCustomEventFilter() {
             });
 
             // Apply the selected event filter
-            activeFilter = value.toLowerCase();
-
+            activeType = value.toLowerCase();
             renderEvents();
 
             closeDropdown();
