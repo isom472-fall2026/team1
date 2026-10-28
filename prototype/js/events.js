@@ -429,25 +429,43 @@ async function loadEvents() {
 ========================================================= */
 
 function getFilteredEvents() {
-    const search = activeSearch.toLowerCase();
 
-    return allEvents.filter((event) => {
-        const title = String(event.title || "").toLowerCase();
-        const description = String(event.description || "").toLowerCase();
-        const venue = String(getVenueName(event)).toLowerCase();
-        const type = String(event.event_type || "").toLowerCase();
+    const searchInput = document.getElementById("event-search");
 
-        const matchesSearch =
-            title.includes(search) ||
-            description.includes(search) ||
-            venue.includes(search) ||
-            type.includes(search);
+    const searchText = (searchInput?.value || "")
+        .trim()
+        .toLowerCase();
+
+    return allEvents.filter(event => {
+
+        // CATEGORY FILTER
+        const eventType = String(event.event_type || "")
+            .trim()
+            .toLowerCase();
+
+        const selectedType = String(activeType || "all")
+            .trim()
+            .toLowerCase();
 
         const matchesType =
-            activeType === "all" ||
-            type === activeType.toLowerCase();
+            selectedType === "all" ||
+            eventType === selectedType;
 
-        return matchesSearch && matchesType;
+        // SEARCH FILTER
+        const title = String(event.title || "").toLowerCase();
+
+        const description = String(event.description || "").toLowerCase();
+
+        const venue = String(
+            event.venues?.venue_name || ""
+        ).toLowerCase();
+
+        const matchesSearch =
+            title.includes(searchText) ||
+            description.includes(searchText) ||
+            venue.includes(searchText);
+
+        return matchesType && matchesSearch;
     });
 }
 
@@ -838,74 +856,103 @@ async function initialize() {
 
 document.addEventListener("DOMContentLoaded", initialize);
 function initializeCustomEventFilter() {
+
     const dropdown = document.getElementById("event-filter-dropdown");
     const trigger = document.getElementById("event-filter-trigger");
     const menu = document.getElementById("event-filter-menu");
     const selected = document.getElementById("selected-event-type");
 
-    if (!dropdown || !trigger || !menu || !selected) return;
+    if (!dropdown || !trigger || !menu) {
+        console.error("Event filter elements not found!");
+        return;
+    }
 
-    const options = [...menu.querySelectorAll(".dropdown-option")];
+    const options = menu.querySelectorAll(".dropdown-option");
 
     function openDropdown() {
-        dropdown.classList.add("open");
         menu.hidden = false;
+        dropdown.classList.add("open");
         trigger.setAttribute("aria-expanded", "true");
     }
 
     function closeDropdown() {
-        dropdown.classList.remove("open");
         menu.hidden = true;
+        dropdown.classList.remove("open");
         trigger.setAttribute("aria-expanded", "false");
     }
 
-    // Open when hovering
-    dropdown.addEventListener("mouseenter", openDropdown);
+    // CLICK TO OPEN OR CLOSE
+    trigger.addEventListener("click", (event) => {
 
-    // Stay open while hovering, close when leaving
-    dropdown.addEventListener("mouseleave", closeDropdown);
+        event.stopPropagation();
 
-    // Also support clicking on mobile
-    trigger.addEventListener("click", () => {
         if (menu.hidden) {
             openDropdown();
         } else {
             closeDropdown();
         }
+
     });
 
+    // SELECT CATEGORY
     options.forEach(option => {
+
         option.addEventListener("click", () => {
+
             const value = option.dataset.value;
 
-            selected.textContent = option.textContent.trim();
+            // Update selected filter
+            activeType = value.toLowerCase();
 
+            // Update displayed category
+            if (selected) {
+                selected.textContent = option.textContent.trim();
+            }
+
+            // Update active option
             options.forEach(item => {
-                const active = item === option;
-                item.classList.toggle("active", active);
-                item.setAttribute("aria-pressed", String(active));
+
+                const isActive = item === option;
+
+                item.classList.toggle("active", isActive);
+
+                item.setAttribute(
+                    "aria-pressed",
+                    String(isActive)
+                );
+
             });
 
-            // Apply the selected event filter
-            activeType = value.toLowerCase();
+            // Refresh displayed events
             renderEvents();
 
+            // Close dropdown
             closeDropdown();
+
+            console.log("Selected filter:", activeType);
+            console.log("Matching events:", getFilteredEvents().length);
+
         });
+
     });
 
-    // Close when clicking outside
+    // CLOSE WHEN CLICKING OUTSIDE
     document.addEventListener("click", event => {
+
         if (!dropdown.contains(event.target)) {
             closeDropdown();
         }
+
     });
 
-    // Close with Escape
+    // CLOSE WITH ESCAPE
     document.addEventListener("keydown", event => {
+
         if (event.key === "Escape") {
             closeDropdown();
             trigger.focus();
         }
+
     });
+
 }
