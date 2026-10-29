@@ -37,10 +37,10 @@ it. Do not delete it.
 
 | Role | Name | What they hand in |
 |---|---|---|
-| Client Lead | Mustafa Dashti | the backlog of user stories |
+| Build Lead | Mustafa Dashti | the backlog of user stories |
 | Design Lead | Sulaiman Alhamlan | the prototype and the screen list |
 | Data Lead | Esmael Mahmud | the schema and seed data in Supabase |
-| Build Lead | Seyed Esmaeili | the running system and release notes |
+| Client Lead | Seyed Esmaeili | the running system and release notes |
 | FinOps Lead | Ayoub Mohammed | the ledger |
 | Quality Lead | Ayoub Mohammed | bug issues, each closed as fixed, will-not-fix or not-a-bug |
 
