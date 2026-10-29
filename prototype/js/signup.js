@@ -330,7 +330,7 @@
                 );
             } else {
                 showMessage(
-                    "Unable to complete registration. Please check your details or try again later."
+                    "User already registered. Please check your details."
                 );
             }
         } finally {
