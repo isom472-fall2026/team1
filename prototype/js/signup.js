@@ -352,6 +352,10 @@
         "click",
         openSignup
     );
+    signupButton.addEventListener("click", event => {
+        event.preventDefault();
+        openSignup();
+    });
 
     closeButton.addEventListener(
         "click",
