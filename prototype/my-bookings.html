@@ -23,11 +23,14 @@
 
     <link rel="stylesheet" href="css/home.css">
     <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/events.css">
+    <link rel="stylesheet" href="css/my-bookings.css">
 
     <!-- Supabase public client -->
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/config.js"></script>
     <script defer src="js/navbar.js"></script>
+    <script defer src="js/my-bookings.js"></script>
 </head>
 
 <body>
@@ -125,18 +128,38 @@
         </nav>
     </header>
 
-    <main class="container">
-        <section class="section" style="padding: 40px 0;">
-            <div class="section-heading">
+    <main class="container my-bookings-container">
+        <section class="section" style="padding: 20px 0 40px;">
+            <div class="section-heading my-bookings-header">
                 <div>
-                    <h1 data-i18n="myBookings">My Bookings</h1>
-                    <p class="muted">View and manage your registered campus events and workshops.</p>
+                    <h1>
+                        <span data-i18n="myBookings">My Bookings</span>
+                        <span id="bookings-count" class="bookings-count-badge" hidden></span>
+                    </h1>
+                    <p class="muted" data-i18n="myBookingsSubtitle">View and manage your registered campus events and workshops.</p>
                 </div>
             </div>
 
-            <div class="empty-state" style="padding: 40px 20px; text-align: center; background: var(--navbar-surface); border: 1px solid var(--navbar-border); border-radius: var(--navbar-radius);">
-                <p class="muted">No event bookings found.</p>
+            <!-- ERROR ALERT -->
+            <div id="bookings-error" class="bookings-error-box" role="alert" hidden></div>
+
+            <!-- AUTHENTICATION PROMPT (FOR SIGNED OUT USERS) -->
+            <div id="auth-prompt" class="empty-state" style="padding: 40px 20px; text-align: center; background: var(--navbar-surface); border: 1px solid var(--navbar-border); border-radius: var(--navbar-radius);" hidden>
+                <p class="muted" data-i18n="signInPrompt">Please sign in to view your bookings.</p>
+                <a href="home.html?signin=true" class="btn btn-gold" data-i18n="signInBtn" style="margin-top: 15px; display: inline-block;">Sign In</a>
+            </div>
+
+            <!-- EMPTY STATE (NO BOOKINGS FOUND) -->
+            <div id="bookings-empty" class="empty-state" style="padding: 40px 20px; text-align: center; background: var(--navbar-surface); border: 1px solid var(--navbar-border); border-radius: var(--navbar-radius);" hidden>
+                <p class="muted" data-i18n="noBookings">No event bookings found.</p>
                 <a href="events.html" class="btn btn-gold" data-i18n="browseEvents" style="margin-top: 15px; display: inline-block;">Browse Events</a>
+            </div>
+
+            <!-- BOOKINGS GRID -->
+            <div id="bookings-grid" class="events-grid" aria-live="polite">
+                <div class="empty-state" data-i18n="loadingBookings">
+                    Loading your bookings...
+                </div>
             </div>
         </section>
     </main>
