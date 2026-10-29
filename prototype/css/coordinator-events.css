@@ -292,6 +292,7 @@ html[data-theme="dark"] .card-meta-item.venue-missing {
     line-height: 1.5;
     overflow-wrap: anywhere;
     display: -webkit-box;
+    line-clamp: 3;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
