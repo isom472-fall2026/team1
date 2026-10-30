@@ -26,6 +26,8 @@ let showAllEvents = false;
 
 let toastTimeout = null;
 let lastFocusedElement = null;
+let selectedEvent = null;
+let userBookingsMap = new Map();
 
 /* ===================================
    TRANSLATIONS
@@ -107,6 +109,20 @@ const translations = {
         attendee: "Attendee",
         capacityLabel: "Capacity",
         venueLabel: "Venue",
+        reserveSeat: "Reserve Seat",
+        reserving: "Reserving...",
+        signInToReserve: "Sign In to Reserve",
+        alreadyReservedConfirmed: "✓ You have a confirmed reservation for this event.",
+        alreadyReservedWaitlisted: "⏳ You are on the waitlist for this event.",
+        reserveSuccessConfirmed: "Seat reserved successfully! Your status is Confirmed.",
+        reserveSuccessWaitlisted: "Event capacity reached. You have been added to the Waitlist.",
+        duplicateBooking: "You already have a reservation for this event.",
+        attendeeRequired: "Only registered attendee accounts can make reservations.",
+        reserveError: "Unable to reserve a seat. Please try again.",
+        viewMyBookings: "View My Bookings",
+        statusConfirmed: "Confirmed",
+        statusWaitlisted: "Waitlisted",
+        guestReservePrompt: "Sign in or create an account to reserve your seat.",
     },
 
     ar: {
@@ -183,6 +199,20 @@ const translations = {
         attendee: "مشارك",
         capacityLabel: "السعة",
         venueLabel: "المكان",
+        reserveSeat: "حجز مقعد",
+        reserving: "جارٍ الحجز...",
+        signInToReserve: "تسجيل الدخول للحجز",
+        alreadyReservedConfirmed: "✓ لديك حجز مؤكد في هذه الفعالية.",
+        alreadyReservedWaitlisted: "⏳ أنت في قائمة الانتظار لهذه الفعالية.",
+        reserveSuccessConfirmed: "تم حجز مقعدك بنجاح! حالتك: مؤكد.",
+        reserveSuccessWaitlisted: "الفعالية مكتملة السعة. تمت إضافتك إلى قائمة الانتظار.",
+        duplicateBooking: "لديك حجز مسبق لهذه الفعالية بالفعل.",
+        attendeeRequired: "يمكن لحسابات الحضور المسجلين فقط إجراء الحجوزات.",
+        reserveError: "تعذر إتمام الحجز. يرجى المحاولة مرة أخرى.",
+        viewMyBookings: "عرض حجوزاتي",
+        statusConfirmed: "مؤكد",
+        statusWaitlisted: "قائمة الانتظار",
+        guestReservePrompt: "سجل الدخول أو أنشئ حساباً لحجز مقعدك.",
     }
 };
 
@@ -757,7 +787,168 @@ function openEventModal(event) {
         calendarLink.removeAttribute("href");
     }
 
+    updateModalReservationState(event);
     openDialog();
+}
+
+/* ===================================
+   RESERVATIONS
+=================================== */
+
+async function fetchUserBookings() {
+    if (!currentUser || !db) return;
+
+    try {
+        const { data, error } = await db
+            .from("bookings")
+            .select("booking_id, event_id, status")
+            .eq("user_id", currentUser.id);
+
+        if (error) {
+            console.warn("Could not load user bookings:", error);
+            return;
+        }
+
+        userBookingsMap.clear();
+        (data || []).forEach(b => {
+            if (b.status === "Confirmed" || b.status === "Waitlisted") {
+                userBookingsMap.set(Number(b.event_id), b);
+            }
+        });
+    } catch (err) {
+        console.warn("Error fetching user bookings:", err);
+    }
+}
+
+function updateModalReservationState(event) {
+    const reserveBtn = $("modal-reserve-btn");
+    const viewBookingBtn = $("modal-view-booking-btn");
+    const banner = $("modal-reservation-banner");
+
+    if (!reserveBtn || !event) return;
+
+    const existingBooking = userBookingsMap.get(Number(event.event_id));
+
+    if (!currentUser) {
+        reserveBtn.hidden = false;
+        reserveBtn.disabled = false;
+        reserveBtn.textContent = t("signInToReserve");
+        reserveBtn.onclick = () => {
+            sessionStorage.setItem("pending_booking_event_id", String(event.event_id));
+            sessionStorage.setItem("pending_booking_return_url", "home.html");
+            closeDialog();
+            if (typeof window.openSigninModal === "function") {
+                window.openSigninModal();
+            } else {
+                window.location.assign("signin.html");
+            }
+        };
+
+        if (viewBookingBtn) viewBookingBtn.hidden = true;
+        if (banner) {
+            banner.hidden = false;
+            banner.className = "modal-reservation-banner banner-info";
+            banner.textContent = t("guestReservePrompt");
+        }
+        return;
+    }
+
+    if (existingBooking) {
+        reserveBtn.hidden = true;
+        if (viewBookingBtn) viewBookingBtn.hidden = false;
+
+        if (banner) {
+            banner.hidden = false;
+            if (existingBooking.status === "Confirmed") {
+                banner.className = "modal-reservation-banner banner-success";
+                banner.textContent = t("alreadyReservedConfirmed");
+            } else {
+                banner.className = "modal-reservation-banner banner-warning";
+                banner.textContent = t("alreadyReservedWaitlisted");
+            }
+        }
+    } else {
+        reserveBtn.hidden = false;
+        reserveBtn.disabled = false;
+        reserveBtn.textContent = t("reserveSeat");
+        reserveBtn.onclick = () => handleReserveSeat(event);
+
+        if (viewBookingBtn) viewBookingBtn.hidden = true;
+        if (banner) {
+            banner.hidden = true;
+            banner.textContent = "";
+        }
+    }
+}
+
+async function handleReserveSeat(event) {
+    if (!currentUser) {
+        if (event && event.event_id) {
+            sessionStorage.setItem("pending_booking_event_id", String(event.event_id));
+            sessionStorage.setItem("pending_booking_return_url", "home.html");
+        }
+        closeDialog();
+        if (typeof window.openSigninModal === "function") {
+            window.openSigninModal();
+        } else {
+            window.location.assign("signin.html");
+        }
+        return;
+    }
+
+    if (!event || !event.event_id) return;
+
+    const reserveBtn = $("modal-reserve-btn");
+    if (reserveBtn) {
+        reserveBtn.disabled = true;
+        reserveBtn.textContent = t("reserving");
+    }
+
+    try {
+        const { data, error } = await db
+            .from("bookings")
+            .insert([
+                {
+                    user_id: currentUser.id,
+                    event_id: event.event_id
+                }
+            ])
+            .select("booking_id, event_id, status")
+            .single();
+
+        if (error) throw error;
+
+        userBookingsMap.set(Number(data.event_id), data);
+
+        if (data.status === "Confirmed") {
+            showToast(t("reserveSuccessConfirmed"), "success");
+        } else {
+            showToast(t("reserveSuccessWaitlisted"), "warning");
+        }
+
+        updateModalReservationState(event);
+        renderEvents();
+    } catch (err) {
+        console.error("Reservation failed:", err);
+        const code = err?.code;
+        const msg = String(err?.message || "");
+
+        if (code === "23505" || msg.includes("unique_user_event") || msg.includes("duplicate")) {
+            showToast(t("duplicateBooking"), "warning");
+            await fetchUserBookings();
+            updateModalReservationState(event);
+            renderEvents();
+        } else if (msg.includes("attendee") || msg.includes("is_attendee")) {
+            showToast(t("attendeeRequired"), "error");
+        } else {
+            showToast(err.message || t("reserveError"), "error");
+        }
+
+        if (reserveBtn) {
+            reserveBtn.disabled = false;
+            reserveBtn.textContent = t("reserveSeat");
+        }
+    }
 }
 
 /* ===================================
@@ -879,9 +1070,14 @@ async function applyUserSession(user) {
         currentUser = null;
         currentUserName = "";
         currentUserRole = "Guest";
+        userBookingsMap.clear();
         if (createEventBtn) createEventBtn.hidden = true;
         if (coordEventsLink) coordEventsLink.hidden = true;
         renderUserWelcome();
+        renderEvents();
+        if (selectedEvent && $("event-modal") && !$("event-modal").hidden) {
+            updateModalReservationState(selectedEvent);
+        }
         return;
     }
 
@@ -963,7 +1159,12 @@ async function applyUserSession(user) {
         currentUserName = user.email ? user.email.split("@")[0] : "Attendee";
     }
 
+    await fetchUserBookings();
     renderUserWelcome();
+    renderEvents();
+    if (selectedEvent && $("event-modal") && !$("event-modal").hidden) {
+        updateModalReservationState(selectedEvent);
+    }
     if (typeof window.applyNavbarUser === "function") {
         window.applyNavbarUser(user);
     }
@@ -1064,6 +1265,25 @@ async function initialize() {
     await loadEvents();
     await initializeAuth();
     checkUrlAuthAction();
+
+    // Check for post-login redirection or return to event
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetEventId = urlParams.get("event_id") || sessionStorage.getItem("pending_booking_event_id");
+    if (targetEventId && !urlParams.has("signin") && !urlParams.has("signup")) {
+        sessionStorage.removeItem("pending_booking_event_id");
+        sessionStorage.removeItem("pending_booking_return_url");
+        const match = allEvents.find(e => String(e.event_id) === String(targetEventId));
+        if (match) {
+            openEventModal(match);
+            try {
+                const cleanUrl = new URL(window.location);
+                cleanUrl.searchParams.delete("event_id");
+                window.history.replaceState({}, document.title, cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ""));
+            } catch {
+                // Ignore URL cleanup errors
+            }
+        }
+    }
 }
 
 function checkUrlAuthAction() {

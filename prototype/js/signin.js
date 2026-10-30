@@ -196,6 +196,16 @@
 
             closeSignin();
 
+            const pendingEventId = sessionStorage.getItem("pending_booking_event_id");
+            const pendingReturnUrl = sessionStorage.getItem("pending_booking_return_url");
+
+            if (pendingEventId) {
+                const targetUrl = pendingReturnUrl || "events.html";
+                const separator = targetUrl.includes("?") ? "&" : "?";
+                window.location.assign(`${targetUrl}${separator}event_id=${encodeURIComponent(pendingEventId)}`);
+                return;
+            }
+
             // Acceptance Criterion: Upon successful authentication, the user is redirected to the home.html page.
             window.location.assign("home.html");
         } catch (err) {
