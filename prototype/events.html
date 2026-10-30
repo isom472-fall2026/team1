@@ -623,6 +623,12 @@
             </div>
 
 
+            <!-- RESERVATION STATUS / BANNER -->
+            <div class="modal-reservation-banner" id="modal-reservation-banner" hidden role="region" aria-live="polite">
+
+            </div>
+
+
             <!-- EVENT DESCRIPTION -->
             <div class="modal-description">
 
@@ -642,6 +648,22 @@
 
             <!-- MODAL ACTIONS -->
             <div class="modal-actions">
+
+                <!-- RESERVE SEAT -->
+                <button type="button" class="btn" id="modal-reserve-btn" data-i18n="reserveSeat">
+
+                    Reserve Seat
+
+                </button>
+
+
+                <!-- VIEW IN MY BOOKINGS (visible when user already booked) -->
+                <a href="my-bookings.html" class="btn btn-outline" id="modal-view-booking-btn" data-i18n="viewMyBookings" hidden>
+
+                    View My Bookings
+
+                </a>
+
 
                 <!-- GOOGLE CALENDAR -->
                 <a class="btn btn-gold" id="modal-gcal" target="_blank" rel="noopener noreferrer"
