@@ -455,7 +455,9 @@ function updateModalReservationState(event) {
         reserveBtn.disabled = false;
         reserveBtn.textContent = t("signInToReserve");
         reserveBtn.onclick = () => {
-            window.location.assign("home.html?signin=true");
+            sessionStorage.setItem("pending_booking_event_id", String(event.event_id));
+            sessionStorage.setItem("pending_booking_return_url", "events.html");
+            window.location.assign("signin.html");
         };
 
         if (viewBookingBtn) viewBookingBtn.hidden = true;
@@ -497,7 +499,11 @@ function updateModalReservationState(event) {
 
 async function handleReserveSeat(event) {
     if (!currentUser) {
-        window.location.assign("home.html?signin=true");
+        if (event && event.event_id) {
+            sessionStorage.setItem("pending_booking_event_id", String(event.event_id));
+            sessionStorage.setItem("pending_booking_return_url", "events.html");
+        }
+        window.location.assign("signin.html");
         return;
     }
 
@@ -1082,6 +1088,25 @@ async function initialize() {
 
     // Load events
     await loadEvents();
+
+    // Check for post-login redirection or return to event
+    const urlParams = new URLSearchParams(window.location.search);
+    const targetEventId = urlParams.get("event_id") || sessionStorage.getItem("pending_booking_event_id");
+    if (targetEventId) {
+        sessionStorage.removeItem("pending_booking_event_id");
+        sessionStorage.removeItem("pending_booking_return_url");
+        const match = allEvents.find(e => String(e.event_id) === String(targetEventId));
+        if (match) {
+            openEventModal(match);
+            try {
+                const cleanUrl = new URL(window.location);
+                cleanUrl.searchParams.delete("event_id");
+                window.history.replaceState({}, document.title, cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ""));
+            } catch {
+                // Ignore URL cleanup errors
+            }
+        }
+    }
 }
 
 document.addEventListener("DOMContentLoaded", initialize);

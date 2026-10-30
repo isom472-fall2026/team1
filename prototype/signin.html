@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign In | AUK Events</title>
+    <meta http-equiv="refresh" content="0; url=home.html?signin=true">
+    <script>
+        (function () {
+            const search = window.location.search;
+            const target = "home.html?signin=true" + (search ? "&" + search.replace(/^\?/, "") : "");
+            window.location.replace(target);
+        })();
+    </script>
+</head>
+<body>
+    <p>Redirecting to <a href="home.html?signin=true">Sign In</a>...</p>
+</body>
+</html>
+
