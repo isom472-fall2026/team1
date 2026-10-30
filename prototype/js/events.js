@@ -11,6 +11,8 @@ let allEvents = [];
 let currentUser = null;
 let selectedEvent = null;
 let lastFocusedElement = null;
+let userBookingsMap = new Map();
+let toastTimer = null;
 
 let activeSearch = "";
 let activeType = "all";
@@ -86,7 +88,21 @@ const translations = {
         toBeAnnounced: "To be announced",
         untitledEvent: "Untitled Event",
         noDescription: "No description available.",
-        eventsFound: "events found"
+        eventsFound: "events found",
+        reserveSeat: "Reserve Seat",
+        reserving: "Reserving...",
+        signInToReserve: "Sign In to Reserve",
+        alreadyReservedConfirmed: "✓ You have a confirmed reservation for this event.",
+        alreadyReservedWaitlisted: "⏳ You are on the waitlist for this event.",
+        reserveSuccessConfirmed: "Seat reserved successfully! Your status is Confirmed.",
+        reserveSuccessWaitlisted: "Event capacity reached. You have been added to the Waitlist.",
+        duplicateBooking: "You already have a reservation for this event.",
+        attendeeRequired: "Only registered attendee accounts can make reservations.",
+        reserveError: "Unable to reserve a seat. Please try again.",
+        viewMyBookings: "View My Bookings",
+        statusConfirmed: "Confirmed",
+        statusWaitlisted: "Waitlisted",
+        guestReservePrompt: "Sign in or create an account to reserve your seat."
     },
 
     ar: {
@@ -150,7 +166,21 @@ const translations = {
         toBeAnnounced: "سيتم الإعلان لاحقاً",
         untitledEvent: "فعالية بدون عنوان",
         noDescription: "لا يوجد وصف متاح.",
-        eventsFound: "فعالية"
+        eventsFound: "فعالية",
+        reserveSeat: "حجز مقعد",
+        reserving: "جارٍ الحجز...",
+        signInToReserve: "تسجيل الدخول للحجز",
+        alreadyReservedConfirmed: "✓ لديك حجز مؤكد في هذه الفعالية.",
+        alreadyReservedWaitlisted: "⏳ أنت في قائمة الانتظار لهذه الفعالية.",
+        reserveSuccessConfirmed: "تم حجز مقعدك بنجاح! حالتك: مؤكد.",
+        reserveSuccessWaitlisted: "الفعالية مكتملة السعة. تمت إضافتك إلى قائمة الانتظار.",
+        duplicateBooking: "لديك حجز مسبق لهذه الفعالية بالفعل.",
+        attendeeRequired: "يمكن لحسابات الحضور المسجلين فقط إجراء الحجوزات.",
+        reserveError: "تعذر إتمام الحجز. يرجى المحاولة مرة أخرى.",
+        viewMyBookings: "عرض حجوزاتي",
+        statusConfirmed: "مؤكد",
+        statusWaitlisted: "قائمة الانتظار",
+        guestReservePrompt: "سجل الدخول أو أنشئ حساباً لحجز مقعدك."
     }
 };
 
@@ -366,6 +396,167 @@ function getVenueName(event) {
 }
 
 /* =========================================================
+   RESERVATIONS & FEEDBACK
+========================================================= */
+
+function showToast(message, type = "info") {
+    const toast = $("toast");
+    if (!toast) return;
+
+    toast.textContent = message;
+    toast.className = `toast toast-${type}`;
+    toast.hidden = false;
+
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+        toast.hidden = true;
+    }, 4500);
+}
+
+async function fetchUserBookings() {
+    if (!currentUser || !db) {
+        userBookingsMap.clear();
+        return;
+    }
+
+    try {
+        const { data, error } = await db
+            .from("bookings")
+            .select("booking_id, event_id, status")
+            .eq("user_id", currentUser.id);
+
+        if (error) {
+            console.warn("Could not load user bookings:", error);
+            return;
+        }
+
+        userBookingsMap.clear();
+        (data || []).forEach((b) => {
+            if (b.status === "Confirmed" || b.status === "Waitlisted") {
+                userBookingsMap.set(Number(b.event_id), b);
+            }
+        });
+    } catch (err) {
+        console.warn("Error fetching user bookings:", err);
+    }
+}
+
+function updateModalReservationState(event) {
+    const reserveBtn = $("modal-reserve-btn");
+    const viewBookingBtn = $("modal-view-booking-btn");
+    const banner = $("modal-reservation-banner");
+
+    if (!reserveBtn || !event) return;
+
+    const existingBooking = userBookingsMap.get(Number(event.event_id));
+
+    if (!currentUser) {
+        reserveBtn.hidden = false;
+        reserveBtn.disabled = false;
+        reserveBtn.textContent = t("signInToReserve");
+        reserveBtn.onclick = () => {
+            window.location.assign("home.html?signin=true");
+        };
+
+        if (viewBookingBtn) viewBookingBtn.hidden = true;
+        if (banner) {
+            banner.hidden = false;
+            banner.className = "modal-reservation-banner banner-info";
+            banner.textContent = t("guestReservePrompt");
+        }
+        return;
+    }
+
+    if (existingBooking) {
+        reserveBtn.hidden = true;
+        if (viewBookingBtn) viewBookingBtn.hidden = false;
+
+        if (banner) {
+            banner.hidden = false;
+            if (existingBooking.status === "Confirmed") {
+                banner.className = "modal-reservation-banner banner-success";
+                banner.textContent = t("alreadyReservedConfirmed");
+            } else {
+                banner.className = "modal-reservation-banner banner-warning";
+                banner.textContent = t("alreadyReservedWaitlisted");
+            }
+        }
+    } else {
+        reserveBtn.hidden = false;
+        reserveBtn.disabled = false;
+        reserveBtn.textContent = t("reserveSeat");
+        reserveBtn.onclick = () => handleReserveSeat(event);
+
+        if (viewBookingBtn) viewBookingBtn.hidden = true;
+        if (banner) {
+            banner.hidden = true;
+            banner.textContent = "";
+        }
+    }
+}
+
+async function handleReserveSeat(event) {
+    if (!currentUser) {
+        window.location.assign("home.html?signin=true");
+        return;
+    }
+
+    if (!event || !event.event_id) return;
+
+    const reserveBtn = $("modal-reserve-btn");
+    if (reserveBtn) {
+        reserveBtn.disabled = true;
+        reserveBtn.textContent = t("reserving");
+    }
+
+    try {
+        const { data, error } = await db
+            .from("bookings")
+            .insert([
+                {
+                    user_id: currentUser.id,
+                    event_id: event.event_id
+                }
+            ])
+            .select("booking_id, event_id, status")
+            .single();
+
+        if (error) throw error;
+
+        userBookingsMap.set(Number(data.event_id), data);
+
+        if (data.status === "Confirmed") {
+            showToast(t("reserveSuccessConfirmed"), "success");
+        } else {
+            showToast(t("reserveSuccessWaitlisted"), "warning");
+        }
+
+        updateModalReservationState(event);
+        renderEvents();
+    } catch (err) {
+        console.error("Reservation failed:", err);
+        const code = err?.code;
+        const msg = String(err?.message || "");
+
+        if (code === "23505" || msg.includes("unique_user_event") || msg.includes("duplicate")) {
+            showToast(t("duplicateBooking"), "warning");
+            await fetchUserBookings();
+            updateModalReservationState(event);
+            renderEvents();
+        } else if (msg.includes("attendee") || msg.includes("is_attendee")) {
+            showToast(t("attendeeRequired"), "error");
+        } else {
+            showToast(err.message || t("reserveError"), "error");
+        }
+
+        if (reserveBtn) {
+            reserveBtn.disabled = false;
+            reserveBtn.textContent = t("reserveSeat");
+        }
+    }
+}
+
+/* =========================================================
    EVENT LOADING
 ========================================================= */
 
@@ -553,12 +744,24 @@ function renderEvents() {
             translateEventType(event.event_type)
         );
 
+        const existingBooking = userBookingsMap.get(Number(event.event_id));
+        let badgeHtml = "";
+        if (existingBooking) {
+            const isConfirmed = existingBooking.status === "Confirmed";
+            const badgeClass = isConfirmed ? "status-confirmed" : "status-waitlisted";
+            const badgeText = isConfirmed ? t("statusConfirmed") : t("statusWaitlisted");
+            badgeHtml = `<span class="status-badge ${badgeClass}">${escapeHTML(badgeText)}</span>`;
+        }
+
         return `
             <article class="events-page-card">
 
-                <span class="event-type">
-                    ${type}
-                </span>
+                <div class="event-card-top">
+                    <span class="event-type">
+                        ${type}
+                    </span>
+                    ${badgeHtml}
+                </div>
 
                 <h3>${title}</h3>
 
@@ -698,6 +901,8 @@ function fillEventModal(event) {
             calendarButton.hidden = true;
         }
     }
+
+    updateModalReservationState(event);
 }
 
 function openEventModal(event) {
@@ -849,6 +1054,31 @@ async function initialize() {
         window.SUPABASE_URL,
         window.SUPABASE_ANON_KEY
     );
+
+    // Auth check & user bookings
+    try {
+        const { data: { session } } = await db.auth.getSession();
+        currentUser = session?.user || null;
+        if (currentUser) {
+            await fetchUserBookings();
+        }
+    } catch (authErr) {
+        console.warn("Auth check error:", authErr);
+        currentUser = null;
+    }
+
+    db.auth.onAuthStateChange(async (_event, session) => {
+        currentUser = session?.user || null;
+        if (currentUser) {
+            await fetchUserBookings();
+        } else {
+            userBookingsMap.clear();
+        }
+        renderEvents();
+        if (selectedEvent && $("event-modal") && !$("event-modal").hidden) {
+            updateModalReservationState(selectedEvent);
+        }
+    });
 
     // Load events
     await loadEvents();

@@ -939,3 +939,111 @@ html[dir="rtl"] .dropdown-arrow {
     }
 
 }
+
+/* =========================================================
+   19. RESERVATION FEATURE STYLES
+========================================================= */
+
+.event-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.3px;
+    text-transform: uppercase;
+}
+
+.status-badge.status-confirmed {
+    background: rgba(16, 185, 129, 0.15);
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+html[data-theme="dark"] .status-badge.status-confirmed {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+}
+
+.status-badge.status-waitlisted {
+    background: rgba(245, 158, 11, 0.15);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+html[data-theme="dark"] .status-badge.status-waitlisted {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fbbf24;
+}
+
+.modal-reservation-banner {
+    padding: 12px 16px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.5;
+}
+
+.modal-reservation-banner.banner-success {
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+html[data-theme="dark"] .modal-reservation-banner.banner-success {
+    background: rgba(16, 185, 129, 0.2);
+    color: #6ee7b7;
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+.modal-reservation-banner.banner-warning {
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+html[data-theme="dark"] .modal-reservation-banner.banner-warning {
+    background: rgba(245, 158, 11, 0.2);
+    color: #fcd34d;
+    border-color: rgba(245, 158, 11, 0.4);
+}
+
+.modal-reservation-banner.banner-info {
+    background: rgba(59, 130, 246, 0.1);
+    color: #1d4ed8;
+    border: 1px solid rgba(59, 130, 246, 0.25);
+}
+
+html[data-theme="dark"] .modal-reservation-banner.banner-info {
+    background: rgba(59, 130, 246, 0.18);
+    color: #93c5fd;
+    border-color: rgba(59, 130, 246, 0.35);
+}
+
+.toast.toast-success {
+    background: #065f46;
+    color: #ffffff;
+    border: 1px solid #047857;
+}
+
+.toast.toast-warning {
+    background: #92400e;
+    color: #ffffff;
+    border: 1px solid #b45309;
+}
+
+.toast.toast-error {
+    background: #991b1b;
+    color: #ffffff;
+    border: 1px solid #b91c1c;
+}
