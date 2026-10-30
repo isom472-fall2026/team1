@@ -1355,3 +1355,20 @@ if (document.readyState === "loading") {
 } else {
     initializeMobileMenu();
 }
+/* Automatically open Sign Up modal */
+
+window.addEventListener("load", () => {
+
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get("signup") === "true") {
+
+        if (typeof window.openSignupModal === "function") {
+
+            window.openSignupModal();
+
+        }
+
+    }
+
+});
