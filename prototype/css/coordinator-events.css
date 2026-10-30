@@ -292,6 +292,7 @@ html[data-theme="dark"] .card-meta-item.venue-missing {
     line-height: 1.5;
     overflow-wrap: anywhere;
     display: -webkit-box;
+    line-clamp: 3;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -316,6 +317,92 @@ html[data-theme="dark"] .card-meta-item.venue-missing {
     font-weight: 600;
     color: var(--muted);
 }
+
+.card-buttons {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.coordinator-card.editing {
+    border: 2px solid var(--gold);
+    box-shadow: 0 8px 24px rgba(127, 16, 35, 0.15);
+}
+
+.edit-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+}
+
+.inline-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.edit-form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.edit-form-field {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.edit-form-field label {
+    font-size: .84rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.edit-form-field input,
+.edit-form-field select,
+.edit-form-field textarea {
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 10px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: .88rem;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.edit-form-field input:focus,
+.edit-form-field select:focus,
+.edit-form-field textarea:focus {
+    outline: 2px solid var(--gold);
+    border-color: var(--gold);
+}
+
+.edit-form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 6px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
+}
+
+.edit-error-msg {
+    margin: 4px 0 0;
+    font-size: .85rem;
+    font-weight: 600;
+    color: #b42318;
+}
+
+html[data-theme="dark"] .edit-error-msg {
+    color: #fca5a5;
+}
+
 
 /* Modal details */
 .modal-head-tags {
