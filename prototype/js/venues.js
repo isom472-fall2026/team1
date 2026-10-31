@@ -14,9 +14,6 @@ let currentUser = null;
 let isCoordinator = false;
 let allVenues = [];
 
-/* Unicode-aware regex allowing letters in any language, numbers, spaces, and standard text punctuation */
-const VALID_SEARCH_REGEX = /^[\p{L}\p{N}\s\-_.,'()\/]+$/u;
-
 /* ===================================
    TRANSLATIONS
 =================================== */
@@ -217,91 +214,40 @@ function renderVenues(venuesToRender, isSearchResult = false) {
 }
 
 /* ===================================
-   SEARCH LOGIC (AC 4)
+   SEARCH LOGIC (AC 4) — reactive on input
 =================================== */
 
-function handleSearchSubmit(e) {
-    if (e) e.preventDefault();
-    const searchInput = $("venue-search");
-    const feedback = $("search-feedback");
-    if (!searchInput) return;
-
-    const rawValue = searchInput.value;
-    const trimmed = rawValue.trim();
-
-    // 1. Missing or whitespace-only values
-    if (!trimmed) {
-        if (feedback) {
-            feedback.textContent = t("searchEmptyError");
-            feedback.className = "search-feedback error visible";
-        }
-        return;
-    }
-
-    // 2. Invalid characters
-    const hasInvalidChars = !VALID_SEARCH_REGEX.test(trimmed);
-    if (hasInvalidChars) {
-        if (feedback) {
-            feedback.textContent = t("noMatchesFound");
-            feedback.className = "search-feedback error visible";
-        }
-        renderVenues([], true);
-        return;
-    }
-
-    // 3. Search query filtering by venue_name and location
-    const queryLower = trimmed.toLowerCase();
-    const matches = allVenues.filter(venue => {
-        const name = String(venue.venue_name || "").toLowerCase();
-        const loc = String(venue.location || "").toLowerCase();
-        return name.includes(queryLower) || loc.includes(queryLower);
-    });
-
-    if (matches.length === 0) {
-        if (feedback) {
-            feedback.textContent = t("noMatchesFound");
-            feedback.className = "search-feedback info visible";
-        }
-        renderVenues([], true);
-    } else {
-        if (feedback) {
-            feedback.textContent = "";
-            feedback.className = "search-feedback";
-        }
-        renderVenues(matches, true);
-    }
-}
-
-function handleSearchClear() {
-    const searchInput = $("venue-search");
-    const feedback = $("search-feedback");
-    if (searchInput) searchInput.value = "";
-    if (feedback) {
-        feedback.textContent = "";
-        feedback.className = "search-feedback";
-    }
-    renderVenues(allVenues, false);
+function filterVenues(query) {
+    if (!query) return allVenues;
+    const lower = query.toLowerCase();
+    return allVenues.filter(v =>
+        String(v.venue_name || "").toLowerCase().includes(lower) ||
+        String(v.location || "").toLowerCase().includes(lower)
+    );
 }
 
 function initSearchControls() {
-    const form = $("venue-search-form");
-    if (form) {
-        form.addEventListener("submit", handleSearchSubmit);
-    }
+    const input = $("venue-search");
+    const clearBtn = $("venue-search-clear");
 
-    const clearBtn = $("search-clear-btn");
+    if (!input) return;
+
+    input.addEventListener("input", () => {
+        const val = input.value;
+
+        // Show/hide the × button
+        if (clearBtn) clearBtn.hidden = !val;
+
+        // Live filter and render
+        renderVenues(filterVenues(val.trim()), val.trim() !== "");
+    });
+
     if (clearBtn) {
-        clearBtn.addEventListener("click", handleSearchClear);
-    }
-
-    const searchInput = $("venue-search");
-    if (searchInput) {
-        searchInput.addEventListener("input", () => {
-            const feedback = $("search-feedback");
-            if (feedback && feedback.textContent === t("searchEmptyError") && searchInput.value.trim()) {
-                feedback.textContent = "";
-                feedback.className = "search-feedback";
-            }
+        clearBtn.addEventListener("click", () => {
+            input.value = "";
+            clearBtn.hidden = true;
+            renderVenues(allVenues, false);
+            input.focus();
         });
     }
 }
@@ -414,3 +360,4 @@ if (document.readyState === "loading") {
 } else {
     initialize();
 }
+

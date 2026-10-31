@@ -6,7 +6,7 @@
 .venues-controls {
     display: flex;
     flex-wrap: wrap;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
     gap: 16px;
     padding-top: 20px;
@@ -14,99 +14,104 @@
     border-top: 1px solid var(--border);
 }
 
-.venues-search-form {
+/* Reactive search bar — same pattern as events page */
+.venue-search-wrap {
+    position: relative;
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-    flex: 1;
-    min-width: 280px;
-    max-width: 600px;
-}
-
-.search-input-group {
-    display: flex;
-    gap: 8px;
     align-items: center;
-}
-
-.search-input {
+    gap: 12px;
     flex: 1;
+    min-width: 260px;
+    max-width: 520px;
+    height: 52px;
+    padding: 0 17px;
+    background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 10px 14px;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 0.95rem;
+    border-radius: 12px;
+    box-shadow: 0 3px 12px rgba(30, 20, 25, 0.04);
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.search-input:focus {
-    outline: none;
-    border-color: var(--gold);
-    box-shadow: 0 0 0 3px rgba(197, 160, 89, 0.2);
+.venue-search-wrap:hover {
+    border-color: #b75a6c;
 }
 
-.btn-search {
-    border: 1px solid var(--navy);
-    background: var(--navy);
-    color: #ffffff;
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 10px 18px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.2s ease, transform 0.1s ease;
-    white-space: nowrap;
+.venue-search-wrap:focus-within {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 4px rgba(127, 16, 35, 0.1);
 }
 
-.btn-search:hover {
-    background: #640d1b;
+.venue-search-icon {
+    flex-shrink: 0;
+    color: var(--navy);
+    pointer-events: none;
 }
 
-.btn-search:active {
-    transform: translateY(1px);
+html[data-theme="dark"] .venue-search-icon {
+    color: #e77a90;
 }
 
-.btn-secondary {
-    border: 1px solid var(--border);
-    background: var(--bg);
-    color: var(--text);
-    font-size: 0.9rem;
-    font-weight: 600;
-    padding: 10px 16px;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background 0.2s ease, border-color 0.2s ease;
-    white-space: nowrap;
-}
-
-.btn-secondary:hover {
-    background: var(--card);
-    border-color: var(--muted);
-}
-
-.search-feedback {
-    min-height: 1.25rem;
-    font-size: 0.88rem;
-    font-weight: 600;
+#venue-search {
+    display: block;
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
     margin: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    outline: none;
+    box-shadow: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+#venue-search::placeholder {
+    color: var(--muted);
+    font-weight: 400;
+}
+
+#venue-search::-webkit-search-cancel-button {
     display: none;
 }
 
-.search-feedback.visible {
-    display: block;
+.venue-search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: none;
+    border-radius: 8px;
+    background: #f8e9ed;
+    color: var(--navy);
+    font-size: 22px;
+    line-height: 1;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
 }
 
-.search-feedback.error {
-    color: #b42318;
+.venue-search-clear:hover {
+    background: var(--navy);
+    color: #ffffff;
 }
 
-html[data-theme="dark"] .search-feedback.error {
-    color: #fca5a5;
+html[data-theme="dark"] .venue-search-clear {
+    background: #49323a;
+    color: #f6c4ce;
 }
 
-.search-feedback.info {
-    color: var(--muted);
+html[data-theme="dark"] .venue-search-clear:hover {
+    background: #7F1023;
+    color: #ffffff;
 }
 
 .venues-actions {
@@ -280,25 +285,13 @@ html[data-theme="dark"] .detail-value.capacity-valid {
         align-items: stretch;
     }
 
-    .venues-search-form {
+    .venue-search-wrap {
         max-width: 100%;
         min-width: 0;
-    }
-
-    .search-input-group {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .btn-search,
-    .btn-secondary,
-    .new-venue-link {
-        width: 100%;
-        text-align: center;
-        justify-content: center;
     }
 
     .venues-grid {
         grid-template-columns: 1fr;
     }
 }
+
