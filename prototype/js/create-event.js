@@ -281,6 +281,8 @@ async function initialize() {
     if (coordEventsLink) coordEventsLink.hidden = false;
     const createVenueBtn = document.getElementById("create-venue-btn");
     if (createVenueBtn) createVenueBtn.hidden = false;
+    const venuesLink = document.getElementById("venues-link");
+    if (venuesLink) venuesLink.hidden = false;
 
     try {
         await loadVenues();

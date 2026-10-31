@@ -1157,6 +1157,9 @@ async function initialize() {
     const createVenueBtn = $("create-venue-btn");
     if (createVenueBtn) createVenueBtn.hidden = false;
 
+    const venuesLink = $("venues-link");
+    if (venuesLink) venuesLink.hidden = false;
+
     const content = $("coordinator-content");
     if (content) content.hidden = false;
 

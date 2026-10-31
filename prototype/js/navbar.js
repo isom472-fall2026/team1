@@ -16,6 +16,7 @@
             coordinator: "Coordinator",
             account: "Account",
             coordinatorEvents: "Coordinator Events",
+            venues: "Venues",
             createEvent: "Create Event",
             createVenue: "Create Venue",
             assignOrganizers: "Assign Organizers",
@@ -31,6 +32,7 @@
             coordinator: "المنسق",
             account: "الحساب",
             coordinatorEvents: "إدارة الفعاليات",
+            venues: "المواقع",
             createEvent: "إنشاء فعالية",
             createVenue: "إنشاء موقع",
             assignOrganizers: "تعيين المنظمين",
@@ -177,6 +179,7 @@
             if (profileLink) profileLink.classList.add("active");
         } else if (
             page === "coordinator-events.html" ||
+            page === "venues.html" ||
             page === "create-event.html" ||
             page === "create-venue.html" ||
             page === "assign-organizers.html"
@@ -289,15 +292,24 @@
         if (!client) return;
 
         try {
-            const { data, error } = await client
-                .from("coordinator")
-                .select("user_id")
-                .eq("user_id", user.id)
-                .maybeSingle();
+            let isCoord = false;
+            try {
+                const { data: rpcRes, error: rpcErr } = await client.rpc("is_coordinator");
+                if (!rpcErr && rpcRes === true) isCoord = true;
+            } catch (e) {}
+
+            if (!isCoord) {
+                const { data, error } = await client
+                    .from("coordinator")
+                    .select("user_id")
+                    .eq("user_id", user.id)
+                    .maybeSingle();
+                if (!error && data?.user_id) isCoord = true;
+            }
 
             if (currentVersion !== authVersion) return;
 
-            if (!error && data?.user_id) {
+            if (isCoord) {
                 if ($("coordinator-menu")) $("coordinator-menu").hidden = false;
             } else {
                 if ($("coordinator-menu")) $("coordinator-menu").hidden = true;
@@ -346,6 +358,7 @@
                 const page = window.location.pathname.split("/").pop();
                 const protectedPages = [
                     "coordinator-events.html",
+                    "venues.html",
                     "create-event.html",
                     "create-venue.html",
                     "assign-organizers.html",
