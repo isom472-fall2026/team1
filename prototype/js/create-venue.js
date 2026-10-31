@@ -220,6 +220,8 @@ async function initialize() {
 
     const createEventBtn = document.getElementById("create-event-btn");
     if (createEventBtn) createEventBtn.hidden = false;
+    const venuesLink = document.getElementById("venues-link");
+    if (venuesLink) venuesLink.hidden = false;
 
     const createVenueBtn = document.getElementById("create-venue-btn");
     if (createVenueBtn) createVenueBtn.hidden = false;

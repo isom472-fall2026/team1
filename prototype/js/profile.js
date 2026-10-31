@@ -410,6 +410,10 @@ function renderProfile() {
     if (coordEventsLink) {
         coordEventsLink.hidden = !isCoordinator;
     }
+    const venuesNavBtn = $("venues-link");
+    if (venuesNavBtn) {
+        venuesNavBtn.hidden = !isCoordinator;
+    }
     const coordinatorActionBtn = $("coordinator-create-event-btn");
     if (coordinatorActionBtn) {
         coordinatorActionBtn.hidden = !isCoordinator;
