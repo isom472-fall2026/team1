@@ -1063,8 +1063,8 @@ function renderUserWelcome() {
 
 async function applyUserSession(user) {
     const createEventBtn = $("create-event-btn");
-
     const coordEventsLink = $("coordinator-events-link");
+    const venuesLink = $("venues-link");
 
     if (!user) {
         currentUser = null;
@@ -1073,6 +1073,7 @@ async function applyUserSession(user) {
         userBookingsMap.clear();
         if (createEventBtn) createEventBtn.hidden = true;
         if (coordEventsLink) coordEventsLink.hidden = true;
+        if (venuesLink) venuesLink.hidden = true;
         renderUserWelcome();
         renderEvents();
         if (selectedEvent && $("event-modal") && !$("event-modal").hidden) {
@@ -1137,6 +1138,9 @@ async function applyUserSession(user) {
     }
     if (coordEventsLink) {
         coordEventsLink.hidden = Boolean(user && !isCoordinator);
+    }
+    if (venuesLink) {
+        venuesLink.hidden = Boolean(user && !isCoordinator);
     }
 
     if (!currentUserName && db) {
