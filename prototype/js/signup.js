@@ -330,7 +330,7 @@
                 );
             } else {
                 showMessage(
-                    "User already registered. Please check your details."
+                    "User already registered."
                 );
             }
         } finally {
