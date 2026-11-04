@@ -406,21 +406,30 @@ async function cancelBooking(bookingId) {
             return;
         }
 
-        // After cancellation, the booking status changes from "Confirmed" to "Cancelled" in the system.
-        const { error: updateError } = await db
+        // Attempt to remove the reservation from the table
+        const { error: deleteError } = await db
             .from("bookings")
-            .update({ status: "Cancelled" })
+            .delete()
             .eq("booking_id", bookingId)
             .eq("user_id", currentUser.id);
 
-        if (updateError) {
-            console.error("Cancellation error:", updateError);
-            displayError(updateError.message || t("cancelError"));
-            if (btn) {
-                btn.disabled = false;
-                btn.textContent = t("cancelReservation");
+        if (deleteError) {
+            // If DELETE is blocked by Supabase RLS, fall back to updating status to Cancelled
+            const { error: updateError } = await db
+                .from("bookings")
+                .update({ status: "Cancelled" })
+                .eq("booking_id", bookingId)
+                .eq("user_id", currentUser.id);
+
+            if (updateError) {
+                console.error("Cancellation error:", updateError);
+                displayError(updateError.message || t("cancelError"));
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = t("cancelReservation");
+                }
+                return;
             }
-            return;
         }
 
         // The student gets an on-screen message confirming the cancellation.
@@ -483,7 +492,9 @@ async function loadUserBookings(user, preserveMessages = false) {
 
         if (error) throw error;
 
-        userBookings = data || [];
+        userBookings = (data || []).filter(
+            (b) => String(b.status || "").toLowerCase() !== "cancelled"
+        );
         loadState = "loaded";
         renderBookings();
     } catch (err) {
