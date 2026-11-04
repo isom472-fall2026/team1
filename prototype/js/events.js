@@ -516,6 +516,21 @@ async function handleReserveSeat(event) {
     }
 
     try {
+        // Clean up any previously cancelled booking for this event so a fresh reservation can be created
+        const { data: existingCancelled } = await db
+            .from("bookings")
+            .select("booking_id, status")
+            .eq("user_id", currentUser.id)
+            .eq("event_id", event.event_id)
+            .maybeSingle();
+
+        if (existingCancelled && String(existingCancelled.status).toLowerCase() === "cancelled") {
+            await db
+                .from("bookings")
+                .delete()
+                .eq("booking_id", existingCancelled.booking_id);
+        }
+
         const { data, error } = await db
             .from("bookings")
             .insert([
