@@ -100,3 +100,71 @@ html[data-theme="dark"] .bookings-error-box {
     color: #fca5a5;
 }
 
+.bookings-success-box {
+    margin: 20px 0;
+    padding: 15px 18px;
+    border: 1px solid #a7f3d0;
+    border-radius: 10px;
+    background: #ecfdf5;
+    color: #065f46;
+    font-weight: 500;
+}
+
+html[data-theme="dark"] .bookings-success-box {
+    background: #064e3b;
+    border-color: #047857;
+    color: #a7f3d0;
+}
+
+.booking-actions {
+    margin-top: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border, #e5e7eb);
+    display: flex;
+    justify-content: flex-end;
+}
+
+html[data-theme="dark"] .booking-actions {
+    border-top-color: var(--navbar-border, #41434a);
+}
+
+.btn-cancel-booking {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    color: #dc2626;
+    border: 1px solid #f87171;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.btn-cancel-booking:hover:not(:disabled) {
+    background: #dc2626;
+    color: #ffffff;
+    border-color: #dc2626;
+}
+
+.btn-cancel-booking:focus-visible {
+    outline: 2px solid #dc2626;
+    outline-offset: 2px;
+}
+
+.btn-cancel-booking:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+html[data-theme="dark"] .btn-cancel-booking {
+    color: #f87171;
+    border-color: #ef4444;
+}
+
+html[data-theme="dark"] .btn-cancel-booking:hover:not(:disabled) {
+    background: #ef4444;
+    color: #ffffff;
+}
