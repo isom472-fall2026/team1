@@ -56,8 +56,8 @@ cuts the tag.
 | 1 — team, environment, proposal | Seyed Esmaeili | Wed 23 Sep |
 | 2 — design sprint | Sulaiman Alhamlan | Wed 7 Oct |
 | 3 — sprint 1 | Esmael Mahmud | Wed 21 Oct |
-| 4 — sprint 2 | Ayoub Mohammed | Wed 4 Nov |
-| 5 — sprint 3 | Mustafa Dashti | Wed 18 Nov |
+| 4 — sprint 2 | Ayoub Mohammed | Mon 9 Nov |
+| 5 — sprint 3 | Mustafa Dashti | Mon 23 Nov |
 | 6 — final sprint | Seyed Esmaeili | Wed 9 Dec |
 
 ## What is in this repository
@@ -102,3 +102,9 @@ feat(orders): add duplicate-order check  [#14]
 
 Phase tags are `phase-1` … `phase-6`. **The tag is what gets graded.** The Phase Lead
 creates it — steps in [docs/how-we-work.md](docs/how-we-work.md#how-to-create-the-tag).
+
+## Test accounts
+- coordinator gmail : [ali@gmail.com]
+- orgnizer gmail : [ahmed@gmail.com]
+- attendee gmail : [mahmoud@gmail.com]
+- password : [1234&qwer]
