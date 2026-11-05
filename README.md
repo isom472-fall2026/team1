@@ -104,6 +104,7 @@ Phase tags are `phase-1` … `phase-6`. **The tag is what gets graded.** The Pha
 creates it — steps in [docs/how-we-work.md](docs/how-we-work.md#how-to-create-the-tag).
 
 ## Test accounts
-coordinator gmail : [ali@gmail.com]
-orgnizer gmail : [ahmed@gmail.com]
-attendee gmail : [mahmoud@gmail.com]
+- coordinator gmail : [ali@gmail.com]
+- orgnizer gmail : [ahmed@gmail.com]
+- attendee gmail : [mahmoud@gmail.com]
+- password : [1234&qwer]
