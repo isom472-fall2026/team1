@@ -293,6 +293,43 @@ html[data-theme="dark"] .detail-value.capacity-valid {
     display: flex;
     gap: 8px;
     align-items: center;
+    flex-wrap: wrap;
+}
+
+.btn-danger,
+.delete-venue-btn {
+    background: #b42318;
+    color: #ffffff;
+    border: 1px solid #b42318;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.btn-danger:hover:not(:disabled),
+.delete-venue-btn:hover:not(:disabled) {
+    background: #91180d;
+    border-color: #91180d;
+    color: #ffffff;
+}
+
+.btn-danger:disabled,
+.delete-venue-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
+html[data-theme="dark"] .btn-danger,
+html[data-theme="dark"] .delete-venue-btn {
+    background: #991b1b;
+    border-color: #b91c1c;
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .btn-danger:hover:not(:disabled),
+html[data-theme="dark"] .delete-venue-btn:hover:not(:disabled) {
+    background: #7f1d1d;
+    border-color: #991b1b;
 }
 
 .venue-card.editing {
