@@ -45,7 +45,12 @@ const translations = {
         event: "Event",
         toBeAnnounced: "To be announced",
         untitledEvent: "Untitled Event",
-        noDescription: "No description available."
+        noDescription: "No description available.",
+        cancelReservation: "Cancel Reservation",
+        cancelling: "Cancelling...",
+        cancelSuccess: "Your reservation has been cancelled successfully.",
+        cancelError: "Unable to cancel your reservation. Please try again.",
+        bookingDoesNotExist: "booking does not exist"
     },
     ar: {
         home: "الرئيسية",
@@ -73,7 +78,12 @@ const translations = {
         event: "فعالية",
         toBeAnnounced: "سيتم الإعلان لاحقاً",
         untitledEvent: "فعالية بدون عنوان",
-        noDescription: "لا يوجد وصف متاح."
+        noDescription: "لا يوجد وصف متاح.",
+        cancelReservation: "إلغاء الحجز",
+        cancelling: "جارٍ الإلغاء...",
+        cancelSuccess: "تم إلغاء حجزك بنجاح.",
+        cancelError: "تعذر إلغاء حجزك. يرجى المحاولة مرة أخرى.",
+        bookingDoesNotExist: "الحجز غير موجود"
     }
 };
 
@@ -84,6 +94,47 @@ function getLanguage() {
 function t(key) {
     const lang = getLanguage();
     return translations[lang]?.[key] || translations.en[key] || key;
+}
+
+function displayError(msg) {
+    const errorBox = $("bookings-error");
+    const successBox = $("bookings-success");
+    if (successBox) {
+        successBox.textContent = "";
+        successBox.hidden = true;
+    }
+    if (errorBox) {
+        errorBox.textContent = msg;
+        errorBox.hidden = false;
+        errorBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+}
+
+function displaySuccess(msg) {
+    const errorBox = $("bookings-error");
+    const successBox = $("bookings-success");
+    if (errorBox) {
+        errorBox.textContent = "";
+        errorBox.hidden = true;
+    }
+    if (successBox) {
+        successBox.textContent = msg;
+        successBox.hidden = false;
+        successBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    }
+}
+
+function clearMessages() {
+    const errorBox = $("bookings-error");
+    const successBox = $("bookings-success");
+    if (errorBox) {
+        errorBox.textContent = "";
+        errorBox.hidden = true;
+    }
+    if (successBox) {
+        successBox.textContent = "";
+        successBox.hidden = true;
+    }
 }
 
 function escapeHTML(value) {
@@ -186,7 +237,6 @@ function renderBookings() {
 
     if (emptyState) emptyState.hidden = true;
     if (authPrompt) authPrompt.hidden = true;
-    if (errorBox) errorBox.hidden = true;
 
     if (loadState === "unauthenticated") {
         if (grid) grid.innerHTML = "";
@@ -241,8 +291,17 @@ function renderBookings() {
             const dateDisplay = escapeHTML(formatDate(event.event_date));
             const timeDisplay = escapeHTML(formatTimeRange(event));
 
+            const isConfirmed = statusRaw === "confirmed";
+            const cancelBtnHTML = isConfirmed ? `
+                <div class="booking-actions">
+                    <button type="button" class="btn btn-cancel-booking" id="cancel-booking-${escapeHTML(booking.booking_id)}" data-booking-id="${escapeHTML(booking.booking_id)}">
+                        ${escapeHTML(t("cancelReservation"))}
+                    </button>
+                </div>
+            ` : "";
+
             return `
-                <article class="events-page-card booking-card">
+                <article class="events-page-card booking-card" data-booking-id="${escapeHTML(booking.booking_id)}">
                     <div class="booking-card-head">
                         <span class="event-type">${typeLabel}</span>
                         <span class="status-badge status-${escapeHTML(statusRaw)}">${statusLabel}</span>
@@ -287,13 +346,114 @@ function renderBookings() {
                             </div>
                         </div>
                     </div>
+
+                    ${cancelBtnHTML}
                 </article>
             `;
         }).join("");
+
+        grid.querySelectorAll(".btn-cancel-booking").forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+                e.preventDefault();
+                const bookingId = btn.dataset.bookingId;
+                cancelBooking(bookingId);
+            });
+        });
     }
 }
 
-async function loadUserBookings(user) {
+async function cancelBooking(bookingId) {
+    if (!bookingId) {
+        displayError("booking does not exist");
+        return;
+    }
+
+    if (!currentUser || !db) {
+        displayError(t("signInPrompt"));
+        return;
+    }
+
+    const btn = document.querySelector(`.btn-cancel-booking[data-booking-id="${bookingId}"]`);
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = t("cancelling");
+    }
+
+    try {
+        // Query the booking to verify existence and check current status
+        const { data: booking, error: fetchError } = await db
+            .from("bookings")
+            .select("booking_id, status, user_id")
+            .eq("booking_id", bookingId)
+            .maybeSingle();
+
+        // If bookings.booking_id does not exist, cancellation is rejected with an error message "booking does not exist"
+        if (fetchError || !booking) {
+            displayError("booking does not exist");
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = t("cancelReservation");
+            }
+            return;
+        }
+
+        // If bookings.status is already Cancelled, no further change occurs.
+        if (String(booking.status).toLowerCase() === "cancelled") {
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = t("cancelReservation");
+            }
+            return;
+        }
+
+        // Attempt to remove the reservation from the table
+        const { error: deleteError } = await db
+            .from("bookings")
+            .delete()
+            .eq("booking_id", bookingId)
+            .eq("user_id", currentUser.id);
+
+        if (deleteError) {
+            // If DELETE is blocked by Supabase RLS, fall back to updating status to Cancelled
+            const { error: updateError } = await db
+                .from("bookings")
+                .update({ status: "Cancelled" })
+                .eq("booking_id", bookingId)
+                .eq("user_id", currentUser.id);
+
+            if (updateError) {
+                console.error("Cancellation error:", updateError);
+                displayError(updateError.message || t("cancelError"));
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = t("cancelReservation");
+                }
+                return;
+            }
+        }
+
+        // The student gets an on-screen message confirming the cancellation.
+        displaySuccess(t("cancelSuccess"));
+
+        // Refresh bookings and preserve the success confirmation message
+        await loadUserBookings(currentUser, true);
+    } catch (err) {
+        console.error("Unexpected error during cancellation:", err);
+        displayError(err.message || t("cancelError"));
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = t("cancelReservation");
+        }
+    }
+}
+
+window.cancelBooking = cancelBooking;
+
+async function loadUserBookings(user, preserveMessages = false) {
+    if (!preserveMessages) {
+        clearMessages();
+    }
+
     if (!user?.id) {
         loadState = "unauthenticated";
         renderBookings();
@@ -332,7 +492,9 @@ async function loadUserBookings(user) {
 
         if (error) throw error;
 
-        userBookings = data || [];
+        userBookings = (data || []).filter(
+            (b) => String(b.status || "").toLowerCase() !== "cancelled"
+        );
         loadState = "loaded";
         renderBookings();
     } catch (err) {
@@ -398,4 +560,3 @@ if (document.readyState === "loading") {
 } else {
     initialize();
 }
-
