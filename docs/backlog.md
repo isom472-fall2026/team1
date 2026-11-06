@@ -75,7 +75,7 @@ the story ID, the title, who built it, and what happened to it.
 |74| Attendee Reserve a Seat | Ismail | Moved to phase 4|
 
 
-## Phase 4 — saved 4 November
+## Phase 4 — saved 9 November
 
 | Story | Title | Who | State at the tag |
 |---|---|---|---|
@@ -112,7 +112,7 @@ the story ID, the title, who built it, and what happened to it.
 |#85| Coordinator Exports Pre-Event Confirmed Attendee Roster | Ayoub | Moved to phase 5|
 |#58| Coordinator Assigns Door Organizer to an Event | Sayed | Moved to phase 5|
 
-## Phase 5 — saved 18 November
+## Phase 5 — saved 23 November
 
 | Story | Title | Who | State at the tag |
 |---|---|---|---|
