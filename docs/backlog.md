@@ -75,13 +75,44 @@ the story ID, the title, who built it, and what happened to it.
 |74| Attendee Reserve a Seat | Ismail | Moved to phase 4|
 
 
-## Phase 4 — saved 4 November
+## Phase 4 — saved 9 November
 
 | Story | Title | Who | State at the tag |
 |---|---|---|---|
-|  |  |  |  |
+|#101| Coordinator Can View All Venues| Sayed | done |
+|#18| Attendee Reservation Cancellation| Sulieman | done|
+|#70| Attendee Filters Events by Event Category| Ismail | done|
+|#43| Coordinator Event Editing and Constraint Validation | Sayed | done|
+|#44| Attendee Can View Upcoming Events| Ismail | done|
+|#45| Guest User is Prompted to Sign In Before Reserving| Ayoub | done|
+|#57| Coordinator Updates Existing Venue Details| Mustafa | done|
+|#75| View My Bookings | Sulieman | done|
+|#81| Coordinator Deletes an Unused Venue | Mustafa | done|
+|#74| Attendee Reserve a Seat | Ayoub | done|
+|#13| Capacity-Capped Seat Reservation| Sayed |Moved to phase 5|
+|#14| Live Door Check-In Interface | Sayed | Moved to phase 6|
+|#19| Coordinator Turnout Report Export | Ayoub |Moved to phase 6|
+|#20| Coordinator Roster Filtering and Search | Sulieman |Moved to phase 6|
+|#21| Door Organizer Walk-in Warning Alert | Sulieman |Moved to phase 6|
+|#23| Automatic Waitlist Promotion | Mustafa | Moved to phase 5|
+|#24| Attendee Views Booking Status  | Mustafa |Moved to phase 5|
+|#68| Attendee Views Personal Attendance History | Ismail | Moved to phase 6| 
+|#62| Organizer view Event Attendance History | Ismail | Moved to phase 5|
+|#42| Coordinator Event Dashboard Summary & Statistics| Mustafa | Moved to phase 6|
+|#78| Coordinator Searches Venues by Minimum Capacity| Ayoub | Moved to phase 5|
+|#79| Door Organizer Searches Roster by University ID | Ayoub | Moved to phase 6|
+|#80| Waitlisted Attendee Leaves Waitlist Queue | Ayoub | Moved to phase 5|
+|#61| Door Organizer Records Attendee Check-Out| Sayed | Removed for being out of scope|
+|#59| Coordinator Removes Organizer Assignment| Sayed | Moved to phase 5|
+|#71| Coordinator prevent Venue Scheduling Conflicts| Ismail | Moved to phase 5|
+|#72| Organizer update Attendance Status| Mustafa | Moved to phase 5|
+|#82| Attendee Filters Events by Date Range | Ayoub| Moved to phase 5|
+|#83| Coordinator Assigns Department to an Organizer | Ayoub | Removed for being out of scope|
+|#84| Attendee Updates Attendee Classification Type | Ayoub| Moved to phase 5|
+|#85| Coordinator Exports Pre-Event Confirmed Attendee Roster | Ayoub | Moved to phase 5|
+|#58| Coordinator Assigns Door Organizer to an Event | Sayed | Moved to phase 5|
 
-## Phase 5 — saved 18 November
+## Phase 5 — saved 23 November
 
 | Story | Title | Who | State at the tag |
 |---|---|---|---|
