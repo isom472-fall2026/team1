@@ -1103,12 +1103,16 @@ async function initialize() {
     const initialLang = document.documentElement.lang || "en";
     setLanguage(initialLang);
 
-    if (!window.supabase?.createClient) {
+    client = window.aukDb || (window.supabase && typeof window.supabase.createClient === "function"
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null);
+
+    if (!client) {
         setMessage("unableToConnect", "error");
         return;
     }
 
-    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.aukDb = client;
 
     const { data, error } = await client.auth.getSession();
     if (error) {
@@ -1140,6 +1144,10 @@ async function initialize() {
         setMessage("onlyCoordinators", "error");
         return;
     }
+
+    try {
+        sessionStorage.setItem("auk_role_" + currentUser.id, "Coordinator");
+    } catch { }
 
     coordinatorRecord = coordinator;
     isCoordinator = true;

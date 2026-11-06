@@ -38,6 +38,7 @@
         }
         if (window.supabase && typeof window.supabase.createClient === "function") {
             supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+            window.aukDb = supabaseClient;
             return supabaseClient;
         }
         return null;
@@ -46,7 +47,10 @@
     /* =====================================
        OPEN / CLOSE SIGN-IN MODAL
     ===================================== */
-    function openSignin() {
+    function openSignin(event) {
+        if (event && typeof event.preventDefault === "function") {
+            event.preventDefault();
+        }
         if (!signinModal) return;
         previousFocus = document.activeElement;
         signinModal.hidden = false;
@@ -72,6 +76,17 @@
     if (signinButton) {
         signinButton.addEventListener("click", openSignin);
     }
+
+    // Immediately open modal if requested via URL query string
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has("signin")) {
+            openSignin();
+            const cleanUrl = new URL(window.location);
+            cleanUrl.searchParams.delete("signin");
+            window.history.replaceState({}, document.title, cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ""));
+        }
+    } catch { }
 
     if (closeButton) {
         closeButton.addEventListener("click", closeSignin);

@@ -239,12 +239,16 @@ async function initialize() {
     initializeNavigation();
     document.getElementById("event-date").min = new Date().toISOString().slice(0, 10);
 
-    if (!window.supabase?.createClient) {
+    client = window.aukDb || (window.supabase && typeof window.supabase.createClient === "function"
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null);
+
+    if (!client) {
         setMessage("unableToConnect", "error");
         return;
     }
 
-    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.aukDb = client;
     const { data, error } = await client.auth.getSession();
     if (error) {
         console.error("Session check error:", error);

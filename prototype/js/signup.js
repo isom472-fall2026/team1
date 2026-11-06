@@ -44,8 +44,10 @@
        OPEN REGISTRATION MODAL
     ===================================== */
 
-    function openSignup() {
-
+    function openSignup(event) {
+        if (event && typeof event.preventDefault === "function") {
+            event.preventDefault();
+        }
         previousFocus = document.activeElement;
 
         signupModal.hidden = false;
@@ -348,10 +350,6 @@
        EVENT LISTENERS
     ===================================== */
 
-    signupButton.addEventListener(
-        "click",
-        openSignup
-    );
     signupButton.addEventListener("click", event => {
         event.preventDefault();
         openSignup();
@@ -404,5 +402,15 @@
             }
         });
     }
+
+    try {
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has("signup")) {
+            openSignup();
+            const cleanUrl = new URL(window.location);
+            cleanUrl.searchParams.delete("signup");
+            window.history.replaceState({}, document.title, cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ""));
+        }
+    } catch { }
 
 })();

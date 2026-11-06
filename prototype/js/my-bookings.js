@@ -518,7 +518,18 @@ async function initialize() {
         return;
     }
 
-    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    db = window.aukDb || (window.supabase && typeof window.supabase.createClient === "function"
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null);
+
+    if (!db) {
+        console.error("Supabase client or configuration missing.");
+        loadState = "error";
+        renderBookings();
+        return;
+    }
+
+    window.aukDb = db;
 
     try {
         const { data, error } = await db.auth.getSession();

@@ -979,8 +979,24 @@ function updateUpcomingEventsCount() {
 }
 
 async function loadEvents() {
-    eventsState = "loading";
-    renderEvents();
+    try {
+        const cached = sessionStorage.getItem("auk_cached_events");
+        if (cached && (!allEvents || allEvents.length === 0)) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                allEvents = parsed;
+                eventsState = "loaded";
+                updateUpcomingEventsCount();
+                renderChips();
+                renderEvents();
+            }
+        }
+    } catch { }
+
+    if (eventsState !== "loaded") {
+        eventsState = "loading";
+        renderEvents();
+    }
 
     try {
         const today = localToday();
@@ -1019,11 +1035,16 @@ async function loadEvents() {
         });
 
         eventsState = "loaded";
+        try {
+            sessionStorage.setItem("auk_cached_events", JSON.stringify(allEvents));
+        } catch { }
 
     } catch (error) {
         console.error("Unable to load events:", error);
-        allEvents = [];
-        eventsState = "error";
+        if (!allEvents || allEvents.length === 0) {
+            allEvents = [];
+            eventsState = "error";
+        }
     }
 
     updateUpcomingEventsCount();
@@ -1102,47 +1123,51 @@ async function applyUserSession(user) {
     currentUserRole = user.user_metadata?.attendee_type || "Attendee";
     let isCoordinator = false;
 
-    // Securely query coordinator table to verify Coordinator role
-    if (db) {
-        try {
-            const { data: coordData, error: coordError } = await db
-                .from("coordinator")
-                .select("user_id")
-                .eq("user_id", user.id)
-                .maybeSingle();
+    // Check cached role and profile in sessionStorage for instant 0ms rendering
+    let roleLoaded = false;
+    try {
+        const cachedRole = sessionStorage.getItem("auk_role_" + user.id);
+        const cachedName = sessionStorage.getItem("auk_name_" + user.id);
+        if (cachedRole) {
+            currentUserRole = cachedRole;
+            isCoordinator = (cachedRole === "Coordinator");
+            roleLoaded = true;
+        }
+        if (cachedName) {
+            currentUserName = cachedName;
+        }
+    } catch { }
 
-            if (!coordError && coordData?.user_id) {
+    if (!roleLoaded && db) {
+        try {
+            const [coordRes, orgRes, attRes, userRes] = await Promise.all([
+                db.from("coordinator").select("user_id").eq("user_id", user.id).maybeSingle(),
+                db.from("organizer").select("user_id").eq("user_id", user.id).maybeSingle(),
+                db.from("attendee").select("attendee_type").eq("user_id", user.id).maybeSingle(),
+                db.from("users").select("name").eq("user_id", user.id).maybeSingle()
+            ]);
+
+            if (!coordRes.error && coordRes.data?.user_id) {
                 isCoordinator = true;
                 currentUserRole = "Coordinator";
+            } else if (!orgRes.error && orgRes.data?.user_id) {
+                currentUserRole = "Organizer";
+            } else if (!attRes.error && attRes.data?.attendee_type) {
+                currentUserRole = attRes.data.attendee_type;
             }
-        } catch (e) {
-            console.warn("Coordinator check error:", e);
-        }
 
-        if (!isCoordinator) {
+            if (!userRes.error && userRes.data?.name) {
+                currentUserName = userRes.data.name;
+            }
+
             try {
-                const { data: orgData, error: orgError } = await db
-                    .from("organizer")
-                    .select("user_id")
-                    .eq("user_id", user.id)
-                    .maybeSingle();
-
-                if (!orgError && orgData?.user_id) {
-                    currentUserRole = "Organizer";
-                } else {
-                    const { data: attData } = await db
-                        .from("attendee")
-                        .select("attendee_type")
-                        .eq("user_id", user.id)
-                        .maybeSingle();
-
-                    if (attData?.attendee_type) {
-                        currentUserRole = attData.attendee_type;
-                    }
+                sessionStorage.setItem("auk_role_" + user.id, currentUserRole);
+                if (currentUserName) {
+                    sessionStorage.setItem("auk_name_" + user.id, currentUserName);
                 }
-            } catch (e) {
-                console.warn("Role check error:", e);
-            }
+            } catch { }
+        } catch (e) {
+            console.warn("Role check error:", e);
         }
     }
 
@@ -1156,22 +1181,6 @@ async function applyUserSession(user) {
     }
     if (venuesLink) {
         venuesLink.hidden = Boolean(user && !isCoordinator);
-    }
-
-    if (!currentUserName && db) {
-        try {
-            const { data, error } = await db
-                .from("users")
-                .select("name")
-                .eq("user_id", user.id)
-                .maybeSingle();
-
-            if (!error && data?.name) {
-                currentUserName = data.name;
-            }
-        } catch (e) {
-            console.warn("Unable to fetch user profile:", e);
-        }
     }
 
     if (!currentUserName) {
@@ -1192,6 +1201,15 @@ async function applyUserSession(user) {
 window.applyUserSession = applyUserSession;
 
 async function handleSignOut() {
+    try {
+        for (let i = sessionStorage.length - 1; i >= 0; i--) {
+            const k = sessionStorage.key(i);
+            if (k && k.startsWith("auk_")) {
+                sessionStorage.removeItem(k);
+            }
+        }
+    } catch { }
+
     if (db?.auth) {
         try {
             await db.auth.signOut();
@@ -1266,24 +1284,28 @@ async function initialize() {
         loadPreference("auk-language") || "en"
     );
 
-    if (!window.supabase?.createClient) {
+    db = window.aukDb || (window.supabase && typeof window.supabase.createClient === "function"
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null);
+
+    if (!db) {
         eventsState = "error";
         renderEvents();
         showToast(t("notConnected"));
         return;
     }
 
-    db = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_ANON_KEY
-    );
-
-    // Share the existing client with signup.js and signin.js
+    // Share the existing client globally
     window.aukDb = db;
 
-    await loadEvents();
-    await initializeAuth();
+    // Immediately handle signin query without waiting for network requests
     checkUrlAuthAction();
+
+    // Load events and auth in parallel to eliminate sequential network lag
+    await Promise.all([
+        loadEvents(),
+        initializeAuth()
+    ]);
 
     // Check for post-login redirection or return to event
     const urlParams = new URLSearchParams(window.location.search);
@@ -1312,7 +1334,9 @@ function checkUrlAuthAction() {
             if (typeof window.openSigninModal === "function") {
                 window.openSigninModal();
                 try {
-                    window.history.replaceState({}, document.title, window.location.pathname);
+                    const cleanUrl = new URL(window.location);
+                    cleanUrl.searchParams.delete("signin");
+                    window.history.replaceState({}, document.title, cleanUrl.pathname + (cleanUrl.search ? cleanUrl.search : ""));
                 } catch {
                     // Ignore state replacement errors
                 }
@@ -1322,7 +1346,8 @@ function checkUrlAuthAction() {
         };
 
         if (!tryOpen()) {
-            setTimeout(tryOpen, 150);
+            setTimeout(tryOpen, 50);
+            setTimeout(tryOpen, 200);
         }
     }
 }
