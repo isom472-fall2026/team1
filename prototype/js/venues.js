@@ -53,6 +53,7 @@ const translations = {
         unableToConnect: "Unable to connect to Supabase.",
         pleaseSignIn: "Please sign in as a coordinator to access venues.",
         edit: "Edit",
+        deleteVenue: "Delete Venue",
         cancel: "Cancel",
         saveChanges: "Save Changes",
         editVenueHeading: "Edit Venue",
@@ -60,7 +61,11 @@ const translations = {
         locationLabel: "Location",
         capacityLabel: "Room Capacity",
         venueUpdatedSuccess: "Venue details updated successfully.",
+        venueDeletedSuccess: "Venue deleted successfully.",
         "Venue details updated successfully.": "Venue details updated successfully.",
+        "Venue deleted successfully.": "Venue deleted successfully.",
+        "Venue ID is required.": "Venue ID is required.",
+        "Cannot delete venue associated with existing scheduled events.": "Cannot delete venue associated with existing scheduled events.",
         "Venue name cannot be empty": "Venue name cannot be empty",
         "Venue location cannot be empty": "Venue location cannot be empty",
         "Room capacity must be a positive integer.": "Room capacity must be a positive integer.",
@@ -98,6 +103,7 @@ const translations = {
         unableToConnect: "تعذر الاتصال بقاعدة البيانات.",
         pleaseSignIn: "يرجى تسجيل الدخول كمنسق للوصول إلى المواقع.",
         edit: "تعديل",
+        deleteVenue: "حذف الموقع",
         cancel: "إلغاء",
         saveChanges: "حفظ التغييرات",
         editVenueHeading: "تعديل تفاصيل الموقع",
@@ -105,7 +111,11 @@ const translations = {
         locationLabel: "الموقع في الحرم",
         capacityLabel: "السعة الاستيعابية",
         venueUpdatedSuccess: "تم تحديث تفاصيل الموقع بنجاح.",
+        venueDeletedSuccess: "تم حذف الموقع بنجاح.",
         "Venue details updated successfully.": "تم تحديث تفاصيل الموقع بنجاح.",
+        "Venue deleted successfully.": "تم حذف الموقع بنجاح.",
+        "Venue ID is required.": "معرّف الموقع مطلوب.",
+        "Cannot delete venue associated with existing scheduled events.": "لا يمكن حذف موقع مرتبط بفعاليات مجدولة حالية.",
         "Venue name cannot be empty": "لا يمكن أن يكون اسم الموقع فارغاً",
         "Venue location cannot be empty": "لا يمكن أن يكون موقع الموقع فارغاً",
         "Room capacity must be a positive integer.": "يجب أن تكون السعة الاستيعابية عدداً صحيحاً موجباً.",
@@ -325,6 +335,9 @@ function renderVenues(venuesToRender, isSearchResult = false) {
                         <button type="button" class="btn btn-gold edit-venue-btn" data-venue-id="${escapeHTML(venue.venue_id)}">
                             ${escapeHTML(t("edit"))}
                         </button>
+                        <button type="button" class="btn btn-danger delete-venue-btn" data-venue-id="${escapeHTML(venue.venue_id)}">
+                            ${escapeHTML(t("deleteVenue"))}
+                        </button>
                     </div>
                 </div>
             </article>
@@ -336,6 +349,14 @@ function renderVenues(venuesToRender, isSearchResult = false) {
             event.stopPropagation();
             const venueId = Number(button.dataset.venueId);
             startEditingVenue(venueId);
+        });
+    });
+
+    grid.querySelectorAll(".delete-venue-btn").forEach(button => {
+        button.addEventListener("click", async event => {
+            event.stopPropagation();
+            const venueId = button.dataset.venueId;
+            await deleteVenue(venueId, button);
         });
     });
 
@@ -477,6 +498,70 @@ async function saveVenue(venueId, formElement) {
         if (submitBtn) submitBtn.disabled = false;
     }
 }
+
+async function deleteVenue(venueId, buttonElement) {
+    let targetId = venueId;
+    if (typeof targetId === "object" && targetId !== null) {
+        targetId = targetId.venue_id;
+    }
+
+    if (targetId === null || targetId === undefined || targetId === "" || (typeof targetId === "number" && isNaN(targetId))) {
+        setMessage("Venue ID is required.", "error");
+        return;
+    }
+
+    const numId = Number(targetId);
+    if (isNaN(numId) || numId <= 0) {
+        setMessage("Venue ID is required.", "error");
+        return;
+    }
+
+    if (buttonElement) {
+        buttonElement.disabled = true;
+    }
+    setMessage("");
+
+    try {
+        const { error: deleteError } = await client
+            .from("venues")
+            .delete()
+            .eq("venue_id", numId);
+
+        if (deleteError) {
+            console.error("Database delete error:", deleteError);
+            const isFkViolation =
+                deleteError.code === "23503" ||
+                String(deleteError.message || "").toLowerCase().includes("foreign key") ||
+                String(deleteError.details || "").toLowerCase().includes("foreign key") ||
+                String(deleteError.message || "").includes("events_venue_id_fkey") ||
+                (String(deleteError.message || "").includes("violates") && String(deleteError.message || "").includes("events"));
+
+            if (isFkViolation) {
+                setMessage("Cannot delete venue associated with existing scheduled events.", "error");
+                return;
+            }
+
+            setMessage(deleteError.message || "Failed to delete venue.", "error");
+            return;
+        }
+
+        if (editingVenueId === numId) {
+            editingVenueId = null;
+        }
+        setMessage("Venue deleted successfully.", "success");
+        showToast(translations[lang()]?.["Venue deleted successfully."] || "Venue deleted successfully.");
+        await fetchVenues();
+    } catch (err) {
+        console.error("Unexpected error deleting venue:", err);
+        setMessage(err.message || "An unexpected error occurred.", "error");
+    } finally {
+        if (buttonElement) {
+            buttonElement.disabled = false;
+        }
+    }
+}
+
+window.deleteVenue = deleteVenue;
 
 /* ===================================
    SEARCH LOGIC (AC 4) — reactive on input
