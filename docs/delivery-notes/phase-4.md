@@ -69,4 +69,4 @@ All ten user stories listed above were completed and delivered.
 Seven additional stories remain outstanding and carried forward to Phase 4: #13, #14, #19, #20, #21, #23, and #24. They are documented in the project backlog for Phase 4 prioritization.
 One story is in progress:
 - Coordinator Can View All Venues (#62; issue #62)
-Nineteen stories remain to do and are documented in the project backlog.
+- Nineteen stories remain to do and are documented in the project backlog.
