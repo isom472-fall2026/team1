@@ -27,17 +27,34 @@ Coordinators can view all venues and maintain venue information by updating exis
 
 <!-- Link each story listed above to its issue. -->
 
-#74 — Attendee Reserve a Seat
-#45 — Guest User is Prompted to Sign In Before Reserving
-#44 — Attendee Can View Upcoming Events
-#70 — Attendee Filters Events by Event Category
-#18 — Attendee Reservation Cancellation
-#75 — View My Bookings
-#81 — Coordinator Deletes an Unused Venue
-#57 — Coordinator Updates Existing Venue Details
-#43 — Coordinator Event Editing and Constraint Validation
-#101 — Coordinator Can View All Venues
+- [#74](https://github.com/isom472-fall2026/team1/issues/74) — Attendee Reserve a Seat
+- [#45](https://github.com/isom472-fall2026/team1/issues/45) — Guest User is Prompted to Sign In Before Reserving
+- [#44](https://github.com/isom472-fall2026/team1/issues/44) — Attendee Can View Upcoming Events
+- [#70](https://github.com/isom472-fall2026/team1/issues/70) — Attendee Filters Events by Event Category
+- [#18](https://github.com/isom472-fall2026/team1/issues/18) — Attendee Reservation Cancellation
+- [#75](https://github.com/isom472-fall2026/team1/issues/75) — View My Bookings
+- [#81](https://github.com/isom472-fall2026/team1/issues/81) — Coordinator Deletes an Unused Venue
+- [#57](https://github.com/isom472-fall2026/team1/issues/57) — Coordinator Updates Existing Venue Details
+- [#43](https://github.com/isom472-fall2026/team1/issues/43) — Coordinator Event Editing and Constraint Validation
+- [#101](https://github.com/isom472-fall2026/team1/issues/101) — Coordinator Can View All Venues
 
+
+## where every thing is:
+
+
+| **Item** | **Done** | **Where it is** |
+| :--- | :---: | :--- |
+| GitHub Project Board | ☑ | [Team 1 — Seas](https://github.com/isom472-fall2026/team1/projects) |
+| Phase 4 user stories and acceptance criteria | ☑ | [GitHub Issues](https://github.com/isom472-fall2026/team1/issues) |
+| Completed Phase 4 features | ☑ | [Running AUK Events System](https://isom472-fall2026.github.io/team1/prototype/home.html) |
+| HTML, CSS, and JavaScript implementation | ☑ | [prototype/](https://github.com/isom472-fall2026/team1/tree/main/prototype) |
+| Database schema and RLS policies | ☑ | [db/schema.sql](https://github.com/isom472-fall2026/team1/blob/main/db/schema.sql) |
+| Phase 4 backlog | ☑ | [docs/backlog.md](https://github.com/isom472-fall2026/team1/blob/main/docs/backlog.md) |
+| Team contributions | ☑ | See **Who did what** section above |
+| FinOps ledger | ☑ | [docs/finops-ledger.md](https://github.com/isom472-fall2026/team1/blob/main/docs/finops-ledger.md) |
+| what we learned |☑ | [docs/blog.md](https://github.com/isom472-fall2026/team1/blob/main/docs/blog.md) |
+| Phase 4 delivery note | ☑ | This document |
+| Phase 4 Git tag | ☑ | `phase-4` |
 ## The tag cut for this phase
 
 `phase-4`
