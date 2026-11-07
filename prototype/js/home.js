@@ -28,6 +28,7 @@ let toastTimeout = null;
 let lastFocusedElement = null;
 let selectedEvent = null;
 let userBookingsMap = new Map();
+let openedFromSigninRedirect = false;
 
 /* ===================================
    TRANSLATIONS
@@ -1309,8 +1310,16 @@ async function initialize() {
 
     // Check for post-login redirection or return to event
     const urlParams = new URLSearchParams(window.location.search);
+    openedFromSigninRedirect =
+        openedFromSigninRedirect ||
+        sessionStorage.getItem("signin_redirect_source") === "true";
     const targetEventId = urlParams.get("event_id") || sessionStorage.getItem("pending_booking_event_id");
-    if (targetEventId && !urlParams.has("signin") && !urlParams.has("signup")) {
+    if (
+        targetEventId &&
+        !openedFromSigninRedirect &&
+        !urlParams.has("signin") &&
+        !urlParams.has("signup")
+    ) {
         sessionStorage.removeItem("pending_booking_event_id");
         sessionStorage.removeItem("pending_booking_return_url");
         const match = allEvents.find(e => String(e.event_id) === String(targetEventId));
@@ -1330,6 +1339,7 @@ async function initialize() {
 function checkUrlAuthAction() {
     const params = new URLSearchParams(window.location.search);
     if (params.has("signin")) {
+        openedFromSigninRedirect = true;
         const tryOpen = () => {
             if (typeof window.openSigninModal === "function") {
                 window.openSigninModal();

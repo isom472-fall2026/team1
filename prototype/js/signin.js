@@ -63,6 +63,7 @@
         if (!signinModal) return;
         signinModal.hidden = true;
         document.body.style.overflow = "";
+        sessionStorage.removeItem("signin_redirect_source");
         clearErrorMessage();
         if (previousFocus) {
             previousFocus.focus();
@@ -81,6 +82,7 @@
     try {
         const urlParams = new URLSearchParams(window.location.search);
         if (urlParams.has("signin")) {
+            sessionStorage.setItem("signin_redirect_source", "true");
             openSignin();
             const cleanUrl = new URL(window.location);
             cleanUrl.searchParams.delete("signin");
