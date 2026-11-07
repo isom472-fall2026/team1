@@ -582,8 +582,25 @@ async function handleReserveSeat(event) {
 ========================================================= */
 
 async function loadEvents() {
-    loadState = "loading";
-    renderEvents();
+    try {
+        const cached = sessionStorage.getItem("auk_cached_events");
+        if (cached && (!allEvents || allEvents.length === 0)) {
+            const parsed = JSON.parse(cached);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+                allEvents = parsed;
+                loadState = "loaded";
+                if ($("stat-events")) {
+                    $("stat-events").textContent = allEvents.length;
+                }
+                renderEvents();
+            }
+        }
+    } catch { }
+
+    if (loadState !== "loaded") {
+        loadState = "loading";
+        renderEvents();
+    }
 
     if ($("events-error")) {
         $("events-error").hidden = true;
@@ -616,6 +633,10 @@ async function loadEvents() {
 
         loadState = "loaded";
 
+        try {
+            sessionStorage.setItem("auk_cached_events", JSON.stringify(allEvents));
+        } catch { }
+
         if ($("stat-events")) {
             $("stat-events").textContent = allEvents.length;
         }
@@ -625,14 +646,16 @@ async function loadEvents() {
     } catch (error) {
         console.error("Unable to load events:", error);
 
-        allEvents = [];
-        loadState = "error";
+        if (!allEvents || allEvents.length === 0) {
+            allEvents = [];
+            loadState = "error";
 
-        if ($("stat-events")) {
-            $("stat-events").textContent = "—";
+            if ($("stat-events")) {
+                $("stat-events").textContent = "—";
+            }
+
+            renderEvents();
         }
-
-        renderEvents();
     }
 }
 
@@ -1071,22 +1094,35 @@ async function initialize() {
         return;
     }
 
-    db = window.supabase.createClient(
-        window.SUPABASE_URL,
-        window.SUPABASE_ANON_KEY
-    );
+    db = window.aukDb || (window.supabase && typeof window.supabase.createClient === "function"
+        ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+        : null);
 
-    // Auth check & user bookings
-    try {
-        const { data: { session } } = await db.auth.getSession();
-        currentUser = session?.user || null;
-        if (currentUser) {
-            await fetchUserBookings();
-        }
-    } catch (authErr) {
-        console.warn("Auth check error:", authErr);
-        currentUser = null;
+    if (!db) {
+        loadState = "error";
+        renderEvents();
+        return;
     }
+
+    window.aukDb = db;
+
+    // Run loadEvents and auth check concurrently for high performance
+    await Promise.all([
+        loadEvents(),
+        (async () => {
+            try {
+                const { data: { session } } = await db.auth.getSession();
+                currentUser = session?.user || null;
+                if (currentUser) {
+                    await fetchUserBookings();
+                    renderEvents();
+                }
+            } catch (authErr) {
+                console.warn("Auth check error:", authErr);
+                currentUser = null;
+            }
+        })()
+    ]);
 
     db.auth.onAuthStateChange(async (_event, session) => {
         currentUser = session?.user || null;
@@ -1100,9 +1136,6 @@ async function initialize() {
             updateModalReservationState(selectedEvent);
         }
     });
-
-    // Load events
-    await loadEvents();
 
     // Check for post-login redirection or return to event
     const urlParams = new URLSearchParams(window.location.search);

@@ -670,13 +670,17 @@ async function initialize() {
     }
 
     // Verify Supabase client availability
-    if (!window.supabase?.createClient) {
+    db = window.aukDb || (window.supabase && typeof window.supabase.createClient === "function"
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null);
+
+    if (!db) {
         console.error("Supabase client unavailable.");
         window.location.assign("home.html?signin=true");
         return;
     }
 
-    db = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.aukDb = db;
 
     try {
         const { data, error } = await db.auth.getSession();

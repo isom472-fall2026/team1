@@ -55,6 +55,7 @@
             const url = window.SUPABASE_URL || "https://abhtxsufvhlixtqgcivk.supabase.co";
             const key = window.SUPABASE_ANON_KEY || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiaHR4c3VmdmhsaXh0cWdjaXZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUyMjQsImV4cCI6MjEwNjUzMTIyNH0.jw38FYru71ZH7O_maPl5Ceaict38kzEi9NuGUBE2pJU";
             dbClient = window.supabase.createClient(url, key);
+            window.aukDb = dbClient;
             return dbClient;
         }
         return null;
@@ -268,6 +269,7 @@
         if ($("user-menu")) $("user-menu").hidden = true;
         if ($("my-bookings-link")) $("my-bookings-link").hidden = true;
         if ($("coordinator-menu")) $("coordinator-menu").hidden = true;
+        if ($("organizer-menu")) $("organizer-menu").hidden = true;
         closeAllDropdowns();
     }
 
@@ -277,6 +279,7 @@
         if ($("user-menu")) $("user-menu").hidden = false;
         if ($("my-bookings-link")) $("my-bookings-link").hidden = false;
         if ($("coordinator-menu")) $("coordinator-menu").hidden = true;
+        if ($("organizer-menu")) $("organizer-menu").hidden = true;
     }
 
     async function applyNavUser(user) {
@@ -288,36 +291,47 @@
 
         setSignedInNav();
 
+        // Check cached role in sessionStorage for instant 0ms rendering
+        try {
+            const cachedRole = sessionStorage.getItem("auk_role_" + user.id);
+            if (cachedRole) {
+                const isCoord = cachedRole === "Coordinator";
+                const isOrg = cachedRole === "Organizer";
+                if ($("coordinator-menu")) $("coordinator-menu").hidden = !isCoord;
+                if ($("organizer-menu")) $("organizer-menu").hidden = !isOrg;
+                return;
+            }
+        } catch { }
+
         const client = getDbClient();
         if (!client) return;
 
         try {
-            let isCoord = false;
-            try {
-                const { data: rpcRes, error: rpcErr } = await client.rpc("is_coordinator");
-                if (!rpcErr && rpcRes === true) isCoord = true;
-            } catch (e) {}
-
-            if (!isCoord) {
-                const { data, error } = await client
-                    .from("coordinator")
-                    .select("user_id")
-                    .eq("user_id", user.id)
-                    .maybeSingle();
-                if (!error && data?.user_id) isCoord = true;
-            }
+            const [coordRes, orgRes] = await Promise.all([
+                client.from("coordinator").select("user_id").eq("user_id", user.id).maybeSingle(),
+                client.from("organizer").select("user_id").eq("user_id", user.id).maybeSingle()
+            ]);
 
             if (currentVersion !== authVersion) return;
 
-            if (isCoord) {
-                if ($("coordinator-menu")) $("coordinator-menu").hidden = false;
-            } else {
-                if ($("coordinator-menu")) $("coordinator-menu").hidden = true;
-            }
+            const isCoord = !coordRes.error && Boolean(coordRes.data?.user_id);
+            const isOrg = !orgRes.error && Boolean(orgRes.data?.user_id);
+
+            if ($("coordinator-menu")) $("coordinator-menu").hidden = !isCoord;
+            if ($("organizer-menu")) $("organizer-menu").hidden = !isOrg;
+
+            try {
+                if (isCoord) {
+                    sessionStorage.setItem("auk_role_" + user.id, "Coordinator");
+                } else if (isOrg) {
+                    sessionStorage.setItem("auk_role_" + user.id, "Organizer");
+                }
+            } catch { }
         } catch (err) {
-            console.warn("Coordinator check error:", err);
-            if (currentVersion === authVersion && $("coordinator-menu")) {
-                $("coordinator-menu").hidden = true;
+            console.warn("Role check error:", err);
+            if (currentVersion === authVersion) {
+                if ($("coordinator-menu")) $("coordinator-menu").hidden = true;
+                if ($("organizer-menu")) $("organizer-menu").hidden = true;
             }
         }
     }
@@ -353,6 +367,14 @@
             const btn = $("signout-btn");
             if (btn) btn.disabled = true;
             try {
+                try {
+                    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+                        const k = sessionStorage.key(i);
+                        if (k && k.startsWith("auk_")) {
+                            sessionStorage.removeItem(k);
+                        }
+                    }
+                } catch { }
                 if (client) await client.auth.signOut();
                 applyNavUser(null);
                 const page = window.location.pathname.split("/").pop();
@@ -362,6 +384,7 @@
                     "create-event.html",
                     "create-venue.html",
                     "assign-organizers.html",
+                    "organizer-attendance.html",
                     "profile.html",
                     "my-bookings.html"
                 ];
@@ -379,17 +402,21 @@
         const signinBtn = $("signin-btn");
         const signupBtn = $("signup-btn");
 
-        if (signinBtn && typeof window.openSigninModal === "function") {
+        if (signinBtn) {
             signinBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                window.openSigninModal();
+                if (typeof window.openSigninModal === "function") {
+                    e.preventDefault();
+                    window.openSigninModal();
+                }
             });
         }
 
-        if (signupBtn && typeof window.openSignupModal === "function") {
+        if (signupBtn) {
             signupBtn.addEventListener("click", (e) => {
-                e.preventDefault();
-                window.openSignupModal();
+                if (typeof window.openSignupModal === "function") {
+                    e.preventDefault();
+                    window.openSignupModal();
+                }
             });
         }
     }

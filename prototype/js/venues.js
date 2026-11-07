@@ -647,12 +647,16 @@ async function initialize() {
     const initialLang = document.documentElement.lang || "en";
     setLanguage(initialLang);
 
-    if (!window.supabase?.createClient) {
+    client = window.aukDb || (window.supabase && typeof window.supabase.createClient === "function"
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+        : null);
+
+    if (!client) {
         window.location.assign("signin.html");
         return;
     }
 
-    client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    window.aukDb = client;
 
     // Check session
     const { data: { session }, error: sessionError } = await client.auth.getSession();
@@ -663,16 +667,15 @@ async function initialize() {
 
     currentUser = session.user;
 
-    // Verify coordinator privilege: public.is_coordinator() = true
+    // Check cached role first for instant access
     try {
-        const { data: rpcRes, error: rpcErr } = await client.rpc("is_coordinator");
-        if (!rpcErr && rpcRes === true) {
+        const cachedRole = sessionStorage.getItem("auk_role_" + currentUser.id);
+        if (cachedRole === "Coordinator") {
             isCoordinator = true;
         }
-    } catch (err) {
-        console.warn("RPC is_coordinator check error:", err);
-    }
+    } catch { }
 
+    // If not cached, verify coordinator privilege
     if (!isCoordinator) {
         try {
             const { data: coordData, error: coordErr } = await client
@@ -683,9 +686,12 @@ async function initialize() {
 
             if (!coordErr && coordData?.user_id) {
                 isCoordinator = true;
+                try {
+                    sessionStorage.setItem("auk_role_" + currentUser.id, "Coordinator");
+                } catch { }
             }
         } catch (err) {
-            console.warn("Coordinator table check error:", err);
+            console.warn("Coordinator check error:", err);
         }
     }
 
