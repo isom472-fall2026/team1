@@ -5,19 +5,14 @@ whoever is free at the end.*
 
 ## What was delivered
 
-During Phase 4, Team 1 — Seas successfully delivered 10 user stories focused on improving the functionality, usability, and reliability of the AUK Events system. The enhancements strengthened the attendee booking experience and provided coordinators with improved event and venue management capabilities.
-Attendee and Guest Features
-Attendees can browse upcoming events, filter events by category, reserve seats, cancel existing reservations, and view their bookings and reservation statuses. Guests attempting to reserve a seat are prompted to sign in before proceeding, ensuring that reservations are associated with authenticated users.
-Coordinator Features
-Coordinators can view all venues, update existing venue information, and delete venues that are no longer needed. They can also edit existing events, with validation ensuring that event details comply with the system's requirements.
-Bug Fixes and Performance Improvements
-In addition to the planned user stories, the team resolved three reported bugs:
-#103 — Sign Up Modal Closes Immediately After Opening: Corrected the modal behavior to ensure users can complete registration without unexpected interruptions.
-#108 — Incorrect Error Message for an Already Registered Email: Improved registration error handling to provide clear and accurate feedback when an email address is already registered.
-#114 — Slow Role-Based Navigation and Repeated Supabase Requests: Optimized role-based navigation and reduced unnecessary Supabase requests to improve responsiveness and overall performance.
-Scope Management
-Issues #83 and #61 were reviewed and formally closed as out of scope, as their requirements did not fall within the agreed project scope. These issues were excluded from the completed deliverables and were not counted as implemented features.
-Overall, Phase 4 delivered 10 completed user stories and 3 resolved bugs, while maintaining clear documentation of outstanding work and scope-related decisions.
+During Phase 4, Team 1 — Seas improved the AUK Events system by introducing new features that make it easier for attendees to discover events, manage reservations, and track their bookings.
+ 
+Attendees can now browse upcoming events, filter events by category, reserve seats, cancel reservations, and view their booking details and statuses. Guests who attempt to reserve a seat are prompted to sign in before proceeding.
+ 
+Coordinators can now view all venues, update existing venue information, and delete venues that are no longer needed. They can also edit existing events, with validation to ensure that event details meet the system's requirements.
+ 
+The registration experience has also been improved. The sign-up window now remains open as expected, users receive a clear message when attempting to register with an existing email address, and role-based navigation responds more efficiently with fewer unnecessary database requests.
+Overall, Phase 4 delivered a more functional, reliable, and user-friendly event management system for attendees, guests, and coordinators.
 ## Who did what
 
 <!-- One line per team member: name, then the stories they built. Everybody appears. -->
@@ -76,11 +71,11 @@ Overall, Phase 4 delivered 10 completed user stories and 3 resolved bugs, while 
 
 ## Anything not finished, and where it went
 
-All 10 planned Phase 4 user stories were successfully completed and delivered. In addition, three reported bugs (#103, #108, and #114) were resolved to improve the system's functionality, usability, and performance.
-At the Phase 4 delivery cutoff, the remaining work was documented as follows:
-19 stories in To Do: These stories remain in the project backlog for future development and prioritization.
-1 story in progress: Issue #62 remains under development and will be carried forward to the next phase.
-7 outstanding stories: Issues #13, #14, #19, #20, #21, #23, and #24 remain pending and are included in the To Do backlog.
-2 issues closed as out of scope: Issues #83 and #61 were reviewed and formally closed because their requirements fell outside the agreed scope of Phase 4. They were not counted as completed deliverables.
-All unfinished work is documented in docs/backlog.md and tracked on the GitHub Project Board to ensure transparency and continuity in future development phases.
-The remaining stories will be reviewed and prioritized according to project requirements and available resources.
+All 10 planned Phase 4 user stories were completed and delivered, along with three resolved bugs (#103, #108, and #114).
+ 
+Some work remains in the project backlog and has been carried forward for future development. At the end of Phase 4, 19 stories remained in the To Do column, including #13, #14, #19, #20, #21, #23, and #24. These stories were deferred to the next phase for review and prioritization.
+Issue #62 remained in progress at the Phase 4 delivery cutoff and was carried forward to the next phase for completion and testing.
+ 
+Issues #83 and #61 were reviewed and closed as out of scope because they did not align with the agreed project requirements. These issues were dropped from the planned work rather than carried forward and were not counted as completed features.
+ 
+All remaining work and scope decisions are documented in docs/backlog.md and tracked on the GitHub Project Board to maintain a clear record of what was completed, deferred, or excluded.
