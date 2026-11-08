@@ -5,9 +5,19 @@ whoever is free at the end.*
 
 ## What was delivered
 
-Attendees can browse upcoming events and filter them by category to find events that interest them. They can reserve a seat, cancel a reservation if their plans change, and view their bookings to keep track of the events they have reserved. Guests who try to reserve a seat are prompted to sign in first.
-
-Coordinators can view all venues and maintain venue information by updating existing details or deleting venues that are no longer in use. They can also edit events, with constraint validation helping ensure event details meet the system’s requirements.
+During Phase 4, Team 1 — Seas successfully delivered 10 user stories focused on improving the functionality, usability, and reliability of the AUK Events system. The enhancements strengthened the attendee booking experience and provided coordinators with improved event and venue management capabilities.
+Attendee and Guest Features
+Attendees can browse upcoming events, filter events by category, reserve seats, cancel existing reservations, and view their bookings and reservation statuses. Guests attempting to reserve a seat are prompted to sign in before proceeding, ensuring that reservations are associated with authenticated users.
+Coordinator Features
+Coordinators can view all venues, update existing venue information, and delete venues that are no longer needed. They can also edit existing events, with validation ensuring that event details comply with the system's requirements.
+Bug Fixes and Performance Improvements
+In addition to the planned user stories, the team resolved three reported bugs:
+#103 — Sign Up Modal Closes Immediately After Opening: Corrected the modal behavior to ensure users can complete registration without unexpected interruptions.
+#108 — Incorrect Error Message for an Already Registered Email: Improved registration error handling to provide clear and accurate feedback when an email address is already registered.
+#114 — Slow Role-Based Navigation and Repeated Supabase Requests: Optimized role-based navigation and reduced unnecessary Supabase requests to improve responsiveness and overall performance.
+Scope Management
+Issues #83 and #61 were reviewed and formally closed as out of scope, as their requirements did not fall within the agreed project scope. These issues were excluded from the completed deliverables and were not counted as implemented features.
+Overall, Phase 4 delivered 10 completed user stories and 3 resolved bugs, while maintaining clear documentation of outstanding work and scope-related decisions.
 ## Who did what
 
 <!-- One line per team member: name, then the stories they built. Everybody appears. -->
@@ -66,9 +76,11 @@ Coordinators can view all venues and maintain venue information by updating exis
 
 ## Anything not finished, and where it went
 
-All ten user stories listed above were completed and delivered.
-
-Seven additional stories remain outstanding and carried forward to Phase 4: #13, #14, #19, #20, #21, #23, and #24. They are documented in the project backlog for Phase 4 prioritization.
-One story is in progress:
-[Coordinator Can View All Venues (#62)](https://github.com/isom472-fall2026/team1/issues/62)
-- Nineteen stories remain to do and are documented in the project backlog.
+All 10 planned Phase 4 user stories were successfully completed and delivered. In addition, three reported bugs (#103, #108, and #114) were resolved to improve the system's functionality, usability, and performance.
+At the Phase 4 delivery cutoff, the remaining work was documented as follows:
+19 stories in To Do: These stories remain in the project backlog for future development and prioritization.
+1 story in progress: Issue #62 remains under development and will be carried forward to the next phase.
+7 outstanding stories: Issues #13, #14, #19, #20, #21, #23, and #24 remain pending and are included in the To Do backlog.
+2 issues closed as out of scope: Issues #83 and #61 were reviewed and formally closed because their requirements fell outside the agreed scope of Phase 4. They were not counted as completed deliverables.
+All unfinished work is documented in docs/backlog.md and tracked on the GitHub Project Board to ensure transparency and continuity in future development phases.
+The remaining stories will be reviewed and prioritized according to project requirements and available resources.
