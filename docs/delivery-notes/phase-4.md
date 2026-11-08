@@ -14,7 +14,7 @@ Coordinators can view all venues and maintain venue information by updating exis
 
 | Name | Stories |
 |---|---|
-| Ismail | #44, #70, #103 (bug), (bug),#108  (bug)#114 |
+| Ismail | #44, #70, #103(bug), #108(bug), #114(bug) |
 | Ayoub | #74, #45 |
 | Mustafa | #81, #57 |
 | Sulieman | #18, #75 |
