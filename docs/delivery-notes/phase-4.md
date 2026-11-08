@@ -5,9 +5,14 @@ whoever is free at the end.*
 
 ## What was delivered
 
-Attendees can browse upcoming events and filter them by category to find events that interest them. They can reserve a seat, cancel a reservation if their plans change, and view their bookings to keep track of the events they have reserved. Guests who try to reserve a seat are prompted to sign in first.
-
-Coordinators can view all venues and maintain venue information by updating existing details or deleting venues that are no longer in use. They can also edit events, with constraint validation helping ensure event details meet the system’s requirements.
+During Phase 4, Team 1 — Seas improved the AUK Events system by introducing new features that make it easier for attendees to discover events, manage reservations, and track their bookings.
+ 
+Attendees can now browse upcoming events, filter events by category, reserve seats, cancel reservations, and view their booking details and statuses. Guests who attempt to reserve a seat are prompted to sign in before proceeding.
+ 
+Coordinators can now view all venues, update existing venue information, and delete venues that are no longer needed. They can also edit existing events, with validation to ensure that event details meet the system's requirements.
+ 
+The registration experience has also been improved. The sign-up window now remains open as expected, users receive a clear message when attempting to register with an existing email address, and role-based navigation responds more efficiently with fewer unnecessary database requests.
+Overall, Phase 4 delivered a more functional, reliable, and user-friendly event management system for attendees, guests, and coordinators.
 ## Who did what
 
 <!-- One line per team member: name, then the stories they built. Everybody appears. -->
@@ -66,9 +71,11 @@ Coordinators can view all venues and maintain venue information by updating exis
 
 ## Anything not finished, and where it went
 
-All ten user stories listed above were completed and delivered.
-
-Seven additional stories remain outstanding and carried forward to Phase 4: #13, #14, #19, #20, #21, #23, and #24. They are documented in the project backlog for Phase 4 prioritization.
-One story is in progress:
-[Coordinator Can View All Venues (#62)](https://github.com/isom472-fall2026/team1/issues/62)
-- Nineteen stories remain to do and are documented in the project backlog.
+All 10 planned Phase 4 user stories were completed and delivered, along with three resolved bugs (#103, #108, and #114).
+ 
+Some work remains in the project backlog and has been carried forward for future development. At the end of Phase 4, 19 stories remained in the To Do column, including #13, #14, #19, #20, #21, #23, and #24. These stories were deferred to the next phase for review and prioritization.
+Issue #62 remained in progress at the Phase 4 delivery cutoff and was carried forward to the next phase for completion and testing.
+ 
+Issues #83 and #61 were reviewed and closed as out of scope because they did not align with the agreed project requirements. These issues were dropped from the planned work rather than carried forward and were not counted as completed features.
+ 
+All remaining work and scope decisions are documented in docs/backlog.md and tracked on the GitHub Project Board to maintain a clear record of what was completed, deferred, or excluded.
