@@ -14,11 +14,11 @@ Coordinators can view all venues and maintain venue information by updating exis
 
 | Name | Stories |
 |---|---|
-| Ismail | #44, #70 |
+| Ismail | #44, #70, #103 (bug), (bug),#108  (bug)#114 |
 | Ayoub | #74, #45 |
 | Mustafa | #81, #57 |
 | Sulieman | #18, #75 |
-| Sayed | #43, #101 |
+| Sayed | #43, #101, #114(bug) |
 
 
 ## Links to the stories
@@ -37,7 +37,9 @@ Coordinators can view all venues and maintain venue information by updating exis
 - [#57](https://github.com/isom472-fall2026/team1/issues/57) — Coordinator Updates Existing Venue Details
 - [#43](https://github.com/isom472-fall2026/team1/issues/43) — Coordinator Event Editing and Constraint Validation
 - [#101](https://github.com/isom472-fall2026/team1/issues/101) — Coordinator Can View All Venues
-
+- [#108](https://github.com/isom472-fall2026/team1/issues/108) — Sign Up Displays Incorrect Error Message for an Already Registered Email
+- [#114](https://github.com/isom472-fall2026/team1/issues/114) — Slow Role-Based Navigation and Repeated Supabase Requests
+- [#103](https://github.com/isom472-fall2026/team1/issues/103) — Sign Up Modal Closes Immediately After Opening
 
 ## where every thing is:
 
