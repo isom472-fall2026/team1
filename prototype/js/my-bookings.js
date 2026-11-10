@@ -38,6 +38,9 @@ const translations = {
         loadError: "Unable to load your bookings. Please try again.",
         statusConfirmed: "Confirmed",
         statusWaitlisted: "Waitlisted",
+        statusWaitlistedBadge: "Waitlisted (Position #{pos})",
+        checkinUnavailableWaitlisted: "Check-in Unavailable (Waitlisted)",
+        checkinUnavailableTooltip: "Attendance check-in is unavailable while waitlisted. You will be eligible once promoted to a confirmed seat.",
         statusCancelled: "Cancelled",
         workshop: "Workshop",
         seminar: "Seminar",
@@ -71,6 +74,9 @@ const translations = {
         loadError: "تعذر تحميل حجوزاتك. يرجى المحاولة مرة أخرى.",
         statusConfirmed: "مؤكد",
         statusWaitlisted: "قائمة الانتظار",
+        statusWaitlistedBadge: "قائمة الانتظار (المركز رقم #{pos})",
+        checkinUnavailableWaitlisted: "تسجيل الحضور غير متاح (قائمة الانتظار)",
+        checkinUnavailableTooltip: "تسجيل الحضور غير متاح أثناء التواجد في قائمة الانتظار. ستكون مؤهلاً بمجرد الترقية إلى مقعد مؤكد.",
         statusCancelled: "ملغي",
         workshop: "ورشة عمل",
         seminar: "ندوة",
@@ -228,6 +234,49 @@ function getVenueName(event) {
     return t("toBeAnnounced");
 }
 
+async function getWaitlistQueuePosition(eventId, bookingId, bookingDate) {
+    if (!eventId || !bookingId) return 1;
+
+    // 1. Try RPC function get_waitlist_position
+    try {
+        const { data: pos, error: rpcErr } = await db.rpc("get_waitlist_position", {
+            p_event_id: Number(eventId),
+            p_booking_id: Number(bookingId)
+        });
+        if (!rpcErr && typeof pos === "number" && pos > 0) {
+            return pos;
+        }
+    } catch { }
+
+    // 2. Query bookings table for waitlisted entries for this event
+    try {
+        let query = db
+            .from("bookings")
+            .select("booking_id, booking_date", { count: "exact" })
+            .eq("event_id", Number(eventId))
+            .eq("status", "Waitlisted");
+
+        if (bookingDate) {
+            query = query.lte("booking_date", bookingDate);
+        }
+
+        const { data, count, error } = await query.order("booking_date", { ascending: true });
+        if (!error) {
+            if (typeof count === "number" && count > 0) {
+                return count;
+            }
+            if (Array.isArray(data) && data.length > 0) {
+                const idx = data.findIndex(item => String(item.booking_id) === String(bookingId));
+                return idx >= 0 ? idx + 1 : data.length;
+            }
+        }
+    } catch (e) {
+        console.warn("Error calculating waitlist position:", e);
+    }
+
+    return 1;
+}
+
 function renderBookings() {
     const grid = $("bookings-grid");
     const emptyState = $("bookings-empty");
@@ -287,24 +336,46 @@ function renderBookings() {
             const typeLabel = escapeHTML(translateEventType(event.event_type));
             const statusRaw = String(booking.status || "Confirmed").toLowerCase();
             const statusLabel = escapeHTML(translateStatus(booking.status));
+            const isConfirmed = statusRaw === "confirmed";
+            const isWaitlisted = statusRaw === "waitlisted";
+            const queuePos = booking.queuePosition || 1;
+
+            // AC 5: In the attendee's "My Bookings" dashboard, waitlisted entries are badged as "Waitlisted"
+            // with their live queue position, distinguishing them visually from "Confirmed" reservations
+            // and preventing attendance check-in until promoted.
+            let badgeText = statusLabel;
+            if (isWaitlisted) {
+                badgeText = t("statusWaitlistedBadge").replace("{pos}", queuePos);
+            }
+
             const venueDisplay = escapeHTML(getVenueName(event));
             const dateDisplay = escapeHTML(formatDate(event.event_date));
             const timeDisplay = escapeHTML(formatTimeRange(event));
 
-            const isConfirmed = statusRaw === "confirmed";
-            const cancelBtnHTML = isConfirmed ? `
-                <div class="booking-actions">
-                    <button type="button" class="btn btn-cancel-booking" id="cancel-booking-${escapeHTML(booking.booking_id)}" data-booking-id="${escapeHTML(booking.booking_id)}">
-                        ${escapeHTML(t("cancelReservation"))}
-                    </button>
-                </div>
-            ` : "";
+            let actionBtnHTML = "";
+            if (isConfirmed) {
+                actionBtnHTML = `
+                    <div class="booking-actions">
+                        <button type="button" class="btn btn-cancel-booking" id="cancel-booking-${escapeHTML(booking.booking_id)}" data-booking-id="${escapeHTML(booking.booking_id)}">
+                            ${escapeHTML(t("cancelReservation"))}
+                        </button>
+                    </div>
+                `;
+            } else if (isWaitlisted) {
+                actionBtnHTML = `
+                    <div class="booking-actions">
+                        <button type="button" class="btn btn-outline btn-checkin-disabled" disabled title="${escapeHTML(t("checkinUnavailableTooltip"))}">
+                            ${escapeHTML(t("checkinUnavailableWaitlisted"))}
+                        </button>
+                    </div>
+                `;
+            }
 
             return `
-                <article class="events-page-card booking-card" data-booking-id="${escapeHTML(booking.booking_id)}">
+                <article class="events-page-card booking-card ${isWaitlisted ? 'waitlisted-card' : ''}" data-booking-id="${escapeHTML(booking.booking_id)}">
                     <div class="booking-card-head">
                         <span class="event-type">${typeLabel}</span>
-                        <span class="status-badge status-${escapeHTML(statusRaw)}">${statusLabel}</span>
+                        <span class="status-badge status-${escapeHTML(statusRaw)}">${escapeHTML(badgeText)}</span>
                     </div>
 
                     <h3>${title}</h3>
@@ -342,12 +413,12 @@ function renderBookings() {
                             <span class="event-info-icon" aria-hidden="true">🎟️</span>
                             <div class="event-info-text">
                                 <span class="event-info-label">${escapeHTML(t("bookingStatus"))}</span>
-                                <span class="event-info-value">${statusLabel}</span>
+                                <span class="event-info-value">${escapeHTML(isWaitlisted ? `${statusLabel} (Position #${queuePos})` : statusLabel)}</span>
                             </div>
                         </div>
                     </div>
 
-                    ${cancelBtnHTML}
+                    ${actionBtnHTML}
                 </article>
             `;
         }).join("");
@@ -495,6 +566,17 @@ async function loadUserBookings(user, preserveMessages = false) {
         userBookings = (data || []).filter(
             (b) => String(b.status || "").toLowerCase() !== "cancelled"
         );
+
+        // AC 5: Calculate live queue positions for waitlisted bookings
+        await Promise.all(
+            userBookings.map(async (b) => {
+                if (String(b.status || "").toLowerCase() === "waitlisted") {
+                    const eventId = b.events?.event_id;
+                    b.queuePosition = await getWaitlistQueuePosition(eventId, b.booking_id, b.booking_date);
+                }
+            })
+        );
+
         loadState = "loaded";
         renderBookings();
     } catch (err) {
