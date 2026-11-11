@@ -308,6 +308,94 @@ AS $$
 $$;
 
 
+CREATE OR REPLACE FUNCTION public.promote_waitlist_on_cancel()
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    target_capacity INTEGER;
+    earliest_booking_id BIGINT;
+BEGIN
+    -- Story #23: Automatic Waitlist Promotion
+    -- Execute only when a confirmed reservation transitions to cancelled
+    IF OLD.status = 'Confirmed' AND NEW.status = 'Cancelled' THEN
+        -- If events.capacity is missing or invalid, promotion does not occur
+        SELECT capacity
+        INTO target_capacity
+        FROM public.events
+        WHERE event_id = OLD.event_id;
+
+        IF target_capacity IS NOT NULL AND target_capacity > 0 THEN
+            -- Select earliest waitlisted attendee by minimum booking_date
+            SELECT booking_id
+            INTO earliest_booking_id
+            FROM public.bookings
+            WHERE event_id = OLD.event_id
+              AND status = 'Waitlisted'
+            ORDER BY booking_date ASC, booking_id ASC
+            LIMIT 1;
+
+            IF earliest_booking_id IS NOT NULL THEN
+                UPDATE public.bookings
+                SET status = 'Confirmed'
+                WHERE booking_id = earliest_booking_id;
+            END IF;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS promote_waitlist_on_cancel_trigger ON public.bookings;
+
+CREATE TRIGGER promote_waitlist_on_cancel_trigger
+AFTER UPDATE OF status ON public.bookings
+FOR EACH ROW
+EXECUTE FUNCTION public.promote_waitlist_on_cancel();
+
+
+CREATE OR REPLACE FUNCTION public.promote_waitlist_attendee(p_event_id BIGINT)
+RETURNS BIGINT
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    target_capacity INTEGER;
+    earliest_booking_id BIGINT;
+BEGIN
+    SELECT capacity
+    INTO target_capacity
+    FROM public.events
+    WHERE event_id = p_event_id;
+
+    IF target_capacity IS NULL OR target_capacity <= 0 THEN
+        RETURN NULL;
+    END IF;
+
+    SELECT booking_id
+    INTO earliest_booking_id
+    FROM public.bookings
+    WHERE event_id = p_event_id
+      AND status = 'Waitlisted'
+    ORDER BY booking_date ASC, booking_id ASC
+    LIMIT 1;
+
+    IF earliest_booking_id IS NOT NULL THEN
+        UPDATE public.bookings
+        SET status = 'Confirmed'
+        WHERE booking_id = earliest_booking_id;
+        RETURN earliest_booking_id;
+    END IF;
+
+    RETURN NULL;
+END;
+$$;
+
+
 -- ============================================================
 -- EVENT VALIDATION
 -- ============================================================

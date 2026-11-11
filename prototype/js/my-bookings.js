@@ -250,25 +250,17 @@ async function getWaitlistQueuePosition(eventId, bookingId, bookingDate) {
 
     // 2. Query bookings table for waitlisted entries for this event
     try {
-        let query = db
+        const { data, error } = await db
             .from("bookings")
-            .select("booking_id, booking_date", { count: "exact" })
+            .select("booking_id, booking_date")
             .eq("event_id", Number(eventId))
-            .eq("status", "Waitlisted");
+            .eq("status", "Waitlisted")
+            .order("booking_date", { ascending: true })
+            .order("booking_id", { ascending: true });
 
-        if (bookingDate) {
-            query = query.lte("booking_date", bookingDate);
-        }
-
-        const { data, count, error } = await query.order("booking_date", { ascending: true });
-        if (!error) {
-            if (typeof count === "number" && count > 0) {
-                return count;
-            }
-            if (Array.isArray(data) && data.length > 0) {
-                const idx = data.findIndex(item => String(item.booking_id) === String(bookingId));
-                return idx >= 0 ? idx + 1 : data.length;
-            }
+        if (!error && Array.isArray(data) && data.length > 0) {
+            const idx = data.findIndex(item => String(item.booking_id) === String(bookingId));
+            return idx >= 0 ? idx + 1 : 1;
         }
     } catch (e) {
         console.warn("Error calculating waitlist position:", e);
@@ -451,10 +443,10 @@ async function cancelBooking(bookingId) {
     }
 
     try {
-        // Query the booking to verify existence and check current status
+        // Query the booking to verify existence and check current status and event
         const { data: booking, error: fetchError } = await db
             .from("bookings")
-            .select("booking_id, status, user_id")
+            .select("booking_id, status, user_id, event_id")
             .eq("booking_id", bookingId)
             .maybeSingle();
 
@@ -477,36 +469,80 @@ async function cancelBooking(bookingId) {
             return;
         }
 
-        // Attempt to remove the reservation from the table
-        const { error: deleteError } = await db
-            .from("bookings")
-            .delete()
-            .eq("booking_id", bookingId)
-            .eq("user_id", currentUser.id);
+        const priorStatus = booking.status;
+        const eventId = booking.event_id;
 
-        if (deleteError) {
-            // If DELETE is blocked by Supabase RLS, fall back to updating status to Cancelled
-            const { error: updateError } = await db
-                .from("bookings")
-                .update({ status: "Cancelled" })
-                .eq("booking_id", bookingId)
-                .eq("user_id", currentUser.id);
+        // Check whether waitlist promotion is eligible based on prior status and event capacity
+        let canPromote = false;
+        if (priorStatus === "Confirmed" && eventId) {
+            const { data: eventData, error: eventErr } = await db
+                .from("events")
+                .select("capacity")
+                .eq("event_id", eventId)
+                .maybeSingle();
 
-            if (updateError) {
-                console.error("Cancellation error:", updateError);
-                displayError(updateError.message || t("cancelError"));
-                if (btn) {
-                    btn.disabled = false;
-                    btn.textContent = t("cancelReservation");
+            if (!eventErr && eventData && eventData.capacity !== null && eventData.capacity !== undefined) {
+                const cap = Number(eventData.capacity);
+                if (!isNaN(cap) && Number.isInteger(cap) && cap > 0) {
+                    canPromote = true;
                 }
-                return;
             }
         }
 
-        // The student gets an on-screen message confirming the cancellation.
-        displaySuccess(t("cancelSuccess"));
+        // Transition booking status to 'Cancelled'
+        const { error: updateError } = await db
+            .from("bookings")
+            .update({ status: "Cancelled" })
+            .eq("booking_id", bookingId)
+            .eq("user_id", currentUser.id);
 
-        // Refresh bookings and preserve the success confirmation message
+        if (updateError) {
+            console.error("Cancellation error:", updateError);
+            displayError(updateError.message || t("cancelError"));
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = t("cancelReservation");
+            }
+            return;
+        }
+
+        // If cancellation was Confirmed and capacity is valid, promote earliest waitlisted attendee
+        if (canPromote) {
+            let promotedViaRpc = false;
+            try {
+                const { data: promotedId, error: rpcErr } = await db.rpc("promote_waitlist_attendee", {
+                    p_event_id: Number(eventId)
+                });
+                if (!rpcErr && promotedId) {
+                    promotedViaRpc = true;
+                }
+            } catch { }
+
+            if (!promotedViaRpc) {
+                try {
+                    const { data: waitlistedList, error: wlErr } = await db
+                        .from("bookings")
+                        .select("booking_id, booking_date")
+                        .eq("event_id", Number(eventId))
+                        .eq("status", "Waitlisted")
+                        .order("booking_date", { ascending: true })
+                        .order("booking_id", { ascending: true })
+                        .limit(1);
+
+                    if (!wlErr && Array.isArray(waitlistedList) && waitlistedList.length > 0) {
+                        const earliest = waitlistedList[0];
+                        await db
+                            .from("bookings")
+                            .update({ status: "Confirmed" })
+                            .eq("booking_id", earliest.booking_id);
+                    }
+                } catch (e) {
+                    console.warn("Client fallback waitlist promotion failed:", e);
+                }
+            }
+        }
+
+        displaySuccess(t("cancelSuccess"));
         await loadUserBookings(currentUser, true);
     } catch (err) {
         console.error("Unexpected error during cancellation:", err);
@@ -635,6 +671,32 @@ async function initialize() {
             userBookings = [];
             loadState = "unauthenticated";
             renderBookings();
+        }
+    });
+
+    // Realtime sync for automatic waitlist promotion and queue position updates
+    if (db && typeof db.channel === "function") {
+        try {
+            db.channel("public-bookings-waitlist-sync")
+                .on(
+                    "postgres_changes",
+                    { event: "*", schema: "public", table: "bookings" },
+                    () => {
+                        if (currentUser) {
+                            loadUserBookings(currentUser, true);
+                        }
+                    }
+                )
+                .subscribe();
+        } catch (realtimeErr) {
+            console.warn("Realtime subscription unavailable:", realtimeErr);
+        }
+    }
+
+    // Refresh bookings when attendee switches back to this browser tab
+    window.addEventListener("focus", () => {
+        if (currentUser) {
+            loadUserBookings(currentUser, true);
         }
     });
 
