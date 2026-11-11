@@ -357,6 +357,38 @@ FOR EACH ROW
 EXECUTE FUNCTION public.promote_waitlist_on_cancel();
 
 
+-- Ensure attendee booking updates only cancel their own booking
+-- while allowing automatic waitlist promotion (Waitlisted -> Confirmed)
+CREATE OR REPLACE FUNCTION public.validate_attendee_booking_update()
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    -- Allow waitlist promotion (nested trigger execution or transition from Waitlisted to Confirmed)
+    IF (OLD.status = 'Waitlisted' AND NEW.status = 'Confirmed') OR pg_trigger_depth() > 1 THEN
+        RETURN NEW;
+    END IF;
+
+    -- Attendees can only transition their booking to 'Cancelled'
+    IF public.is_attendee() AND NEW.status <> 'Cancelled' THEN
+        RAISE EXCEPTION 'Attendees may only cancel their booking.'
+            USING ERRCODE = 'P0001';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS validate_attendee_booking_update_trigger ON public.bookings;
+
+CREATE TRIGGER validate_attendee_booking_update_trigger
+BEFORE UPDATE ON public.bookings
+FOR EACH ROW
+EXECUTE FUNCTION public.validate_attendee_booking_update();
+
+
 CREATE OR REPLACE FUNCTION public.promote_waitlist_attendee(p_event_id BIGINT)
 RETURNS BIGINT
 LANGUAGE PLPGSQL
