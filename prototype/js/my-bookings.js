@@ -469,27 +469,8 @@ async function cancelBooking(bookingId) {
             return;
         }
 
-        const priorStatus = booking.status;
-        const eventId = booking.event_id;
-
-        // Check whether waitlist promotion is eligible based on prior status and event capacity
-        let canPromote = false;
-        if (priorStatus === "Confirmed" && eventId) {
-            const { data: eventData, error: eventErr } = await db
-                .from("events")
-                .select("capacity")
-                .eq("event_id", eventId)
-                .maybeSingle();
-
-            if (!eventErr && eventData && eventData.capacity !== null && eventData.capacity !== undefined) {
-                const cap = Number(eventData.capacity);
-                if (!isNaN(cap) && Number.isInteger(cap) && cap > 0) {
-                    canPromote = true;
-                }
-            }
-        }
-
-        // Transition booking status to 'Cancelled'
+        // Transition booking status to 'Cancelled'.
+        // The DB trigger promote_waitlist_on_cancel_trigger handles waitlist promotion automatically.
         const { error: updateError } = await db
             .from("bookings")
             .update({ status: "Cancelled" })
@@ -504,42 +485,6 @@ async function cancelBooking(bookingId) {
                 btn.textContent = t("cancelReservation");
             }
             return;
-        }
-
-        // If cancellation was Confirmed and capacity is valid, promote earliest waitlisted attendee
-        if (canPromote) {
-            let promotedViaRpc = false;
-            try {
-                const { data: promotedId, error: rpcErr } = await db.rpc("promote_waitlist_attendee", {
-                    p_event_id: Number(eventId)
-                });
-                if (!rpcErr && promotedId) {
-                    promotedViaRpc = true;
-                }
-            } catch { }
-
-            if (!promotedViaRpc) {
-                try {
-                    const { data: waitlistedList, error: wlErr } = await db
-                        .from("bookings")
-                        .select("booking_id, booking_date")
-                        .eq("event_id", Number(eventId))
-                        .eq("status", "Waitlisted")
-                        .order("booking_date", { ascending: true })
-                        .order("booking_id", { ascending: true })
-                        .limit(1);
-
-                    if (!wlErr && Array.isArray(waitlistedList) && waitlistedList.length > 0) {
-                        const earliest = waitlistedList[0];
-                        await db
-                            .from("bookings")
-                            .update({ status: "Confirmed" })
-                            .eq("booking_id", earliest.booking_id);
-                    }
-                } catch (e) {
-                    console.warn("Client fallback waitlist promotion failed:", e);
-                }
-            }
         }
 
         displaySuccess(t("cancelSuccess"));
