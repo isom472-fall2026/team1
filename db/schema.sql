@@ -245,6 +245,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.set_booking_status()
 RETURNS TRIGGER
 LANGUAGE PLPGSQL
+SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
@@ -282,10 +283,29 @@ END;
 $$;
 
 
+DROP TRIGGER IF EXISTS automatic_booking_status_trigger ON public.bookings;
+
 CREATE TRIGGER automatic_booking_status_trigger
 BEFORE INSERT ON public.bookings
 FOR EACH ROW
 EXECUTE FUNCTION public.set_booking_status();
+
+
+CREATE OR REPLACE FUNCTION public.get_waitlist_position(p_event_id BIGINT, p_booking_id BIGINT)
+RETURNS INTEGER
+LANGUAGE SQL
+STABLE
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+    WITH queue AS (
+        SELECT booking_id, ROW_NUMBER() OVER (ORDER BY booking_date ASC, booking_id ASC) AS pos
+        FROM public.bookings
+        WHERE event_id = p_event_id
+          AND status = 'Waitlisted'
+    )
+    SELECT COALESCE((SELECT pos::INTEGER FROM queue WHERE booking_id = p_booking_id), 1);
+$$;
 
 
 -- ============================================================
@@ -627,6 +647,12 @@ CREATE POLICY "Attendees read own bookings"
 ON public.bookings
 FOR SELECT TO authenticated
 USING (user_id = auth.uid());
+
+
+CREATE POLICY "Attendees read waitlisted bookings"
+ON public.bookings
+FOR SELECT TO authenticated
+USING (status = 'Waitlisted');
 
 
 CREATE POLICY "Attendees create own bookings"

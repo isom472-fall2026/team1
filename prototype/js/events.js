@@ -96,7 +96,10 @@ const translations = {
         alreadyReservedWaitlisted: "⏳ You are on the waitlist for this event.",
         reserveSuccessConfirmed: "Seat reserved successfully! Your status is Confirmed.",
         reserveSuccessWaitlisted: "Event capacity reached. You have been added to the Waitlist.",
-        duplicateBooking: "You already have a reservation for this event.",
+        duplicateBooking: "You have already reserved or waitlisted a seat for this event.",
+        eventSelectionRequired: "Event selection is required.",
+        selectedEventDoesNotExist: "Selected event does not exist.",
+        waitlistConfirmationBanner: "Event is currently full. You have been placed on the waitlist at position #{pos}.",
         attendeeRequired: "Only registered attendee accounts can make reservations.",
         reserveError: "Unable to reserve a seat. Please try again.",
         viewMyBookings: "View My Bookings",
@@ -174,7 +177,10 @@ const translations = {
         alreadyReservedWaitlisted: "⏳ أنت في قائمة الانتظار لهذه الفعالية.",
         reserveSuccessConfirmed: "تم حجز مقعدك بنجاح! حالتك: مؤكد.",
         reserveSuccessWaitlisted: "الفعالية مكتملة السعة. تمت إضافتك إلى قائمة الانتظار.",
-        duplicateBooking: "لديك حجز مسبق لهذه الفعالية بالفعل.",
+        duplicateBooking: "لقد قمت بالفعل بحجز مقعد أو إضافتك إلى قائمة الانتظار لهذه الفعالية.",
+        eventSelectionRequired: "تحديد الفعالية مطلوب.",
+        selectedEventDoesNotExist: "الفعالية المحددة غير موجودة.",
+        waitlistConfirmationBanner: "الفعالية مكتملة حالياً. لقد تم وضعك في قائمة الانتظار في المركز رقم #{pos}.",
         attendeeRequired: "يمكن لحسابات الحضور المسجلين فقط إجراء الحجوزات.",
         reserveError: "تعذر إتمام الحجز. يرجى المحاولة مرة أخرى.",
         viewMyBookings: "عرض حجوزاتي",
@@ -441,6 +447,49 @@ async function fetchUserBookings() {
     }
 }
 
+async function getWaitlistQueuePosition(eventId, bookingId, bookingDate) {
+    if (!eventId || !bookingId) return 1;
+
+    // 1. Try RPC function get_waitlist_position
+    try {
+        const { data: pos, error: rpcErr } = await db.rpc("get_waitlist_position", {
+            p_event_id: Number(eventId),
+            p_booking_id: Number(bookingId)
+        });
+        if (!rpcErr && typeof pos === "number" && pos > 0) {
+            return pos;
+        }
+    } catch { }
+
+    // 2. Query bookings table for waitlisted entries for this event
+    try {
+        let query = db
+            .from("bookings")
+            .select("booking_id, booking_date", { count: "exact" })
+            .eq("event_id", Number(eventId))
+            .eq("status", "Waitlisted");
+
+        if (bookingDate) {
+            query = query.lte("booking_date", bookingDate);
+        }
+
+        const { data, count, error } = await query.order("booking_date", { ascending: true });
+        if (!error) {
+            if (typeof count === "number" && count > 0) {
+                return count;
+            }
+            if (Array.isArray(data) && data.length > 0) {
+                const idx = data.findIndex(item => String(item.booking_id) === String(bookingId));
+                return idx >= 0 ? idx + 1 : data.length;
+            }
+        }
+    } catch (e) {
+        console.warn("Error calculating waitlist position:", e);
+    }
+
+    return 1;
+}
+
 function updateModalReservationState(event) {
     const reserveBtn = $("modal-reserve-btn");
     const viewBookingBtn = $("modal-view-booking-btn");
@@ -480,7 +529,14 @@ function updateModalReservationState(event) {
                 banner.textContent = t("alreadyReservedConfirmed");
             } else {
                 banner.className = "modal-reservation-banner banner-warning";
-                banner.textContent = t("alreadyReservedWaitlisted");
+                const pos = existingBooking.queuePosition || 1;
+                banner.textContent = t("waitlistConfirmationBanner").replace("{pos}", pos);
+                if (!existingBooking.queuePosition) {
+                    getWaitlistQueuePosition(existingBooking.event_id, existingBooking.booking_id, existingBooking.booking_date).then(p => {
+                        existingBooking.queuePosition = p;
+                        banner.textContent = t("waitlistConfirmationBanner").replace("{pos}", p);
+                    });
+                }
             }
         }
     } else {
@@ -507,9 +563,54 @@ async function handleReserveSeat(event) {
         return;
     }
 
-    if (!event || !event.event_id) return;
-
+    const banner = $("modal-reservation-banner");
     const reserveBtn = $("modal-reserve-btn");
+    const viewBookingBtn = $("modal-view-booking-btn");
+
+    // AC 3: Missing event_id validation
+    if (!event || event.event_id === undefined || event.event_id === null || String(event.event_id).trim() === "") {
+        showToast(t("eventSelectionRequired"), "error");
+        if (banner) {
+            banner.hidden = false;
+            banner.className = "modal-reservation-banner banner-error";
+            banner.textContent = t("eventSelectionRequired");
+        }
+        if (reserveBtn) {
+            reserveBtn.disabled = false;
+            reserveBtn.textContent = t("reserveSeat");
+        }
+        return;
+    }
+
+    // AC 3: Invalid event_id format validation
+    const parsedEventId = Number(event.event_id);
+    if (isNaN(parsedEventId) || !Number.isInteger(parsedEventId) || parsedEventId <= 0) {
+        showToast(t("selectedEventDoesNotExist"), "error");
+        if (banner) {
+            banner.hidden = false;
+            banner.className = "modal-reservation-banner banner-error";
+            banner.textContent = t("selectedEventDoesNotExist");
+        }
+        if (reserveBtn) {
+            reserveBtn.disabled = false;
+            reserveBtn.textContent = t("reserveSeat");
+        }
+        return;
+    }
+
+    // AC 4: Duplicate booking check before submission
+    if (userBookingsMap.has(parsedEventId)) {
+        showToast(t("duplicateBooking"), "warning");
+        if (banner) {
+            banner.hidden = false;
+            banner.className = "modal-reservation-banner banner-warning";
+            banner.textContent = t("duplicateBooking");
+        }
+        if (reserveBtn) reserveBtn.hidden = true;
+        if (viewBookingBtn) viewBookingBtn.hidden = false;
+        return;
+    }
+
     if (reserveBtn) {
         reserveBtn.disabled = true;
         reserveBtn.textContent = t("reserving");
@@ -521,7 +622,7 @@ async function handleReserveSeat(event) {
             .from("bookings")
             .select("booking_id, status")
             .eq("user_id", currentUser.id)
-            .eq("event_id", event.event_id)
+            .eq("event_id", parsedEventId)
             .maybeSingle();
 
         if (existingCancelled && String(existingCancelled.status).toLowerCase() === "cancelled") {
@@ -536,10 +637,10 @@ async function handleReserveSeat(event) {
             .insert([
                 {
                     user_id: currentUser.id,
-                    event_id: event.event_id
+                    event_id: parsedEventId
                 }
             ])
-            .select("booking_id, event_id, status")
+            .select("booking_id, event_id, status, booking_date")
             .single();
 
         if (error) throw error;
@@ -548,26 +649,63 @@ async function handleReserveSeat(event) {
 
         if (data.status === "Confirmed") {
             showToast(t("reserveSuccessConfirmed"), "success");
+            updateModalReservationState(event);
         } else {
-            showToast(t("reserveSuccessWaitlisted"), "warning");
+            // AC 2: Upon successful placement on the waitlist, calculate exact queue position and display banner
+            const queuePos = await getWaitlistQueuePosition(data.event_id, data.booking_id, data.booking_date);
+            data.queuePosition = queuePos;
+            userBookingsMap.set(Number(data.event_id), data);
+
+            const bannerMsg = t("waitlistConfirmationBanner").replace("{pos}", queuePos);
+            showToast(bannerMsg, "warning");
+
+            if (banner) {
+                banner.hidden = false;
+                banner.className = "modal-reservation-banner banner-warning";
+                banner.textContent = bannerMsg;
+            }
+            if (reserveBtn) reserveBtn.hidden = true;
+            if (viewBookingBtn) viewBookingBtn.hidden = false;
         }
 
-        updateModalReservationState(event);
         renderEvents();
     } catch (err) {
         console.error("Reservation failed:", err);
         const code = err?.code;
         const msg = String(err?.message || "");
 
+        // AC 3 & AC 4: Error handling
         if (code === "23505" || msg.includes("unique_user_event") || msg.includes("duplicate")) {
             showToast(t("duplicateBooking"), "warning");
+            if (banner) {
+                banner.hidden = false;
+                banner.className = "modal-reservation-banner banner-warning";
+                banner.textContent = t("duplicateBooking");
+            }
             await fetchUserBookings();
             updateModalReservationState(event);
             renderEvents();
+        } else if (code === "23503" || msg.includes("Event does not exist") || msg.includes("foreign key")) {
+            showToast(t("selectedEventDoesNotExist"), "error");
+            if (banner) {
+                banner.hidden = false;
+                banner.className = "modal-reservation-banner banner-error";
+                banner.textContent = t("selectedEventDoesNotExist");
+            }
         } else if (msg.includes("attendee") || msg.includes("is_attendee")) {
             showToast(t("attendeeRequired"), "error");
+            if (banner) {
+                banner.hidden = false;
+                banner.className = "modal-reservation-banner banner-error";
+                banner.textContent = t("attendeeRequired");
+            }
         } else {
             showToast(err.message || t("reserveError"), "error");
+            if (banner) {
+                banner.hidden = false;
+                banner.className = "modal-reservation-banner banner-error";
+                banner.textContent = err.message || t("reserveError");
+            }
         }
 
         if (reserveBtn) {

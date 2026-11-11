@@ -1047,3 +1047,14 @@ html[data-theme="dark"] .modal-reservation-banner.banner-info {
     color: #ffffff;
     border: 1px solid #b91c1c;
 }
+.modal-reservation-banner.banner-error {
+    background: rgba(239, 68, 68, 0.12);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+html[data-theme="dark"] .modal-reservation-banner.banner-error {
+    background: rgba(239, 68, 68, 0.2);
+    color: #fca5a5;
+    border-color: rgba(239, 68, 68, 0.4);
+}
