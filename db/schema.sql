@@ -688,6 +688,11 @@ WITH CHECK (public.is_coordinator());
 -- Writers: coordinators.
 -- ============================================================
 
+CREATE POLICY "Anyone reads venues"
+ON public.venues
+FOR SELECT TO anon
+USING (true);
+
 CREATE POLICY "Authenticated users read venues"
 ON public.venues
 FOR SELECT TO authenticated
@@ -718,6 +723,15 @@ USING (public.is_coordinator());
 -- Readers: authenticated users.
 -- Writers: coordinator who owns the event.
 -- ============================================================
+
+-- Unauthenticated visitors can browse the event list (venue names and event
+-- titles are public). PostgREST checks RLS on every table in a join, so anon
+-- must be allowed on both events and venues or the events page fails to load
+-- before auth.getSession() resolves.
+CREATE POLICY "Anyone reads events"
+ON public.events
+FOR SELECT TO anon
+USING (true);
 
 CREATE POLICY "Authenticated users read events"
 ON public.events
