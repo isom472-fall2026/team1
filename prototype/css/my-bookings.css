@@ -122,6 +122,8 @@ html[data-theme="dark"] .bookings-success-box {
     border-top: 1px solid var(--border, #e5e7eb);
     display: flex;
     justify-content: flex-end;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 html[data-theme="dark"] .booking-actions {
