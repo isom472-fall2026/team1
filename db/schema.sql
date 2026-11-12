@@ -308,6 +308,126 @@ AS $$
 $$;
 
 
+CREATE OR REPLACE FUNCTION public.promote_waitlist_on_cancel()
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    target_capacity INTEGER;
+    earliest_booking_id BIGINT;
+BEGIN
+    -- Story #23: Automatic Waitlist Promotion
+    -- Execute only when a confirmed reservation transitions to cancelled
+    IF OLD.status = 'Confirmed' AND NEW.status = 'Cancelled' THEN
+        -- If events.capacity is missing or invalid, promotion does not occur
+        SELECT capacity
+        INTO target_capacity
+        FROM public.events
+        WHERE event_id = OLD.event_id;
+
+        IF target_capacity IS NOT NULL AND target_capacity > 0 THEN
+            -- Select earliest waitlisted attendee by minimum booking_date
+            SELECT booking_id
+            INTO earliest_booking_id
+            FROM public.bookings
+            WHERE event_id = OLD.event_id
+              AND status = 'Waitlisted'
+            ORDER BY booking_date ASC, booking_id ASC
+            LIMIT 1;
+
+            IF earliest_booking_id IS NOT NULL THEN
+                UPDATE public.bookings
+                SET status = 'Confirmed'
+                WHERE booking_id = earliest_booking_id;
+            END IF;
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS promote_waitlist_on_cancel_trigger ON public.bookings;
+
+CREATE TRIGGER promote_waitlist_on_cancel_trigger
+AFTER UPDATE OF status ON public.bookings
+FOR EACH ROW
+EXECUTE FUNCTION public.promote_waitlist_on_cancel();
+
+
+-- Ensure attendee booking updates only cancel their own booking
+-- while allowing automatic waitlist promotion (Waitlisted -> Confirmed)
+CREATE OR REPLACE FUNCTION public.validate_attendee_booking_update()
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    -- Allow waitlist promotion (nested trigger execution or transition from Waitlisted to Confirmed)
+    IF (OLD.status = 'Waitlisted' AND NEW.status = 'Confirmed') OR pg_trigger_depth() > 1 THEN
+        RETURN NEW;
+    END IF;
+
+    -- Attendees can only transition their booking to 'Cancelled'
+    IF public.is_attendee() AND NEW.status <> 'Cancelled' THEN
+        RAISE EXCEPTION 'Attendees may only cancel their booking.'
+            USING ERRCODE = 'P0001';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS validate_attendee_booking_update_trigger ON public.bookings;
+
+CREATE TRIGGER validate_attendee_booking_update_trigger
+BEFORE UPDATE ON public.bookings
+FOR EACH ROW
+EXECUTE FUNCTION public.validate_attendee_booking_update();
+
+
+CREATE OR REPLACE FUNCTION public.promote_waitlist_attendee(p_event_id BIGINT)
+RETURNS BIGINT
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    target_capacity INTEGER;
+    earliest_booking_id BIGINT;
+BEGIN
+    SELECT capacity
+    INTO target_capacity
+    FROM public.events
+    WHERE event_id = p_event_id;
+
+    IF target_capacity IS NULL OR target_capacity <= 0 THEN
+        RETURN NULL;
+    END IF;
+
+    SELECT booking_id
+    INTO earliest_booking_id
+    FROM public.bookings
+    WHERE event_id = p_event_id
+      AND status = 'Waitlisted'
+    ORDER BY booking_date ASC, booking_id ASC
+    LIMIT 1;
+
+    IF earliest_booking_id IS NOT NULL THEN
+        UPDATE public.bookings
+        SET status = 'Confirmed'
+        WHERE booking_id = earliest_booking_id;
+        RETURN earliest_booking_id;
+    END IF;
+
+    RETURN NULL;
+END;
+$$;
+
+
 -- ============================================================
 -- EVENT VALIDATION
 -- ============================================================
@@ -568,6 +688,11 @@ WITH CHECK (public.is_coordinator());
 -- Writers: coordinators.
 -- ============================================================
 
+CREATE POLICY "Anyone reads venues"
+ON public.venues
+FOR SELECT TO anon
+USING (true);
+
 CREATE POLICY "Authenticated users read venues"
 ON public.venues
 FOR SELECT TO authenticated
@@ -598,6 +723,15 @@ USING (public.is_coordinator());
 -- Readers: authenticated users.
 -- Writers: coordinator who owns the event.
 -- ============================================================
+
+-- Unauthenticated visitors can browse the event list (venue names and event
+-- titles are public). PostgREST checks RLS on every table in a join, so anon
+-- must be allowed on both events and venues or the events page fails to load
+-- before auth.getSession() resolves.
+CREATE POLICY "Anyone reads events"
+ON public.events
+FOR SELECT TO anon
+USING (true);
 
 CREATE POLICY "Authenticated users read events"
 ON public.events

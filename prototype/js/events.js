@@ -6,6 +6,13 @@
 
 const $ = (id) => document.getElementById(id);
 
+const SUPABASE_URL =
+    window.SUPABASE_URL || "https://abhtxsufvhlixtqgcivk.supabase.co";
+
+const SUPABASE_ANON_KEY =
+    window.SUPABASE_ANON_KEY ||
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFiaHR4c3VmdmhsaXh0cWdjaXZrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA5NTUyMjQsImV4cCI6MjEwNjUzMTIyNH0.jw38FYru71ZH7O_maPl5Ceaict38kzEi9NuGUBE2pJU";
+
 let db = null;
 let allEvents = [];
 let currentUser = null;
@@ -1218,12 +1225,9 @@ async function initialize() {
     // Event controls
     initializeEventControls();
 
-    // Supabase
-    if (
-        !window.supabase ||
-        !window.SUPABASE_URL ||
-        !window.SUPABASE_ANON_KEY
-    ) {
+    // Supabase — use module-level constants as fallback so a deferred config.js
+    // race condition does not block initialization
+    if (!window.supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
         console.error("Supabase configuration is missing.");
 
         loadState = "error";
@@ -1233,7 +1237,7 @@ async function initialize() {
     }
 
     db = window.aukDb || (window.supabase && typeof window.supabase.createClient === "function"
-        ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY)
+        ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
         : null);
 
     if (!db) {
