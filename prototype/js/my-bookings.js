@@ -53,7 +53,16 @@ const translations = {
         cancelling: "Cancelling...",
         cancelSuccess: "Your reservation has been cancelled successfully.",
         cancelError: "Unable to cancel your reservation. Please try again.",
-        bookingDoesNotExist: "booking does not exist"
+        bookingDoesNotExist: "booking does not exist",
+        leaveWaitlist: "Leave Waitlist",
+        leavingWaitlist: "Leaving...",
+        leaveWaitlistConfirm: "Are you sure you want to leave the waitlist?",
+        leaveWaitlistSuccess: "You have been removed from the waitlist.",
+        "You have been removed from the waitlist.": "You have been removed from the waitlist.",
+        bookingIdMissing: "Booking ID is missing.",
+        "Booking ID is missing.": "Booking ID is missing.",
+        notWaitlistedError: "Booking is not waitlisted.",
+        "Booking is not waitlisted.": "Booking is not waitlisted."
     },
     ar: {
         home: "الرئيسية",
@@ -89,7 +98,16 @@ const translations = {
         cancelling: "جارٍ الإلغاء...",
         cancelSuccess: "تم إلغاء حجزك بنجاح.",
         cancelError: "تعذر إلغاء حجزك. يرجى المحاولة مرة أخرى.",
-        bookingDoesNotExist: "الحجز غير موجود"
+        bookingDoesNotExist: "الحجز غير موجود",
+        leaveWaitlist: "مغادرة قائمة الانتظار",
+        leavingWaitlist: "جارٍ المغادرة...",
+        leaveWaitlistConfirm: "هل أنت متأكد من رغبتك في مغادرة قائمة الانتظار؟",
+        leaveWaitlistSuccess: "تمت إزالتك من قائمة الانتظار.",
+        "You have been removed from the waitlist.": "تمت إزالتك من قائمة الانتظار.",
+        bookingIdMissing: "معرف الحجز مفقود.",
+        "Booking ID is missing.": "معرف الحجز مفقود.",
+        notWaitlistedError: "الحجز ليس في قائمة الانتظار.",
+        "Booking is not waitlisted.": "الحجز ليس في قائمة الانتظار."
     }
 };
 
@@ -110,7 +128,7 @@ function displayError(msg) {
         successBox.hidden = true;
     }
     if (errorBox) {
-        errorBox.textContent = msg;
+        errorBox.textContent = t(msg);
         errorBox.hidden = false;
         errorBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
@@ -124,7 +142,7 @@ function displaySuccess(msg) {
         errorBox.hidden = true;
     }
     if (successBox) {
-        successBox.textContent = msg;
+        successBox.textContent = t(msg);
         successBox.hidden = false;
         successBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
     }
@@ -359,6 +377,9 @@ function renderBookings() {
                         <button type="button" class="btn btn-outline btn-checkin-disabled" disabled title="${escapeHTML(t("checkinUnavailableTooltip"))}">
                             ${escapeHTML(t("checkinUnavailableWaitlisted"))}
                         </button>
+                        <button type="button" class="btn btn-cancel-booking btn-leave-waitlist" id="leave-waitlist-${escapeHTML(booking.booking_id)}" data-booking-id="${escapeHTML(booking.booking_id)}">
+                            ${escapeHTML(t("leaveWaitlist"))}
+                        </button>
                     </div>
                 `;
             }
@@ -415,11 +436,21 @@ function renderBookings() {
             `;
         }).join("");
 
-        grid.querySelectorAll(".btn-cancel-booking").forEach((btn) => {
+        grid.querySelectorAll(".btn-cancel-booking:not(.btn-leave-waitlist)").forEach((btn) => {
             btn.addEventListener("click", (e) => {
                 e.preventDefault();
                 const bookingId = btn.dataset.bookingId;
                 cancelBooking(bookingId);
+            });
+        });
+
+        grid.querySelectorAll(".btn-leave-waitlist").forEach((btn) => {
+            btn.addEventListener("click", async (e) => {
+                e.preventDefault();
+                const bookingId = btn.dataset.bookingId;
+                const confirmed = window.confirm(t("leaveWaitlistConfirm"));
+                if (!confirmed) return;
+                await leaveWaitlist(bookingId);
             });
         });
     }
@@ -500,6 +531,104 @@ async function cancelBooking(bookingId) {
 }
 
 window.cancelBooking = cancelBooking;
+
+async function leaveWaitlist(payload) {
+    let targetBookingId = payload;
+    if (typeof targetBookingId === "object" && targetBookingId !== null) {
+        targetBookingId = targetBookingId.booking_id;
+    }
+
+    if (
+        targetBookingId === null ||
+        targetBookingId === undefined ||
+        targetBookingId === "" ||
+        (typeof targetBookingId === "number" && isNaN(targetBookingId))
+    ) {
+        displayError("Booking ID is missing.");
+        return;
+    }
+
+    const numId = Number(targetBookingId);
+    if (isNaN(numId) || numId <= 0) {
+        displayError("Booking ID is missing.");
+        return;
+    }
+
+    if (!currentUser || !db) {
+        displayError(t("signInPrompt"));
+        return;
+    }
+
+    const btn = document.querySelector(`.btn-leave-waitlist[data-booking-id="${numId}"]`);
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = t("leavingWaitlist");
+    }
+
+    try {
+        const { data: booking, error: fetchError } = await db
+            .from("bookings")
+            .select("booking_id, status, user_id, event_id")
+            .eq("booking_id", numId)
+            .maybeSingle();
+
+        if (fetchError || !booking) {
+            displayError("booking does not exist");
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = t("leaveWaitlist");
+            }
+            return;
+        }
+
+        if (String(booking.status).toLowerCase() !== "waitlisted") {
+            displayError("Booking is not waitlisted.");
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = t("leaveWaitlist");
+            }
+            return;
+        }
+
+        // Delete the booking row from public.bookings to remove from waitlist queue and allow re-booking
+        const { error: deleteError } = await db
+            .from("bookings")
+            .delete()
+            .eq("booking_id", numId)
+            .eq("user_id", currentUser.id);
+
+        if (deleteError) {
+            console.warn("Delete booking failed, falling back to status update:", deleteError);
+            const { error: updateError } = await db
+                .from("bookings")
+                .update({ status: "Cancelled" })
+                .eq("booking_id", numId)
+                .eq("user_id", currentUser.id);
+
+            if (updateError) {
+                console.error("Leave waitlist error:", updateError);
+                displayError(updateError.message || t("cancelError"));
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = t("leaveWaitlist");
+                }
+                return;
+            }
+        }
+
+        displaySuccess("You have been removed from the waitlist.");
+        await loadUserBookings(currentUser, true);
+    } catch (err) {
+        console.error("Unexpected error during leave waitlist:", err);
+        displayError(err.message || t("cancelError"));
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = t("leaveWaitlist");
+        }
+    }
+}
+
+window.leaveWaitlist = leaveWaitlist;
 
 async function loadUserBookings(user, preserveMessages = false) {
     if (!preserveMessages) {
