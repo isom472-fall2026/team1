@@ -23,12 +23,12 @@ let toastTimer = null;
 
 let activeSearch = "";
 let activeType = "all";
-
+let activeStartDate = "";
+let activeEndDate = "";
 let loadState = "loading";
 let authRequestVersion = 0;
 
 let currentLanguage = "en";
-
 /* =========================================================
    TRANSLATIONS
 ========================================================= */
@@ -808,6 +808,7 @@ async function loadEvents() {
    SEARCH / FILTER
 ========================================================= */
 
+
 function getFilteredEvents() {
 
     const searchInput = document.getElementById("event-search");
@@ -845,9 +846,68 @@ function getFilteredEvents() {
             description.includes(searchText) ||
             venue.includes(searchText);
 
-        return matchesType && matchesSearch;
+        // DATE RANGE FILTER
+        const eventDate = String(event.event_date || "")
+            .slice(0, 10);
+
+        const matchesDate =
+            (!activeStartDate ||
+                (eventDate && eventDate >= activeStartDate)) &&
+            (!activeEndDate ||
+                (eventDate && eventDate <= activeEndDate));
+
+
+
+        return matchesType && matchesSearch && matchesDate;
+
     });
 }
+
+const startDateInput = document.getElementById("start-date");
+const endDateInput = document.getElementById("end-date");
+const dateError = document.getElementById("date-filter-error");
+
+document.getElementById("apply-date-filter")
+    ?.addEventListener("click", () => {
+
+        const start = startDateInput.value;
+        const end = endDateInput.value;
+
+        dateError.textContent = "";
+
+        // Start date is required
+        if (!start) {
+            dateError.textContent =
+                "Start date is required.";
+            return;
+        }
+
+        // End date cannot be earlier
+        if (end && end < start) {
+            dateError.textContent =
+                "End date cannot be earlier than start date.";
+            return;
+        }
+
+        activeStartDate = start;
+        activeEndDate = end;
+
+        renderEvents();
+    });
+
+document.getElementById("clear-date-filter")
+    ?.addEventListener("click", () => {
+
+        startDateInput.value = "";
+        endDateInput.value = "";
+
+        activeStartDate = "";
+        activeEndDate = "";
+
+        dateError.textContent = "";
+
+        renderEvents(getFilteredEvents());
+    });
 
 /* =========================================================
    EVENT CARD
@@ -916,13 +976,24 @@ function renderEvents() {
         count.textContent = `${filtered.length} ${t("eventsFound")}`;
     }
 
+
     if (filtered.length === 0) {
         grid.innerHTML = "";
 
-        if (empty) empty.hidden = false;
+        if (empty) {
+            empty.hidden = false;
+
+            if (activeStartDate) {
+                empty.textContent =
+                    "No events scheduled for the selected dates.";
+            } else {
+                empty.textContent = t("noEventsDescription");
+            }
+        }
 
         return;
     }
+
 
     grid.innerHTML = filtered.map((event) => {
         const title = escapeHTML(event.title || t("untitledEvent"));
@@ -1132,7 +1203,10 @@ function initializeEventControls() {
         renderEvents();
     });
 
+
     $("clear-filters")?.addEventListener("click", () => {
+
+        // Reset search and category
         activeSearch = "";
         activeType = "all";
 
@@ -1144,8 +1218,26 @@ function initializeEventControls() {
             $("event-type-filter").value = "all";
         }
 
+        // Reset date range
+        activeStartDate = "";
+        activeEndDate = "";
+
+        if ($("start-date")) {
+            $("start-date").value = "";
+        }
+
+        if ($("end-date")) {
+            $("end-date").value = "";
+        }
+
+        if ($("date-filter-error")) {
+            $("date-filter-error").textContent = "";
+        }
+
+        // Refresh event list
         renderEvents();
     });
+
 
     $("events-grid")?.addEventListener("click", (event) => {
         const button = event.target.closest("[data-event-id]");

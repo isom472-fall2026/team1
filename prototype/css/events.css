@@ -1047,6 +1047,7 @@ html[data-theme="dark"] .modal-reservation-banner.banner-info {
     color: #ffffff;
     border: 1px solid #b91c1c;
 }
+
 .modal-reservation-banner.banner-error {
     background: rgba(239, 68, 68, 0.12);
     color: #b91c1c;
@@ -1057,4 +1058,252 @@ html[data-theme="dark"] .modal-reservation-banner.banner-error {
     background: rgba(239, 68, 68, 0.2);
     color: #fca5a5;
     border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* =========================================
+   AUK EVENTS — PHASE 5 DATE RANGE FILTER
+   Professional University Design
+========================================= */
+
+:root {
+    --auk-navy: #12345a;
+    --auk-navy-hover: #0b2542;
+    --auk-gold: #c5a45d;
+    --auk-gold-light: #f5eddb;
+
+    --auk-surface: #ffffff;
+    --auk-input: #ffffff;
+    --auk-text: #263445;
+    --auk-muted: #64748b;
+    --auk-border: #dce3eb;
+
+    --auk-error: #b42318;
+}
+
+/* MAIN FILTER CONTAINER */
+.date-filter {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 16px;
+
+    width: 100%;
+    margin-top: 20px;
+    padding: 24px;
+
+    background: var(--auk-surface);
+    border: 1px solid var(--auk-border);
+    border-top: 3px solid var(--auk-gold);
+    border-radius: 12px;
+
+    box-shadow: 0 4px 20px rgba(18, 52, 90, 0.06);
+}
+
+/* DATE GROUP */
+.date-filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1 1 190px;
+    min-width: 0;
+}
+
+/* LABELS */
+.date-filter-group label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--auk-text);
+    letter-spacing: 0.2px;
+}
+
+/* DATE INPUTS */
+.date-filter-group input[type="date"] {
+    width: 100%;
+    height: 46px;
+    padding: 0 14px;
+
+    font: inherit;
+    font-size: 0.9rem;
+    color: var(--auk-text);
+
+    background: var(--auk-input);
+    border: 1px solid var(--auk-border);
+    border-radius: 8px;
+
+    outline: none;
+
+    transition:
+        border-color 0.2s ease,
+        box-shadow 0.2s ease;
+}
+
+.date-filter-group input[type="date"]:hover {
+    border-color: var(--auk-navy);
+}
+
+.date-filter-group input[type="date"]:focus-visible {
+    border-color: var(--auk-navy);
+    box-shadow: 0 0 0 3px rgba(18, 52, 90, 0.12);
+}
+
+/* BUTTON BASE */
+.date-filter-btn,
+.date-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-height: 46px;
+    padding: 0 22px;
+
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    white-space: nowrap;
+
+    border-radius: 8px;
+    cursor: pointer;
+
+    transition:
+        background-color 0.2s ease,
+        border-color 0.2s ease,
+        box-shadow 0.2s ease,
+        transform 0.2s ease;
+}
+
+/* PRIMARY BUTTON */
+.date-filter-btn {
+    background: var(--auk-navy);
+    color: #ffffff;
+    border: 1px solid var(--auk-navy);
+}
+
+.date-filter-btn:hover {
+    background: var(--auk-navy-hover);
+    border-color: var(--auk-navy-hover);
+    box-shadow: 0 4px 12px rgba(18, 52, 90, 0.18);
+    transform: translateY(-1px);
+}
+
+/* SECONDARY BUTTON */
+.date-clear-btn {
+    background: transparent;
+    color: var(--auk-navy);
+    border: 1px solid var(--auk-border);
+}
+
+.date-clear-btn:hover {
+    background: var(--auk-gold-light);
+    border-color: var(--auk-gold);
+    color: var(--auk-navy);
+}
+
+/* CLICK EFFECT */
+.date-filter-btn:active,
+.date-clear-btn:active {
+    transform: translateY(0);
+}
+
+/* KEYBOARD FOCUS */
+.date-filter-btn:focus-visible,
+.date-clear-btn:focus-visible {
+    outline: 3px solid var(--auk-gold);
+    outline-offset: 3px;
+}
+
+/* VALIDATION MESSAGE */
+.date-filter-error {
+    flex-basis: 100%;
+    margin: 0;
+
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: var(--auk-error);
+}
+
+.date-filter-error:empty {
+    display: none;
+}
+
+/* =========================================
+   DARK MODE
+========================================= */
+
+:is(.dark-mode, [data-theme="dark"]) {
+    --auk-surface: #172435;
+    --auk-input: #101b2a;
+    --auk-text: #f1f5f9;
+    --auk-muted: #a8b5c5;
+    --auk-border: #34465a;
+    --auk-gold-light: #343022;
+    --auk-error: #fca5a5;
+}
+
+:is(.dark-mode, [data-theme="dark"]) .date-filter {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+:is(.dark-mode, [data-theme="dark"]) .date-filter-group input[type="date"] {
+    color-scheme: dark;
+}
+
+:is(.dark-mode, [data-theme="dark"]) .date-filter-btn {
+    background: var(--auk-gold);
+    border-color: var(--auk-gold);
+    color: #172435;
+}
+
+:is(.dark-mode, [data-theme="dark"]) .date-filter-btn:hover {
+    background: #dfc17e;
+    border-color: #dfc17e;
+}
+
+:is(.dark-mode, [data-theme="dark"]) .date-clear-btn {
+    color: #f1f5f9;
+}
+
+:is(.dark-mode, [data-theme="dark"]) .date-clear-btn:hover {
+    background: var(--auk-gold-light);
+    color: #f1f5f9;
+}
+
+/* =========================================
+   RESPONSIVE DESIGN
+========================================= */
+
+@media (max-width: 768px) {
+    .date-filter {
+        padding: 18px;
+        gap: 14px;
+    }
+
+    .date-filter-group {
+        flex: 1 1 200px;
+    }
+}
+
+@media (max-width: 600px) {
+    .date-filter {
+        flex-direction: column;
+        align-items: stretch;
+        padding: 16px;
+    }
+
+    .date-filter-group {
+        flex: 0 1 auto;
+        width: 100%;
+    }
+
+    .date-filter-btn,
+    .date-clear-btn {
+        width: 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .date-filter *,
+    .date-filter {
+        transition: none;
+    }
 }
