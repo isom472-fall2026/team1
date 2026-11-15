@@ -473,48 +473,45 @@
             </div>
 
             <!-- =====================================================
-     PHASE 5: DATE RANGE FILTER
+    DATE RANGE FILTER
 ====================================================== -->
 
             <div class="date-filter">
 
                 <!-- START DATE -->
                 <div class="date-filter-group">
-
-                    <label for="start-date">
+                    <label for="start-date" data-i18n="startDate">
                         Start Date
                     </label>
 
-                    <input type="date" id="start-date" name="start-date">
-
+                    <input type="date" id="start-date">
                 </div>
 
                 <!-- END DATE -->
                 <div class="date-filter-group">
-
-                    <label for="end-date">
+                    <label for="end-date" data-i18n="endDate">
                         End Date
                     </label>
 
-                    <input type="date" id="end-date" name="end-date">
-
+                    <input type="date" id="end-date">
                 </div>
 
-                <!-- APPLY FILTER -->
-                <button type="button" id="apply-date-filter" class="date-filter-btn">
+                <!-- FILTER BUTTON -->
+                <button type="button" id="apply-date-filter" class="date-filter-btn" data-i18n="filterEvents">
                     Filter Events
                 </button>
 
-                <!-- CLEAR DATE FILTER -->
-                <button type="button" id="clear-date-filter" class="date-clear-btn">
+                <!-- CLEAR BUTTON -->
+                <button type="button" id="clear-date-filter" class="date-clear-btn" data-i18n="clearDate">
                     Clear
                 </button>
 
-                <!-- VALIDATION MESSAGE -->
+                <!-- ERROR MESSAGE -->
                 <p id="date-filter-error" class="date-filter-error" role="alert" aria-live="polite">
                 </p>
 
             </div>
+
 
             <!-- END DATE RANGE FILTER -->
 

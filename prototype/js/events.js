@@ -112,7 +112,16 @@ const translations = {
         viewMyBookings: "View My Bookings",
         statusConfirmed: "Confirmed",
         statusWaitlisted: "Waitlisted",
-        guestReservePrompt: "Sign in or create an account to reserve your seat."
+        guestReservePrompt: "Sign in or create an account to reserve your seat.",
+        startDate: "Start Date",
+        endDate: "End Date",
+        filterEvents: "Filter Events",
+        clearDate: "Clear",
+        startDateRequired: "Start date is required.",
+        invalidDateRange: "End date cannot be before start date.",
+        noEventsInDateRange: "No events scheduled during the selected dates."
+
+
     },
 
     ar: {
@@ -193,7 +202,17 @@ const translations = {
         viewMyBookings: "عرض حجوزاتي",
         statusConfirmed: "مؤكد",
         statusWaitlisted: "قائمة الانتظار",
-        guestReservePrompt: "سجل الدخول أو أنشئ حساباً لحجز مقعدك."
+        guestReservePrompt: "سجل الدخول أو أنشئ حساباً لحجز مقعدك.",
+        startDate: "تاريخ البداية",
+        endDate: "تاريخ النهاية",
+        filterEvents: "تصفية الفعاليات",
+        clearDate: "مسح",
+
+        startDateRequired: "تاريخ البداية مطلوب.",
+        invalidDateRange: "لا يمكن أن يكون تاريخ النهاية قبل تاريخ البداية.",
+        noEventsInDateRange: "لا توجد فعاليات مجدولة خلال التواريخ المحددة.",
+
+
     }
 };
 
@@ -977,15 +996,16 @@ function renderEvents() {
     }
 
 
+
     if (filtered.length === 0) {
+
         grid.innerHTML = "";
 
         if (empty) {
             empty.hidden = false;
 
             if (activeStartDate) {
-                empty.textContent =
-                    "No events scheduled for the selected dates.";
+                empty.textContent = t("noEventsInDateRange");
             } else {
                 empty.textContent = t("noEventsDescription");
             }
@@ -993,6 +1013,7 @@ function renderEvents() {
 
         return;
     }
+
 
 
     grid.innerHTML = filtered.map((event) => {
