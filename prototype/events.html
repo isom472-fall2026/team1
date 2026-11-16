@@ -381,6 +381,7 @@
                 </div>
 
             </div>
+
             <!-- =====================================================
      SEARCH AND FILTERS
 ====================================================== -->
@@ -393,6 +394,7 @@
                     <svg class="event-search-icon" width="21" height="21" viewBox="0 0 24 24" fill="none"
                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
                         aria-hidden="true">
+
                         <circle cx="11" cy="11" r="8"></circle>
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
@@ -466,7 +468,53 @@
 
                 </div>
 
+                <!-- END CATEGORY FILTER -->
+
             </div>
+
+            <!-- =====================================================
+    DATE RANGE FILTER
+====================================================== -->
+
+            <div class="date-filter">
+
+                <!-- START DATE -->
+                <div class="date-filter-group">
+                    <label for="start-date" data-i18n="startDate">
+                        Start Date
+                    </label>
+
+                    <input type="date" id="start-date">
+                </div>
+
+                <!-- END DATE -->
+                <div class="date-filter-group">
+                    <label for="end-date" data-i18n="endDate">
+                        End Date
+                    </label>
+
+                    <input type="date" id="end-date">
+                </div>
+
+                <!-- FILTER BUTTON -->
+                <button type="button" id="apply-date-filter" class="date-filter-btn" data-i18n="filterEvents">
+                    Filter Events
+                </button>
+
+                <!-- CLEAR BUTTON -->
+                <button type="button" id="clear-date-filter" class="date-clear-btn" data-i18n="clearDate">
+                    Clear
+                </button>
+
+                <!-- ERROR MESSAGE -->
+                <p id="date-filter-error" class="date-filter-error" role="alert" aria-live="polite">
+                </p>
+
+            </div>
+
+
+            <!-- END DATE RANGE FILTER -->
+
             <!-- =====================================================
                  RESULTS HEADER
             ====================================================== -->
@@ -660,7 +708,8 @@
 
 
                 <!-- VIEW IN MY BOOKINGS (visible when user already booked) -->
-                <a href="my-bookings.html" class="btn btn-outline" id="modal-view-booking-btn" data-i18n="viewMyBookings" hidden>
+                <a href="my-bookings.html" class="btn btn-outline" id="modal-view-booking-btn"
+                    data-i18n="viewMyBookings" hidden>
 
                     View My Bookings
 

@@ -1047,6 +1047,7 @@ html[data-theme="dark"] .modal-reservation-banner.banner-info {
     color: #ffffff;
     border: 1px solid #b91c1c;
 }
+
 .modal-reservation-banner.banner-error {
     background: rgba(239, 68, 68, 0.12);
     color: #b91c1c;
@@ -1057,4 +1058,165 @@ html[data-theme="dark"] .modal-reservation-banner.banner-error {
     background: rgba(239, 68, 68, 0.2);
     color: #fca5a5;
     border-color: rgba(239, 68, 68, 0.4);
+}
+
+/* =========================================================
+   20. PHASE 5 — COMPACT DATE RANGE FILTER
+   Uses existing AUK Events maroon/gold theme variables
+========================================================= */
+
+.date-filter {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 10px;
+    width: 100%;
+    margin-top: 10px;
+    padding: 12px 16px;
+    background: var(--events-surface);
+    border: 1px solid var(--events-border);
+    border-inline-start: 3px solid var(--events-gold);
+    border-radius: 10px;
+    color: var(--events-text);
+}
+
+.date-filter-group {
+    display: flex;
+    flex: 0 1 180px;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 0;
+}
+
+.date-filter-group label {
+    color: var(--events-text);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.date-filter-group input[type="date"] {
+    width: 100%;
+    min-width: 0;
+    height: 38px;
+    padding: 0 10px;
+    background: var(--events-surface);
+    border: 1px solid var(--events-border);
+    border-radius: 7px;
+    color: var(--events-text);
+    font: inherit;
+    font-size: 13px;
+    transition: border-color var(--events-transition),
+        box-shadow var(--events-transition);
+}
+
+.date-filter-group input[type="date"]:hover {
+    border-color: var(--events-maroon);
+}
+
+.date-filter-group input[type="date"]:focus-visible {
+    outline: 2px solid var(--events-gold);
+    outline-offset: 2px;
+}
+
+.date-filter-btn,
+.date-clear-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0 14px;
+    border-radius: 7px;
+    font: inherit;
+    font-size: 13px;
+    font-weight: 650;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background-color var(--events-transition),
+        border-color var(--events-transition);
+}
+
+.date-filter-btn {
+    background: var(--events-maroon);
+    border: 1px solid var(--events-maroon);
+    color: #ffffff;
+}
+
+.date-filter-btn:hover {
+    background: var(--events-maroon-hover);
+    border-color: var(--events-maroon-hover);
+}
+
+.date-clear-btn {
+    background: var(--events-surface);
+    border: 1px solid var(--events-border);
+    color: var(--events-text);
+}
+
+.date-clear-btn:hover {
+    background: var(--events-soft);
+    border-color: var(--events-maroon);
+}
+
+.date-filter-btn:focus-visible,
+.date-clear-btn:focus-visible {
+    outline: 2px solid var(--events-gold);
+    outline-offset: 2px;
+}
+
+.date-filter-error {
+    flex-basis: 100%;
+    margin: 0;
+    color: #b42318;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.date-filter-error:empty {
+    display: none;
+}
+
+/* Existing site uses html[data-theme="dark"] */
+html[data-theme="dark"] .date-filter-group input[type="date"] {
+    color-scheme: dark;
+}
+
+html[data-theme="dark"] .date-filter-error {
+    color: #fca5a5;
+}
+
+html[data-theme="dark"] .date-filter-btn:hover {
+    background: #a52b45;
+    border-color: #a52b45;
+}
+
+/* Allow controls to wrap naturally on tablets and phones */
+@media (max-width: 650px) {
+    .date-filter {
+        gap: 8px;
+        padding: 12px;
+    }
+
+    .date-filter-group {
+        flex: 1 1 140px;
+    }
+
+    .date-filter-btn,
+    .date-clear-btn {
+        flex: 1 1 auto;
+    }
+}
+
+@media (max-width: 400px) {
+    .date-filter-group {
+        flex: 1 1 100%;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+    .date-filter-group input[type="date"],
+    .date-filter-btn,
+    .date-clear-btn {
+        transition: none;
+    }
 }
