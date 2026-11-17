@@ -235,7 +235,7 @@
     function initMobileMenu() {
         const toggle = $("menu-toggle");
         const navLinks = $("nav-links");
-        if (!toggle || !navLinks) return;
+        if (!toggle || !navLinks || toggle.dataset.mobileMenuInitialized === "true") return;
 
         toggle.addEventListener("click", (e) => {
             e.stopPropagation();
@@ -257,6 +257,8 @@
                 toggle.setAttribute("aria-expanded", "false");
             }
         });
+
+        toggle.dataset.mobileMenuInitialized = "true";
     }
 
     /* =========================================================

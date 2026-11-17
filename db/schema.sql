@@ -549,6 +549,59 @@ EXECUTE FUNCTION public.validate_attendance();
 
 
 -- ============================================================
+-- ORGANIZER ASSIGNMENT VALIDATION
+-- ============================================================
+
+CREATE OR REPLACE FUNCTION public.validate_organizer_assignment()
+RETURNS TRIGGER
+LANGUAGE PLPGSQL
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    selected_event public.events%ROWTYPE;
+BEGIN
+    IF NEW.organizer_id IS NULL THEN
+        RAISE EXCEPTION 'Please select an organizer to assign.';
+    END IF;
+
+    SELECT *
+    INTO selected_event
+    FROM public.events
+    WHERE event_id = NEW.event_id;
+
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'Invalid event selected.';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM public.organizer_assignments assignment
+        JOIN public.events assigned_event
+          ON assigned_event.event_id = assignment.event_id
+        WHERE assignment.organizer_id = NEW.organizer_id
+          AND assigned_event.event_date = selected_event.event_date
+          AND selected_event.start_time < assigned_event.end_time
+          AND selected_event.end_time > assigned_event.start_time
+    ) THEN
+        RAISE EXCEPTION 'Organizer is already assigned to an event.';
+    END IF;
+
+    RETURN NEW;
+END;
+$$;
+
+
+DROP TRIGGER IF EXISTS validate_organizer_assignment_trigger
+ON public.organizer_assignments;
+
+CREATE TRIGGER validate_organizer_assignment_trigger
+BEFORE INSERT ON public.organizer_assignments
+FOR EACH ROW
+EXECUTE FUNCTION public.validate_organizer_assignment();
+
+
+-- ============================================================
 -- ROW LEVEL SECURITY
 -- RLS is enabled on EVERY application table.
 -- ============================================================

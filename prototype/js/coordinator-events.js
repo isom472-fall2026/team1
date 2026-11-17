@@ -933,23 +933,13 @@ function closeMenu() {
     const navLinks = $("nav-links");
     const menuToggle = $("menu-toggle");
     if (navLinks) navLinks.classList.remove("open");
-    if (menuToggle) {
+    if (menuToggle && menuToggle.dataset.mobileMenuInitialized !== "true") {
         menuToggle.setAttribute("aria-expanded", "false");
         menuToggle.textContent = "☰";
     }
 }
 
 function initializeNavigation() {
-    const menuToggle = $("menu-toggle");
-    if (menuToggle) {
-        menuToggle.addEventListener("click", () => {
-            const navLinks = $("nav-links");
-            const open = navLinks.classList.toggle("open");
-            menuToggle.setAttribute("aria-expanded", String(open));
-            menuToggle.textContent = open ? "✕" : "☰";
-        });
-    }
-
     document.addEventListener("click", event => {
         if (!event.target.closest("nav")) closeMenu();
     });

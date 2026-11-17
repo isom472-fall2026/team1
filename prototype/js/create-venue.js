@@ -127,21 +127,13 @@ function closeMenu() {
     const navLinks = document.getElementById("nav-links");
     const menuToggle = document.getElementById("menu-toggle");
     if (navLinks) navLinks.classList.remove("open");
-    if (menuToggle) {
+    if (menuToggle && menuToggle.dataset.mobileMenuInitialized !== "true") {
         menuToggle.setAttribute("aria-expanded", "false");
         menuToggle.textContent = "☰";
     }
 }
 
 function initializeNavigation() {
-    const menuToggle = document.getElementById("menu-toggle");
-    if (menuToggle) {
-        menuToggle.addEventListener("click", () => {
-            const open = document.getElementById("nav-links").classList.toggle("open");
-            menuToggle.setAttribute("aria-expanded", String(open));
-            menuToggle.textContent = open ? "✕" : "☰";
-        });
-    }
     document.addEventListener("click", event => {
         if (!event.target.closest("nav")) closeMenu();
     });

@@ -1,0 +1,40 @@
+.assign-organizers-section {
+    margin: 22px auto 0;
+    padding: clamp(24px, 4vw, 36px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+}
+
+.assign-organizers-form {
+    display: grid;
+    gap: 20px;
+}
+
+.assign-organizers-form .form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 4px;
+}
+
+#assign-events-section[hidden],
+#assignment-message:empty {
+    display: none;
+}
+
+.assign-modal {
+    max-width: 520px;
+}
+
+.assign-modal-event {
+    margin: 0 0 20px;
+    color: var(--muted);
+    font-weight: 600;
+}
+
+.card-meta-item.assigned-organizer-empty {
+    color: var(--muted);
+    font-style: italic;
+}

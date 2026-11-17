@@ -317,19 +317,6 @@ function closeMenu() {
 }
 
 function initializeNavigation() {
-    $("menu-toggle").addEventListener("click", () => {
-        const open =
-            $("nav-links").classList.toggle("open");
-
-        $("menu-toggle").textContent =
-            open ? "✕" : "☰";
-
-        $("menu-toggle").setAttribute(
-            "aria-expanded",
-            String(open)
-        );
-    });
-
     document.addEventListener("click", event => {
         if (!event.target.closest("nav")) {
             closeMenu();
