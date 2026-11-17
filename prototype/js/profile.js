@@ -197,12 +197,6 @@ function initializeNavigation() {
     const navLinks = $("nav-links");
 
     if (menuToggle && navLinks) {
-        menuToggle.addEventListener("click", () => {
-            const open = navLinks.classList.toggle("open");
-            menuToggle.textContent = open ? "✕" : "☰";
-            menuToggle.setAttribute("aria-expanded", String(open));
-        });
-
         document.addEventListener("click", event => {
             if (!event.target.closest("nav")) {
                 closeMenu();

@@ -23,11 +23,15 @@
 
     <link rel="stylesheet" href="css/home.css">
     <link rel="stylesheet" href="css/navbar.css">
+    <link rel="stylesheet" href="css/coordinator-events.css">
+    <link rel="stylesheet" href="css/create-event.css">
+    <link rel="stylesheet" href="css/assign-organizers.css">
 
     <!-- Supabase public client -->
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/config.js"></script>
-    <script defer src="js/navbar.js"></script>
+    <script defer src="js/navbar.js?v=2"></script>
+    <script defer src="js/assign-organizers.js"></script>
 </head>
 
 <body>
@@ -129,7 +133,7 @@
     </header>
 
     <main class="container">
-        <section class="section" style="padding: 40px 0;">
+        <section class="coordinator-header-card assign-organizers-section">
             <div class="section-heading">
                 <div>
                     <span class="eyebrow" data-i18n="coordinator">COORDINATOR</span>
@@ -138,12 +142,41 @@
                 </div>
             </div>
 
-            <div class="empty-state" style="padding: 40px 20px; text-align: center; background: var(--navbar-surface); border: 1px solid var(--navbar-border); border-radius: var(--navbar-radius);">
-                <p class="muted">Organizer assignment management interface.</p>
-                <a href="coordinator-events.html" class="btn btn-gold" data-i18n="coordinatorEvents" style="margin-top: 15px; display: inline-block;">View Coordinator Events</a>
-            </div>
+            <p id="access-message" class="form-message" role="status" aria-live="polite"></p>
+
+            <section id="assign-events-section" class="events-section" aria-label="Active events" hidden>
+                <div id="assign-events-grid" class="coordinator-events-grid" aria-live="polite"></div>
+            </section>
         </section>
     </main>
+
+    <div class="modal-backdrop" id="assign-modal" hidden>
+        <div class="modal assign-modal" role="dialog" aria-modal="true" aria-labelledby="assign-modal-title">
+            <div class="modal-head">
+                <h3 id="assign-modal-title">Assign organizer</h3>
+                <button class="icon-btn modal-close" id="assign-modal-close" type="button"
+                    aria-label="Close assignment dialog">✕</button>
+            </div>
+
+            <p id="assign-modal-event" class="assign-modal-event"></p>
+
+            <form id="assign-organizer-form" class="assign-organizers-form" novalidate>
+                <div class="form-field">
+                    <label for="organizer-select">Door organizer</label>
+                    <select id="organizer-select" name="organizer_id" required>
+                        <option value="">Loading organizers...</option>
+                    </select>
+                </div>
+
+                <p id="assignment-message" class="form-message" role="alert" aria-live="polite"></p>
+
+                <div class="form-actions">
+                    <button class="btn btn-outline" id="assign-modal-cancel" type="button">Cancel</button>
+                    <button class="btn btn-gold" id="assign-organizer-submit" type="submit">Assign organizer</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <footer>
         <p>© <span id="current-year">2026</span> AUK Events &amp; Workshop Attendance System</p>

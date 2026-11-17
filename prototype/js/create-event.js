@@ -165,12 +165,6 @@ function closeMenu() {
 }
 
 function initializeNavigation() {
-    const menuToggle = document.getElementById("menu-toggle");
-    menuToggle.addEventListener("click", () => {
-        const open = document.getElementById("nav-links").classList.toggle("open");
-        menuToggle.setAttribute("aria-expanded", String(open));
-        menuToggle.textContent = open ? "✕" : "☰";
-    });
     document.addEventListener("click", event => {
         if (!event.target.closest("nav")) closeMenu();
     });
