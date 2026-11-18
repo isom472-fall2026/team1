@@ -836,6 +836,12 @@ FOR SELECT TO authenticated
 USING (user_id = auth.uid());
 
 
+CREATE POLICY "Anyone reads confirmed bookings"
+ON public.bookings
+FOR SELECT TO anon, authenticated
+USING (status = 'Confirmed');
+
+
 CREATE POLICY "Attendees read waitlisted bookings"
 ON public.bookings
 FOR SELECT TO authenticated
