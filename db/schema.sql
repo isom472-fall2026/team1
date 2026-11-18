@@ -841,6 +841,8 @@ ON public.bookings
 FOR SELECT TO anon, authenticated
 USING (status = 'Confirmed');
 
+GRANT SELECT ON TABLE public.bookings TO anon;
+
 
 CREATE POLICY "Attendees read waitlisted bookings"
 ON public.bookings

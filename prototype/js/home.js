@@ -1275,6 +1275,7 @@ async function applyUserSession(user) {
         if (coordEventsLink) coordEventsLink.hidden = true;
         if (venuesLink) venuesLink.hidden = true;
         renderUserWelcome();
+        await fetchReservedCounts();
         renderEvents();
         if (selectedEvent && $("event-modal") && !$("event-modal").hidden) {
             updateModalReservationState(selectedEvent);

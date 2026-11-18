@@ -1425,6 +1425,7 @@ async function initialize() {
         } else {
             userBookingsMap.clear();
         }
+        await fetchReservedCounts();
         renderEvents();
         if (selectedEvent && $("event-modal") && !$("event-modal").hidden) {
             updateModalReservationState(selectedEvent);
