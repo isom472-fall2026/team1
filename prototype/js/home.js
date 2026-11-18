@@ -28,6 +28,7 @@ let toastTimeout = null;
 let lastFocusedElement = null;
 let selectedEvent = null;
 let userBookingsMap = new Map();
+let reservedCountsMap = new Map(); // event_id → confirmed seat count
 let openedFromSigninRedirect = false;
 
 /* ===================================
@@ -670,7 +671,14 @@ function renderEvents() {
 
                     <p>
                         <strong>${escapeHTML(t("capacityLabel"))}:</strong>
-                        ${escapeHTML(event.capacity ?? "—")}
+                        ${escapeHTML((() => {
+                            const total = event.capacity;
+                            const reserved = reservedCountsMap.get(Number(event.event_id)) || 0;
+                            if (total != null && total !== "") {
+                                return `${reserved}/${total}`;
+                            }
+                            return "—";
+                        })())}
                     </p>
 
                 </div>
@@ -744,7 +752,14 @@ function openEventModal(event) {
 
         <span>
             <strong>${escapeHTML(t("capacityLabel"))}:</strong>
-            ${escapeHTML(event.capacity ?? "—")}
+            ${escapeHTML((() => {
+                const total = event.capacity;
+                const reserved = reservedCountsMap.get(Number(event.event_id)) || 0;
+                if (total != null && total !== "") {
+                    return `${reserved}/${total}`;
+                }
+                return "—";
+            })())}
         </span>
     `;
 
@@ -788,6 +803,29 @@ function openEventModal(event) {
 /* ===================================
    RESERVATIONS
 =================================== */
+
+async function fetchReservedCounts() {
+    if (!db) return;
+    try {
+        const { data, error } = await db
+            .from("bookings")
+            .select("event_id")
+            .eq("status", "Confirmed");
+
+        if (error) {
+            console.warn("Could not load reserved counts:", error);
+            return;
+        }
+
+        reservedCountsMap.clear();
+        (data || []).forEach((b) => {
+            const id = Number(b.event_id);
+            reservedCountsMap.set(id, (reservedCountsMap.get(id) || 0) + 1);
+        });
+    } catch (err) {
+        console.warn("Error fetching reserved counts:", err);
+    }
+}
 
 async function fetchUserBookings() {
     if (!currentUser || !db) return;
@@ -975,6 +1013,23 @@ async function handleReserveSeat(event) {
         return;
     }
 
+    // AC: Missing or invalid capacity validation
+    const parsedCapacity = Number(event.capacity);
+    if (event.capacity === undefined || event.capacity === null || event.capacity === "" ||
+        isNaN(parsedCapacity) || !Number.isInteger(parsedCapacity) || parsedCapacity <= 0) {
+        showToast("Event not available", "error");
+        if (banner) {
+            banner.hidden = false;
+            banner.className = "modal-reservation-banner banner-error";
+            banner.textContent = "Event not available";
+        }
+        if (reserveBtn) {
+            reserveBtn.disabled = false;
+            reserveBtn.textContent = t("reserveSeat");
+        }
+        return;
+    }
+
     // AC 4: Duplicate booking check before submission
     if (userBookingsMap.has(parsedEventId)) {
         showToast(t("duplicateBooking"), "warning");
@@ -1023,6 +1078,12 @@ async function handleReserveSeat(event) {
         if (error) throw error;
 
         userBookingsMap.set(Number(data.event_id), data);
+
+        // Update the local reserved count immediately so the card refreshes
+        if (data.status === "Confirmed") {
+            const eid = Number(data.event_id);
+            reservedCountsMap.set(eid, (reservedCountsMap.get(eid) || 0) + 1);
+        }
 
         if (data.status === "Confirmed") {
             showToast(t("reserveSuccessConfirmed"), "success");
@@ -1175,6 +1236,8 @@ async function loadEvents() {
 
     updateUpcomingEventsCount();
     renderChips();
+    // Fetch reserved seat counts to show X/Y on capacity, then re-render
+    await fetchReservedCounts();
     renderEvents();
 }
 /* ===================================
