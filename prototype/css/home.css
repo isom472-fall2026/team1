@@ -1552,7 +1552,8 @@ html[dir="rtl"] .password-toggle-btn {
     border-color: #f3c9d1;
     color: #f3c9d1;
 }
-
+
+
 /* =========================================================
    RESERVATION FEATURE STYLES
 ========================================================= */
@@ -1660,6 +1661,7 @@ html[data-theme="dark"] .modal-reservation-banner.banner-info {
     color: #ffffff;
     border: 1px solid #b91c1c;
 }
+
 .modal-reservation-banner.banner-error {
     background: rgba(239, 68, 68, 0.12);
     color: #b91c1c;

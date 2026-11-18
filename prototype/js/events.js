@@ -1199,13 +1199,13 @@ function fillEventModal(event) {
         <div class="modal-event-info">
             <strong>${escapeHTML(t("capacityLabel"))}</strong>
             <span>${escapeHTML((() => {
-                const total = event.capacity;
-                const reserved = reservedCountsMap.get(Number(event.event_id)) || 0;
-                if (total != null && total !== "") {
-                    return `${reserved}/${total}`;
-                }
-                return "—";
-            })())}</span>
+        const total = event.capacity;
+        const reserved = reservedCountsMap.get(Number(event.event_id)) || 0;
+        if (total != null && total !== "") {
+            return `${reserved}/${total}`;
+        }
+        return "—";
+    })())}</span>
         </div>
     `;
 
