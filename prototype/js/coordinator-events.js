@@ -15,6 +15,7 @@ let coordinatorRecord = null;
 let isCoordinator = false;
 
 let allEvents = [];
+let eventBookingsMap = new Map();
 let venueMap = new Map();
 let venuesList = [];
 let timingFilter = "all"; // "all" | "upcoming" | "past"
@@ -44,9 +45,12 @@ const translations = {
         allEventsHeading: "My Coordinator Events",
         allEventsSubtitle:
             "View and manage events created by you in one centralized schedule.",
-        statTotalEvents: "My Total Events",
-        statUpcomingEvents: "My Upcoming Events",
-        statPastEvents: "My Past Events",
+        statTotalEvents: "Total Created Events",
+        statUpcomingEvents: "Upcoming Events",
+        statPastEvents: "Past Events",
+        statConfirmedBookings: "Confirmed Bookings",
+        statWaitlistedStudents: "Waitlisted Students",
+        statTotalCapacity: "Total Venue Capacity",
         filterAll: "All Events",
         filterUpcoming: "Upcoming",
         filterPast: "Past",
@@ -60,6 +64,10 @@ const translations = {
         venueLabel: "Venue",
         capacityLabel: "Capacity",
         seats: "seats",
+        confirmed: "Confirmed",
+        waitlisted: "Waitlisted",
+        remainingSeats: "Remaining Seats",
+        totalCapacity: "Total Capacity",
         descriptionHeading: "Description",
         viewDetails: "View Details",
         addToCalendar: "Add to Google Calendar",
@@ -69,6 +77,7 @@ const translations = {
         venueUnavailable: "Venue unavailable",
         noDescriptionAvailable: "No description available.",
         noEventsAvailable: "No events created by you yet.",
+        noEventsFound: "No events found",
         noFilteredEvents: "No events match this filter.",
         loadingEvents: "Loading events...",
         errorLoading: "Unable to load events. Please try again later.",
@@ -102,9 +111,12 @@ const translations = {
         allEventsHeading: "فعالياتي كمنسق",
         allEventsSubtitle:
             "عرض وإدارة الفعاليات التي أنشأتها السابقة والقادمة في جدول مركزي واحد.",
-        statTotalEvents: "إجمالي فعالياتي",
-        statUpcomingEvents: "فعالياتي القادمة",
-        statPastEvents: "فعالياتي السابقة",
+        statTotalEvents: "إجمالي الفعاليات المنشأة",
+        statUpcomingEvents: "الفعاليات القادمة",
+        statPastEvents: "الفعاليات السابقة",
+        statConfirmedBookings: "الحجوزات المؤكدة",
+        statWaitlistedStudents: "طلاب قائمة الانتظار",
+        statTotalCapacity: "إجمالي سعة القاعات",
         filterAll: "جميع الفعاليات",
         filterUpcoming: "القادمة",
         filterPast: "السابقة",
@@ -118,6 +130,10 @@ const translations = {
         venueLabel: "القاعة",
         capacityLabel: "السعة",
         seats: "مقعد",
+        confirmed: "المؤكدة",
+        waitlisted: "قائمة الانتظار",
+        remainingSeats: "المقاعد المتبقية",
+        totalCapacity: "السعة الإجمالية",
         descriptionHeading: "الوصف",
         viewDetails: "عرض التفاصيل",
         addToCalendar: "إضافة إلى تقويم Google",
@@ -127,6 +143,7 @@ const translations = {
         venueUnavailable: "المكان غير متوفر",
         noDescriptionAvailable: "لا يوجد وصف متاح.",
         noEventsAvailable: "لا توجد فعاليات متاحة.",
+        noEventsFound: "لم يتم العثور على فعاليات",
         noFilteredEvents: "لا توجد فعاليات تطابق هذا الفلتر.",
         loadingEvents: "جارٍ تحميل الفعاليات...",
         errorLoading: "تعذر تحميل الفعاليات. يرجى المحاولة لاحقاً.",
@@ -298,10 +315,47 @@ function getDescriptionDisplay(description) {
    RENDERING EVENTS & STATS
 =================================== */
 
+async function loadBookings() {
+    eventBookingsMap.clear();
+    const eventIds = allEvents.map(e => e.event_id).filter(Boolean);
+    if (!client || eventIds.length === 0) return;
+
+    try {
+        const { data, error } = await client
+            .from("bookings")
+            .select("booking_id, event_id, status")
+            .in("event_id", eventIds);
+
+        if (error) {
+            console.warn("Could not load bookings for coordinator events:", error);
+            return;
+        }
+
+        (data || []).forEach(b => {
+            const evId = Number(b.event_id);
+            if (!eventBookingsMap.has(evId)) {
+                eventBookingsMap.set(evId, { confirmed: 0, waitlisted: 0 });
+            }
+            const record = eventBookingsMap.get(evId);
+            if (b.status === "Confirmed") {
+                record.confirmed++;
+            } else if (b.status === "Waitlisted") {
+                record.waitlisted++;
+            }
+        });
+    } catch (err) {
+        console.warn("Could not load bookings for coordinator events:", err);
+    }
+}
+
 function updateStatsAndCounts() {
     const total = allEvents.length;
     let upcomingCount = 0;
     let pastCount = 0;
+
+    let totalConfirmed = 0;
+    let totalWaitlisted = 0;
+    let totalCapacity = 0;
 
     allEvents.forEach(event => {
         if (isPastEvent(event)) {
@@ -309,13 +363,25 @@ function updateStatsAndCounts() {
         } else {
             upcomingCount++;
         }
+
+        const evId = Number(event.event_id);
+        const bookingStats = eventBookingsMap.get(evId) || { confirmed: 0, waitlisted: 0 };
+        totalConfirmed += bookingStats.confirmed;
+        totalWaitlisted += bookingStats.waitlisted;
+        totalCapacity += Number(event.capacity) || 0;
     });
 
     const statTotal = $("stat-total");
+    const statConfirmed = $("stat-confirmed");
+    const statWaitlisted = $("stat-waitlisted");
+    const statCapacity = $("stat-capacity");
     const statUpcoming = $("stat-upcoming");
     const statPast = $("stat-past");
 
     if (statTotal) statTotal.textContent = total;
+    if (statConfirmed) statConfirmed.textContent = totalConfirmed;
+    if (statWaitlisted) statWaitlisted.textContent = totalWaitlisted;
+    if (statCapacity) statCapacity.textContent = totalCapacity;
     if (statUpcoming) statUpcoming.textContent = upcomingCount;
     if (statPast) statPast.textContent = pastCount;
 
@@ -364,7 +430,10 @@ function renderEvents() {
     if (allEvents.length === 0) {
         grid.innerHTML = `
             <div class="empty-state" id="empty-state-msg">
-                ${escapeHTML(t("noEventsAvailable"))}
+                <p class="empty-state-message">${escapeHTML(t("noEventsFound"))}</p>
+                <a href="create-event.html" class="btn btn-gold create-event-cta" id="create-event-cta" data-i18n="createEvent">
+                    ${escapeHTML(t("createEvent"))}
+                </a>
             </div>
         `;
         return;
@@ -375,7 +444,7 @@ function renderEvents() {
     if (filtered.length === 0) {
         grid.innerHTML = `
             <div class="empty-state" id="empty-state-filtered">
-                ${escapeHTML(t("noFilteredEvents"))}
+                <p class="empty-state-message">${escapeHTML(t("noFilteredEvents"))}</p>
             </div>
         `;
         return;
@@ -473,6 +542,13 @@ function renderEvents() {
         const statusLabel = isPast ? t("past") : t("upcoming");
         const cardPastClass = isPast ? "card-past" : "";
 
+        const evId = Number(event.event_id);
+        const bookingStats = eventBookingsMap.get(evId) || { confirmed: 0, waitlisted: 0 };
+        const confirmedCount = bookingStats.confirmed;
+        const waitlistedCount = bookingStats.waitlisted;
+        const totalCap = Number(event.capacity) || 0;
+        const remainingSeats = Math.max(0, totalCap - confirmedCount);
+
         return `
             <article class="coordinator-card ${cardPastClass}" data-event-id="${escapeHTML(event.event_id)}">
                 <div class="card-top-row">
@@ -502,6 +578,25 @@ function renderEvents() {
                 <p class="card-description ${descInfo.isMissing ? "missing-desc" : ""}">
                     ${escapeHTML(descInfo.text)}
                 </p>
+
+                <div class="card-metrics-grid" aria-label="Event booking and capacity metrics">
+                    <div class="metric-badge metric-confirmed">
+                        <span class="metric-label">${escapeHTML(t("confirmed"))}</span>
+                        <span class="metric-value" data-metric="confirmed">${escapeHTML(confirmedCount)}</span>
+                    </div>
+                    <div class="metric-badge metric-waitlisted">
+                        <span class="metric-label">${escapeHTML(t("waitlisted"))}</span>
+                        <span class="metric-value" data-metric="waitlisted">${escapeHTML(waitlistedCount)}</span>
+                    </div>
+                    <div class="metric-badge metric-remaining">
+                        <span class="metric-label">${escapeHTML(t("remainingSeats"))}</span>
+                        <span class="metric-value" data-metric="remaining">${escapeHTML(remainingSeats)}</span>
+                    </div>
+                    <div class="metric-badge metric-capacity">
+                        <span class="metric-label">${escapeHTML(t("totalCapacity"))}</span>
+                        <span class="metric-value" data-metric="capacity">${escapeHTML(totalCap)}</span>
+                    </div>
+                </div>
 
                 <div class="card-footer">
                     <span class="capacity-indicator">
@@ -1066,6 +1161,8 @@ async function loadAllEvents() {
             );
         });
 
+        await loadBookings();
+
         renderEvents();
     } catch (error) {
         console.error("Failed to load events:", error);
@@ -1162,6 +1259,37 @@ async function initialize() {
     if (content) content.hidden = false;
 
     await loadAllEvents();
+
+    if (client && typeof client.channel === "function") {
+        try {
+            client.channel("public-coordinator-dashboard-sync")
+                .on(
+                    "postgres_changes",
+                    { event: "*", schema: "public", table: "bookings" },
+                    async () => {
+                        await loadBookings();
+                        renderEvents();
+                    }
+                )
+                .on(
+                    "postgres_changes",
+                    { event: "*", schema: "public", table: "events" },
+                    async () => {
+                        await loadAllEvents();
+                    }
+                )
+                .subscribe();
+        } catch (realtimeErr) {
+            console.warn("Realtime coordinator subscription unavailable:", realtimeErr);
+        }
+    }
+
+    window.addEventListener("focus", async () => {
+        if (isCoordinator) {
+            await loadBookings();
+            renderEvents();
+        }
+    });
 }
 
 initialize();
