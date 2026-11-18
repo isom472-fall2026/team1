@@ -28,6 +28,7 @@ let toastTimeout = null;
 let lastFocusedElement = null;
 let selectedEvent = null;
 let userBookingsMap = new Map();
+let reservedCountsMap = new Map(); // event_id → confirmed seat count
 let openedFromSigninRedirect = false;
 
 /* ===================================
@@ -127,6 +128,7 @@ const translations = {
         statusConfirmed: "Confirmed",
         statusWaitlisted: "Waitlisted",
         guestReservePrompt: "Sign in or create an account to reserve your seat.",
+        eventNotAvailable: "Event not available",
     },
 
     ar: {
@@ -220,6 +222,7 @@ const translations = {
         statusConfirmed: "مؤكد",
         statusWaitlisted: "قائمة الانتظار",
         guestReservePrompt: "سجل الدخول أو أنشئ حساباً لحجز مقعدك.",
+        eventNotAvailable: "الفعالية غير متاحة",
     }
 };
 
@@ -670,7 +673,14 @@ function renderEvents() {
 
                     <p>
                         <strong>${escapeHTML(t("capacityLabel"))}:</strong>
-                        ${escapeHTML(event.capacity ?? "—")}
+                        ${escapeHTML((() => {
+                            const total = event.capacity;
+                            const reserved = reservedCountsMap.get(Number(event.event_id)) || 0;
+                            if (total != null && total !== "") {
+                                return `${reserved}/${total}`;
+                            }
+                            return "—";
+                        })())}
                     </p>
 
                 </div>
@@ -744,7 +754,14 @@ function openEventModal(event) {
 
         <span>
             <strong>${escapeHTML(t("capacityLabel"))}:</strong>
-            ${escapeHTML(event.capacity ?? "—")}
+            ${escapeHTML((() => {
+                const total = event.capacity;
+                const reserved = reservedCountsMap.get(Number(event.event_id)) || 0;
+                if (total != null && total !== "") {
+                    return `${reserved}/${total}`;
+                }
+                return "—";
+            })())}
         </span>
     `;
 
@@ -788,6 +805,29 @@ function openEventModal(event) {
 /* ===================================
    RESERVATIONS
 =================================== */
+
+async function fetchReservedCounts() {
+    if (!db) return;
+    try {
+        const { data, error } = await db
+            .from("bookings")
+            .select("event_id")
+            .eq("status", "Confirmed");
+
+        if (error) {
+            console.warn("Could not load reserved counts:", error);
+            return;
+        }
+
+        reservedCountsMap.clear();
+        (data || []).forEach((b) => {
+            const id = Number(b.event_id);
+            reservedCountsMap.set(id, (reservedCountsMap.get(id) || 0) + 1);
+        });
+    } catch (err) {
+        console.warn("Error fetching reserved counts:", err);
+    }
+}
 
 async function fetchUserBookings() {
     if (!currentUser || !db) return;
@@ -944,29 +984,22 @@ async function handleReserveSeat(event) {
     const reserveBtn = $("modal-reserve-btn");
     const viewBookingBtn = $("modal-view-booking-btn");
 
-    // AC 3: Missing event_id validation
-    if (!event || event.event_id === undefined || event.event_id === null || String(event.event_id).trim() === "") {
-        showToast(t("eventSelectionRequired"), "error");
-        if (banner) {
-            banner.hidden = false;
-            banner.className = "modal-reservation-banner banner-error";
-            banner.textContent = t("eventSelectionRequired");
-        }
-        if (reserveBtn) {
-            reserveBtn.disabled = false;
-            reserveBtn.textContent = t("reserveSeat");
-        }
-        return;
-    }
+    // AC: If event.capacity or event.event_id have missing info or wrong values
+    const parsedEventId = Number(event?.event_id);
+    const parsedCapacity = Number(event?.capacity);
+    const isInvalidEventId = !event || event.event_id === undefined || event.event_id === null ||
+        String(event.event_id).trim() === "" || isNaN(parsedEventId) ||
+        !Number.isInteger(parsedEventId) || parsedEventId <= 0;
+    const isInvalidCapacity = !event || event.capacity === undefined || event.capacity === null ||
+        String(event.capacity).trim() === "" || isNaN(parsedCapacity) ||
+        !Number.isInteger(parsedCapacity) || parsedCapacity <= 0;
 
-    // AC 3: Invalid event_id format validation
-    const parsedEventId = Number(event.event_id);
-    if (isNaN(parsedEventId) || !Number.isInteger(parsedEventId) || parsedEventId <= 0) {
-        showToast(t("selectedEventDoesNotExist"), "error");
+    if (isInvalidEventId || isInvalidCapacity) {
+        showToast(t("eventNotAvailable"), "error");
         if (banner) {
             banner.hidden = false;
             banner.className = "modal-reservation-banner banner-error";
-            banner.textContent = t("selectedEventDoesNotExist");
+            banner.textContent = t("eventNotAvailable");
         }
         if (reserveBtn) {
             reserveBtn.disabled = false;
@@ -1024,6 +1057,9 @@ async function handleReserveSeat(event) {
 
         userBookingsMap.set(Number(data.event_id), data);
 
+        // Refresh counts from server so the display is always accurate
+        await fetchReservedCounts();
+
         if (data.status === "Confirmed") {
             showToast(t("reserveSuccessConfirmed"), "success");
             updateModalReservationState(event);
@@ -1063,11 +1099,11 @@ async function handleReserveSeat(event) {
             updateModalReservationState(event);
             renderEvents();
         } else if (code === "23503" || msg.includes("Event does not exist") || msg.includes("foreign key")) {
-            showToast(t("selectedEventDoesNotExist"), "error");
+            showToast(t("eventNotAvailable"), "error");
             if (banner) {
                 banner.hidden = false;
                 banner.className = "modal-reservation-banner banner-error";
-                banner.textContent = t("selectedEventDoesNotExist");
+                banner.textContent = t("eventNotAvailable");
             }
         } else if (msg.includes("attendee") || msg.includes("is_attendee")) {
             showToast(t("attendeeRequired"), "error");
@@ -1175,6 +1211,8 @@ async function loadEvents() {
 
     updateUpcomingEventsCount();
     renderChips();
+    // Fetch reserved seat counts to show X/Y on capacity, then re-render
+    await fetchReservedCounts();
     renderEvents();
 }
 /* ===================================
@@ -1237,6 +1275,7 @@ async function applyUserSession(user) {
         if (coordEventsLink) coordEventsLink.hidden = true;
         if (venuesLink) venuesLink.hidden = true;
         renderUserWelcome();
+        await fetchReservedCounts();
         renderEvents();
         if (selectedEvent && $("event-modal") && !$("event-modal").hidden) {
             updateModalReservationState(selectedEvent);
@@ -1432,6 +1471,36 @@ async function initialize() {
         loadEvents(),
         initializeAuth()
     ]);
+
+    // Realtime capacity sync: whenever any booking is created, updated (e.g. cancelled), or deleted
+    if (db && typeof db.channel === "function") {
+        try {
+            db.channel("public-bookings-capacity-sync-home")
+                .on(
+                    "postgres_changes",
+                    { event: "*", schema: "public", table: "bookings" },
+                    async () => {
+                        await fetchReservedCounts();
+                        renderEvents();
+                        if (selectedEvent && $("event-modal") && !$("event-modal").hidden) {
+                            openEventModal(selectedEvent);
+                        }
+                    }
+                )
+                .subscribe();
+        } catch (realtimeErr) {
+            console.warn("Realtime capacity subscription unavailable:", realtimeErr);
+        }
+    }
+
+    // Refresh counts when returning from another tab (e.g. after cancellation in My Bookings)
+    window.addEventListener("focus", async () => {
+        await fetchReservedCounts();
+        renderEvents();
+        if (selectedEvent && $("event-modal") && !$("event-modal").hidden) {
+            openEventModal(selectedEvent);
+        }
+    });
 
     // Check for post-login redirection or return to event
     const urlParams = new URLSearchParams(window.location.search);

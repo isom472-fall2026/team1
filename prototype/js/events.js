@@ -27,6 +27,7 @@ let activeStartDate = "";
 let activeEndDate = "";
 let loadState = "loading";
 let authRequestVersion = 0;
+let reservedCountsMap = new Map(); // event_id → confirmed seat count
 
 let currentLanguage = "en";
 /* =========================================================
@@ -119,7 +120,8 @@ const translations = {
         clearDate: "Clear",
         startDateRequired: "Start date is required.",
         invalidDateRange: "End date cannot be before start date.",
-        noEventsInDateRange: "No events scheduled during the selected dates."
+        noEventsInDateRange: "No events scheduled during the selected dates.",
+        eventNotAvailable: "Event not available"
 
 
     },
@@ -211,6 +213,7 @@ const translations = {
         startDateRequired: "تاريخ البداية مطلوب.",
         invalidDateRange: "لا يمكن أن يكون تاريخ النهاية قبل تاريخ البداية.",
         noEventsInDateRange: "لا توجد فعاليات مجدولة خلال التواريخ المحددة.",
+        eventNotAvailable: "الفعالية غير متاحة",
 
 
     }
@@ -445,6 +448,29 @@ function showToast(message, type = "info") {
     }, 4500);
 }
 
+async function fetchReservedCounts() {
+    if (!db) return;
+    try {
+        const { data, error } = await db
+            .from("bookings")
+            .select("event_id")
+            .eq("status", "Confirmed");
+
+        if (error) {
+            console.warn("Could not load reserved counts:", error);
+            return;
+        }
+
+        reservedCountsMap.clear();
+        (data || []).forEach((b) => {
+            const id = Number(b.event_id);
+            reservedCountsMap.set(id, (reservedCountsMap.get(id) || 0) + 1);
+        });
+    } catch (err) {
+        console.warn("Error fetching reserved counts:", err);
+    }
+}
+
 async function fetchUserBookings() {
     if (!currentUser || !db) {
         userBookingsMap.clear();
@@ -593,29 +619,22 @@ async function handleReserveSeat(event) {
     const reserveBtn = $("modal-reserve-btn");
     const viewBookingBtn = $("modal-view-booking-btn");
 
-    // AC 3: Missing event_id validation
-    if (!event || event.event_id === undefined || event.event_id === null || String(event.event_id).trim() === "") {
-        showToast(t("eventSelectionRequired"), "error");
-        if (banner) {
-            banner.hidden = false;
-            banner.className = "modal-reservation-banner banner-error";
-            banner.textContent = t("eventSelectionRequired");
-        }
-        if (reserveBtn) {
-            reserveBtn.disabled = false;
-            reserveBtn.textContent = t("reserveSeat");
-        }
-        return;
-    }
+    // AC: If event.capacity or event.event_id have missing info or wrong values
+    const parsedEventId = Number(event?.event_id);
+    const parsedCapacity = Number(event?.capacity);
+    const isInvalidEventId = !event || event.event_id === undefined || event.event_id === null ||
+        String(event.event_id).trim() === "" || isNaN(parsedEventId) ||
+        !Number.isInteger(parsedEventId) || parsedEventId <= 0;
+    const isInvalidCapacity = !event || event.capacity === undefined || event.capacity === null ||
+        String(event.capacity).trim() === "" || isNaN(parsedCapacity) ||
+        !Number.isInteger(parsedCapacity) || parsedCapacity <= 0;
 
-    // AC 3: Invalid event_id format validation
-    const parsedEventId = Number(event.event_id);
-    if (isNaN(parsedEventId) || !Number.isInteger(parsedEventId) || parsedEventId <= 0) {
-        showToast(t("selectedEventDoesNotExist"), "error");
+    if (isInvalidEventId || isInvalidCapacity) {
+        showToast(t("eventNotAvailable"), "error");
         if (banner) {
             banner.hidden = false;
             banner.className = "modal-reservation-banner banner-error";
-            banner.textContent = t("selectedEventDoesNotExist");
+            banner.textContent = t("eventNotAvailable");
         }
         if (reserveBtn) {
             reserveBtn.disabled = false;
@@ -673,6 +692,9 @@ async function handleReserveSeat(event) {
 
         userBookingsMap.set(Number(data.event_id), data);
 
+        // Refresh counts from server so the display is always accurate
+        await fetchReservedCounts();
+
         if (data.status === "Confirmed") {
             showToast(t("reserveSuccessConfirmed"), "success");
             updateModalReservationState(event);
@@ -712,11 +734,11 @@ async function handleReserveSeat(event) {
             updateModalReservationState(event);
             renderEvents();
         } else if (code === "23503" || msg.includes("Event does not exist") || msg.includes("foreign key")) {
-            showToast(t("selectedEventDoesNotExist"), "error");
+            showToast(t("eventNotAvailable"), "error");
             if (banner) {
                 banner.hidden = false;
                 banner.className = "modal-reservation-banner banner-error";
-                banner.textContent = t("selectedEventDoesNotExist");
+                banner.textContent = t("eventNotAvailable");
             }
         } else if (msg.includes("attendee") || msg.includes("is_attendee")) {
             showToast(t("attendeeRequired"), "error");
@@ -804,6 +826,9 @@ async function loadEvents() {
         if ($("stat-events")) {
             $("stat-events").textContent = allEvents.length;
         }
+
+        // Fetch reserved seat counts to show X/Y on capacity
+        await fetchReservedCounts();
 
         renderEvents();
 
@@ -1073,7 +1098,14 @@ function renderEvents() {
                     ${eventInfo(
             "👥",
             t("capacityLabel"),
-            event.capacity ?? "—"
+            (() => {
+                const total = event.capacity;
+                const reserved = reservedCountsMap.get(Number(event.event_id)) || 0;
+                if (total != null && total !== "") {
+                    return `${reserved}/${total}`;
+                }
+                return "—";
+            })()
         )}
 
                 </div>
@@ -1166,7 +1198,14 @@ function fillEventModal(event) {
 
         <div class="modal-event-info">
             <strong>${escapeHTML(t("capacityLabel"))}</strong>
-            <span>${escapeHTML(event.capacity ?? "—")}</span>
+            <span>${escapeHTML((() => {
+                const total = event.capacity;
+                const reserved = reservedCountsMap.get(Number(event.event_id)) || 0;
+                if (total != null && total !== "") {
+                    return `${reserved}/${total}`;
+                }
+                return "—";
+            })())}</span>
         </div>
     `;
 
@@ -1386,9 +1425,40 @@ async function initialize() {
         } else {
             userBookingsMap.clear();
         }
+        await fetchReservedCounts();
         renderEvents();
         if (selectedEvent && $("event-modal") && !$("event-modal").hidden) {
             updateModalReservationState(selectedEvent);
+        }
+    });
+
+    // Realtime capacity sync: whenever any booking is created, updated (e.g. cancelled), or deleted
+    if (db && typeof db.channel === "function") {
+        try {
+            db.channel("public-bookings-capacity-sync-events")
+                .on(
+                    "postgres_changes",
+                    { event: "*", schema: "public", table: "bookings" },
+                    async () => {
+                        await fetchReservedCounts();
+                        renderEvents();
+                        if (selectedEvent && $("event-modal") && !$("event-modal").hidden) {
+                            fillEventModal(selectedEvent);
+                        }
+                    }
+                )
+                .subscribe();
+        } catch (realtimeErr) {
+            console.warn("Realtime capacity subscription unavailable:", realtimeErr);
+        }
+    }
+
+    // Refresh counts when returning from another tab (e.g. after cancellation in My Bookings)
+    window.addEventListener("focus", async () => {
+        await fetchReservedCounts();
+        renderEvents();
+        if (selectedEvent && $("event-modal") && !$("event-modal").hidden) {
+            fillEventModal(selectedEvent);
         }
     });
 
