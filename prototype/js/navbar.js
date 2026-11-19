@@ -111,7 +111,7 @@
                 if (document.documentElement.dataset.theme === initialTheme) {
                     const newTheme = initialTheme === "dark" ? "light" : "dark";
                     document.documentElement.dataset.theme = newTheme;
-                    try { localStorage.setItem("auk-theme", newTheme); } catch (e) {}
+                    try { localStorage.setItem("auk-theme", newTheme); } catch (e) { }
                     updateNavbarTheme(newTheme);
                 }
             }, 0);
@@ -124,7 +124,7 @@
                     const newLang = initialLang === "ar" ? "en" : "ar";
                     document.documentElement.lang = newLang;
                     document.documentElement.dir = newLang === "ar" ? "rtl" : "ltr";
-                    try { localStorage.setItem("auk-language", newLang); } catch (e) {}
+                    try { localStorage.setItem("auk-language", newLang); } catch (e) { }
                     updateNavbarLanguage(newLang);
                 }
             }, 0);

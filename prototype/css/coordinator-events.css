@@ -63,6 +63,30 @@ html[data-theme="dark"] .stat-number.stat-upcoming {
     color: #6ee7b7;
 }
 
+.stat-number.stat-confirmed {
+    color: #16794a;
+}
+
+html[data-theme="dark"] .stat-number.stat-confirmed {
+    color: #6ee7b7;
+}
+
+.stat-number.stat-waitlisted {
+    color: #b45309;
+}
+
+html[data-theme="dark"] .stat-number.stat-waitlisted {
+    color: #fcd34d;
+}
+
+.stat-number.stat-capacity {
+    color: var(--navy);
+}
+
+html[data-theme="dark"] .stat-number.stat-capacity {
+    color: #f3c9d1;
+}
+
 .stat-number.stat-past {
     color: var(--muted);
 }
@@ -472,6 +496,84 @@ html[data-theme="dark"] .edit-error-msg {
     color: var(--muted);
 }
 
+/* Event Card Metrics Breakdown (AC 3) */
+.card-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 8px;
+    margin: 6px 0;
+    padding: 10px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+}
+
+.metric-badge {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.metric-label {
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: var(--muted);
+}
+
+.metric-value {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--text);
+}
+
+.metric-confirmed .metric-value {
+    color: #16794a;
+}
+
+html[data-theme="dark"] .metric-confirmed .metric-value {
+    color: #6ee7b7;
+}
+
+.metric-waitlisted .metric-value {
+    color: #b45309;
+}
+
+html[data-theme="dark"] .metric-waitlisted .metric-value {
+    color: #fcd34d;
+}
+
+.metric-remaining .metric-value {
+    color: #0369a1;
+}
+
+html[data-theme="dark"] .metric-remaining .metric-value {
+    color: #7dd3fc;
+}
+
+.metric-capacity .metric-value {
+    color: var(--navy);
+}
+
+html[data-theme="dark"] .metric-capacity .metric-value {
+    color: #f3c9d1;
+}
+
+/* Empty State Message and Call to Action (AC 1) */
+.empty-state-message {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin: 0 0 8px 0;
+}
+
+.empty-state .create-event-cta {
+    display: inline-block;
+    margin-top: 10px;
+    text-decoration: none;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .coordinator-controls {
@@ -511,4 +613,3 @@ html[data-theme="dark"] .edit-error-msg {
         grid-template-columns: 1fr;
     }
 }
-
