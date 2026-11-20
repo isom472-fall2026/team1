@@ -11,6 +11,36 @@
     let organizerNamesById = new Map();
     let selectedEvent = null;
 
+    const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+    function isValidUUID(str) {
+        return typeof str === "string" && UUID_REGEX.test(str.trim());
+    }
+
+    const translations = {
+        en: {
+            remove: "Remove",
+            confirmRemove: "Are you sure you want to remove this organizer from the event?",
+            removeSuccess: "Organizer assignment removed.",
+            invalidOrganizer: "Invalid organizer assignment.",
+            currentOrganizers: "Current organizers:",
+            noOrganizerAssigned: "No organizer assigned"
+        },
+        ar: {
+            remove: "إزالة",
+            confirmRemove: "هل أنت متأكد من رغبتك في إزالة هذا المنظم من الفعالية؟",
+            removeSuccess: "تمت إزالة تعيين المنظم.",
+            invalidOrganizer: "تعيين المنظم غير صالح.",
+            currentOrganizers: "المنظمون الحاليون:",
+            noOrganizerAssigned: "لم يتم تعيين منظم"
+        }
+    };
+
+    function t(key) {
+        const lang = document.documentElement.lang === "ar" ? "ar" : "en";
+        return translations[lang]?.[key] || translations.en[key] || key;
+    }
+
     function setMessage(id, text, type) {
         const message = $(id);
         if (!message) return;
@@ -65,10 +95,8 @@
         }
 
         grid.innerHTML = activeEvents.map(event => {
-            const assignedNames = assignedOrganizersByEvent.get(String(event.event_id)) || [];
-            const organizerLabel = assignedNames.length
-                ? assignedNames.join(", ")
-                : "No organizer assigned";
+            const assignedList = assignedOrganizersByEvent.get(String(event.event_id)) || [];
+            const hasAssigned = assignedList.length > 0;
 
             return `
             <article class="coordinator-card" data-event-id="${escapeHTML(event.event_id)}">
@@ -88,14 +116,31 @@
                         <span class="meta-icon" aria-hidden="true">🕒</span>
                         <span>${escapeHTML(formatTimeRange(event))}</span>
                     </div>
-                    <div class="card-meta-item ${assignedNames.length ? "" : "assigned-organizer-empty"}">
+                    <div class="card-meta-item card-meta-organizers ${hasAssigned ? "" : "assigned-organizer-empty"}">
                         <span class="meta-icon" aria-hidden="true">👤</span>
-                        <span>Door organizer: ${escapeHTML(organizerLabel)}</span>
+                        <div class="assigned-organizers-container">
+                            <span>Door organizer: ${hasAssigned ? "" : "No organizer assigned"}</span>
+                            ${hasAssigned ? `
+                                <ul class="assigned-organizers-list">
+                                    ${assignedList.map(org => `
+                                        <li class="assigned-organizer-item">
+                                            <span class="organizer-name">${escapeHTML(org.name)}</span>
+                                            <button type="button" class="btn btn-remove-organizer"
+                                                data-event-id="${escapeHTML(event.event_id)}"
+                                                data-organizer-id="${escapeHTML(org.organizer_id)}"
+                                                aria-label="Remove ${escapeHTML(org.name)}">
+                                                ${escapeHTML(t("remove"))}
+                                            </button>
+                                        </li>
+                                    `).join("")}
+                                </ul>
+                            ` : ""}
+                        </div>
                     </div>
                 </div>
 
                 <div class="card-footer">
-                    <span class="capacity-indicator">${assignedNames.length ? "Organizer assigned" : "Needs organizer"}</span>
+                    <span class="capacity-indicator">${hasAssigned ? "Organizer assigned" : "Needs organizer"}</span>
                     <div class="card-buttons">
                         <button type="button" class="btn btn-gold assign-event-btn"
                             data-event-id="${escapeHTML(event.event_id)}">
@@ -109,6 +154,52 @@
 
         grid.querySelectorAll(".assign-event-btn").forEach(button => {
             button.addEventListener("click", () => openAssignmentModal(button.dataset.eventId));
+        });
+
+        grid.querySelectorAll(".btn-remove-organizer").forEach(button => {
+            button.addEventListener("click", async event => {
+                event.stopPropagation();
+                const eventId = button.dataset.eventId;
+                const organizerId = button.dataset.organizerId;
+                const confirmed = window.confirm(t("confirmRemove"));
+                if (!confirmed) return;
+                await removeOrganizerAssignment(eventId, organizerId, button);
+            });
+        });
+    }
+
+    function renderModalAssignedList(eventId) {
+        const section = $("modal-assigned-organizers-section");
+        const listEl = $("modal-assigned-organizers-list");
+        if (!section || !listEl) return;
+
+        const assignedList = assignedOrganizersByEvent.get(String(eventId)) || [];
+        if (!assignedList.length) {
+            section.hidden = true;
+            listEl.innerHTML = "";
+            return;
+        }
+
+        section.hidden = false;
+        listEl.innerHTML = assignedList.map(org => `
+            <li class="assigned-organizer-item">
+                <span class="organizer-name">${escapeHTML(org.name)}</span>
+                <button type="button" class="btn-remove-organizer modal-remove-btn"
+                    data-event-id="${escapeHTML(eventId)}"
+                    data-organizer-id="${escapeHTML(org.organizer_id)}"
+                    aria-label="Remove ${escapeHTML(org.name)}">
+                    ${escapeHTML(t("remove"))}
+                </button>
+            </li>
+        `).join("");
+
+        listEl.querySelectorAll(".modal-remove-btn").forEach(button => {
+            button.addEventListener("click", async event => {
+                event.stopPropagation();
+                const confirmed = window.confirm(t("confirmRemove"));
+                if (!confirmed) return;
+                await removeOrganizerAssignment(button.dataset.eventId, button.dataset.organizerId, button);
+            });
         });
     }
 
@@ -156,9 +247,12 @@
         (assignmentsResult.data || []).forEach(assignment => {
             const eventKey = String(assignment.event_id);
             const organizerName = organizerNamesById.get(assignment.organizer_id) || assignment.organizer_id;
-            const names = assignedOrganizersByEvent.get(eventKey) || [];
-            names.push(organizerName);
-            assignedOrganizersByEvent.set(eventKey, names);
+            const list = assignedOrganizersByEvent.get(eventKey) || [];
+            list.push({
+                organizer_id: assignment.organizer_id,
+                name: organizerName
+            });
+            assignedOrganizersByEvent.set(eventKey, list);
         });
         renderEvents();
         $("assign-events-section").hidden = false;
@@ -212,10 +306,14 @@
             setMessage("assignment-message", "Organizer successfully assigned to event.", "success");
             $("organizer-select").value = "";
             const eventKey = String(selectedEvent.event_id);
-            const names = assignedOrganizersByEvent.get(eventKey) || [];
-            names.push(organizerNamesById.get(organizerId) || organizerId);
-            assignedOrganizersByEvent.set(eventKey, names);
+            const list = assignedOrganizersByEvent.get(eventKey) || [];
+            list.push({
+                organizer_id: organizerId,
+                name: organizerNamesById.get(organizerId) || organizerId
+            });
+            assignedOrganizersByEvent.set(eventKey, list);
             renderEvents();
+            renderModalAssignedList(selectedEvent.event_id);
         } catch (error) {
             console.error("Organizer assignment error:", error);
             setMessage("assignment-message", mapAssignmentError(error), "error");
@@ -235,6 +333,7 @@
         $("assign-modal-event").textContent = `${selectedEvent.title} — ${formatDate(selectedEvent.event_date)}`;
         $("organizer-select").value = "";
         setMessage("assignment-message", "");
+        renderModalAssignedList(selectedEvent.event_id);
         $("assign-modal").hidden = false;
         $("organizer-select").focus();
     }
@@ -243,7 +342,101 @@
         $("assign-modal").hidden = true;
         selectedEvent = null;
         setMessage("assignment-message", "");
+        const section = $("modal-assigned-organizers-section");
+        if (section) section.hidden = true;
+        const listEl = $("modal-assigned-organizers-list");
+        if (listEl) listEl.innerHTML = "";
     }
+
+    async function removeOrganizerAssignment(eventIdOrPayload, organizerIdArg, buttonElement) {
+        let cleanEventId = null;
+        let cleanOrganizerId = null;
+
+        if (eventIdOrPayload && typeof eventIdOrPayload === "object") {
+            cleanEventId = eventIdOrPayload.event_id;
+            cleanOrganizerId = eventIdOrPayload.organizer_id;
+            if (!buttonElement && eventIdOrPayload.buttonElement) {
+                buttonElement = eventIdOrPayload.buttonElement;
+            }
+        } else {
+            cleanEventId = eventIdOrPayload;
+            cleanOrganizerId = organizerIdArg;
+        }
+
+        if (!cleanOrganizerId && arguments.length === 1 && typeof eventIdOrPayload === "string" && selectedEvent) {
+            cleanOrganizerId = eventIdOrPayload;
+            cleanEventId = selectedEvent.event_id;
+        }
+
+        if (
+            cleanOrganizerId === null ||
+            cleanOrganizerId === undefined ||
+            cleanOrganizerId === "" ||
+            !isValidUUID(String(cleanOrganizerId))
+        ) {
+            setMessage("access-message", "Invalid organizer assignment.", "error");
+            setMessage("assignment-message", "Invalid organizer assignment.", "error");
+            return { success: false, error: "Invalid organizer assignment." };
+        }
+
+        if (cleanEventId === null || cleanEventId === undefined || cleanEventId === "" || isNaN(Number(cleanEventId))) {
+            setMessage("access-message", "Invalid organizer assignment.", "error");
+            setMessage("assignment-message", "Invalid organizer assignment.", "error");
+            return { success: false, error: "Invalid organizer assignment." };
+        }
+
+        if (buttonElement) {
+            buttonElement.disabled = true;
+        }
+
+        try {
+            const client = db || getClient();
+            if (!client) {
+                setMessage("access-message", "Unable to connect to Supabase.", "error");
+                setMessage("assignment-message", "Unable to connect to Supabase.", "error");
+                return { success: false, error: "Unable to connect to Supabase." };
+            }
+
+            const { error: deleteError } = await client
+                .from("organizer_assignments")
+                .delete()
+                .eq("event_id", Number(cleanEventId))
+                .eq("organizer_id", String(cleanOrganizerId).trim());
+
+            if (deleteError) {
+                console.error("Database delete error:", deleteError);
+                setMessage("access-message", "Invalid organizer assignment.", "error");
+                setMessage("assignment-message", "Invalid organizer assignment.", "error");
+                return { success: false, error: deleteError };
+            }
+
+            const eventKey = String(cleanEventId);
+            const existing = assignedOrganizersByEvent.get(eventKey) || [];
+            const updated = existing.filter(org => String(org.organizer_id) !== String(cleanOrganizerId).trim());
+            assignedOrganizersByEvent.set(eventKey, updated);
+
+            setMessage("access-message", "Organizer assignment removed.", "success");
+            setMessage("assignment-message", "Organizer assignment removed.", "success");
+
+            renderEvents();
+            if (selectedEvent && String(selectedEvent.event_id) === String(cleanEventId)) {
+                renderModalAssignedList(selectedEvent.event_id);
+            }
+
+            return { success: true };
+        } catch (err) {
+            console.error("Unexpected error removing organizer assignment:", err);
+            setMessage("access-message", "Invalid organizer assignment.", "error");
+            setMessage("assignment-message", "Invalid organizer assignment.", "error");
+            return { success: false, error: err };
+        } finally {
+            if (buttonElement) {
+                buttonElement.disabled = false;
+            }
+        }
+    }
+
+    window.removeOrganizerAssignment = removeOrganizerAssignment;
 
     async function initialize() {
         const client = getClient();
