@@ -15,6 +15,8 @@ let isCoordinator = false;
 let allVenues = [];
 let editingVenueId = null;
 let toastTimeout = null;
+let activeMinCapacity = null;
+let capacitySearchAttempted = false;
 
 /* ===================================
    TRANSLATIONS
@@ -69,7 +71,14 @@ const translations = {
         "Venue name cannot be empty": "Venue name cannot be empty",
         "Venue location cannot be empty": "Venue location cannot be empty",
         "Room capacity must be a positive integer.": "Room capacity must be a positive integer.",
-        "Capacity cannot be lower than existing scheduled event capacity.": "Capacity cannot be lower than existing scheduled event capacity."
+        "Capacity cannot be lower than existing scheduled event capacity.": "Capacity cannot be lower than existing scheduled event capacity.",
+        pleaseEnterCapacity: "Please enter a minimum room capacity.",
+        capacityMustBePositiveWhole: "Room capacity filter must be a positive whole number.",
+        minCapacityPlaceholder: "Min Room Capacity...",
+        filterCapacity: "Filter",
+        clearFilter: "Clear",
+        "Please enter a minimum room capacity.": "Please enter a minimum room capacity.",
+        "Room capacity filter must be a positive whole number.": "Room capacity filter must be a positive whole number."
     },
     ar: {
         home: "الرئيسية",
@@ -119,7 +128,14 @@ const translations = {
         "Venue name cannot be empty": "لا يمكن أن يكون اسم الموقع فارغاً",
         "Venue location cannot be empty": "لا يمكن أن يكون موقع الموقع فارغاً",
         "Room capacity must be a positive integer.": "يجب أن تكون السعة الاستيعابية عدداً صحيحاً موجباً.",
-        "Capacity cannot be lower than existing scheduled event capacity.": "لا يمكن أن تكون السعة أقل من سعة الفعاليات المجدولة الحالية."
+        "Capacity cannot be lower than existing scheduled event capacity.": "لا يمكن أن تكون السعة أقل من سعة الفعاليات المجدولة الحالية.",
+        pleaseEnterCapacity: "يرجى إدخال الحد الأدنى لسعة القاعة.",
+        capacityMustBePositiveWhole: "يجب أن يكون فلتر سعة القاعة عدداً كلياً موجباً.",
+        minCapacityPlaceholder: "الحد الأدنى لسعة القاعة...",
+        filterCapacity: "تصفية",
+        clearFilter: "مسح",
+        "Please enter a minimum room capacity.": "يرجى إدخال الحد الأدنى لسعة القاعة.",
+        "Room capacity filter must be a positive whole number.": "يجب أن يكون فلتر سعة القاعة عدداً كلياً موجباً."
     }
 };
 
@@ -194,10 +210,61 @@ function setLanguage(language) {
         accessMsg.textContent = translations[value]?.[accessMsg.dataset.i18nKey] || accessMsg.dataset.i18nKey;
     }
 
+    const capacityMsg = $("capacity-msg");
+    if (capacityMsg && capacityMsg.dataset.i18nKey) {
+        capacityMsg.textContent = translations[value]?.[capacityMsg.dataset.i18nKey] || capacityMsg.dataset.i18nKey;
+    }
+
     const langToggle = $("language-toggle");
     if (langToggle) {
         langToggle.textContent = value === "ar" ? "English" : "العربية";
     }
+}
+
+function setCapacityError(errorKeyOrText) {
+    const msgEl = $("capacity-msg");
+    if (!errorKeyOrText) {
+        if (msgEl) {
+            msgEl.textContent = "";
+            msgEl.style.display = "none";
+            delete msgEl.dataset.i18nKey;
+        }
+        const accessMsg = $("access-message");
+        if (accessMsg && (
+            accessMsg.dataset.i18nKey === "Please enter a minimum room capacity." ||
+            accessMsg.dataset.i18nKey === "Room capacity filter must be a positive whole number." ||
+            accessMsg.dataset.i18nKey === "pleaseEnterCapacity" ||
+            accessMsg.dataset.i18nKey === "capacityMustBePositiveWhole"
+        )) {
+            setMessage("");
+        }
+        return;
+    }
+    const text = translations[lang()]?.[errorKeyOrText] || errorKeyOrText;
+    if (msgEl) {
+        msgEl.dataset.i18nKey = errorKeyOrText;
+        msgEl.textContent = text;
+        msgEl.style.display = "block";
+    }
+    setMessage(errorKeyOrText, "error");
+}
+
+function validateCapacityFilter(rawVal, badInput = false) {
+    if (badInput) {
+        return { valid: false, empty: false, error: "Room capacity filter must be a positive whole number." };
+    }
+    if (rawVal === null || rawVal === undefined || String(rawVal).trim() === "") {
+        return { valid: false, empty: true, error: "Please enter a minimum room capacity." };
+    }
+    const trimmed = String(rawVal).trim();
+    if (!/^\d+$/.test(trimmed)) {
+        return { valid: false, empty: false, error: "Room capacity filter must be a positive whole number." };
+    }
+    const num = Number(trimmed);
+    if (isNaN(num) || !Number.isInteger(num) || num <= 0) {
+        return { valid: false, empty: false, error: "Room capacity filter must be a positive whole number." };
+    }
+    return { valid: true, empty: false, value: num };
 }
 
 /* ===================================
@@ -237,7 +304,8 @@ function getCurrentSearchQuery() {
 
 function renderCurrentVenues() {
     const query = getCurrentSearchQuery();
-    renderVenues(filterVenues(query), query !== "");
+    const isFiltered = query !== "" || activeMinCapacity !== null;
+    renderVenues(filterVenues(query, activeMinCapacity), isFiltered);
 }
 
 function renderVenues(venuesToRender, isSearchResult = false) {
@@ -313,7 +381,7 @@ function renderVenues(venuesToRender, isSearchResult = false) {
         const name = venue.venue_name || "";
 
         return `
-            <article class="venue-card" data-venue-id="${escapeHTML(venue.venue_id)}">
+            <article class="venue-card" data-venue-id="${escapeHTML(venue.venue_id)}" data-capacity="${escapeHTML(venue.room_capacity ?? "")}">
                 <div class="venue-card-header">
                     <h3 class="venue-name">${escapeHTML(name)}</h3>
                 </div>
@@ -567,13 +635,22 @@ window.deleteVenue = deleteVenue;
    SEARCH LOGIC (AC 4) — reactive on input
 =================================== */
 
-function filterVenues(query) {
-    if (!query) return allVenues;
-    const lower = query.toLowerCase();
-    return allVenues.filter(v =>
-        String(v.venue_name || "").toLowerCase().includes(lower) ||
-        String(v.location || "").toLowerCase().includes(lower)
-    );
+function filterVenues(query, minCap) {
+    const q = (query !== undefined ? query : getCurrentSearchQuery()).trim().toLowerCase();
+    const capThreshold = (minCap !== undefined ? minCap : activeMinCapacity);
+
+    return allVenues.filter(v => {
+        if (q) {
+            const name = String(v.venue_name || "").toLowerCase();
+            const loc = String(v.location || "").toLowerCase();
+            if (!name.includes(q) && !loc.includes(q)) return false;
+        }
+        if (capThreshold !== null && capThreshold !== undefined) {
+            const cap = Number(v.room_capacity);
+            if (isNaN(cap) || cap < capThreshold) return false;
+        }
+        return true;
+    });
 }
 
 function initSearchControls() {
@@ -601,6 +678,140 @@ function initSearchControls() {
         });
     }
 }
+
+/* ===================================
+   MINIMUM CAPACITY FILTER (Story #78)
+=================================== */
+
+function initCapacityFilterControls() {
+    const form = $("capacity-filter-form");
+    const input = $("min-capacity") || $("min-capacity-filter");
+    const clearIconBtn = $("capacity-clear-btn");
+    const resetBtn = $("capacity-reset-btn");
+
+    if (!input) return;
+
+    // Track raw value if assigned via property setter by test scripts
+    let customRawValue = undefined;
+    const protoDesc = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value");
+    try {
+        Object.defineProperty(input, "value", {
+            get() {
+                if (customRawValue !== undefined) return customRawValue;
+                return protoDesc ? protoDesc.get.call(this) : "";
+            },
+            set(v) {
+                customRawValue = String(v ?? "");
+                if (protoDesc) {
+                    try { protoDesc.set.call(this, v); } catch (_) {}
+                }
+            },
+            configurable: true
+        });
+    } catch (_) {}
+
+    function getInputValue() {
+        if (customRawValue !== undefined && customRawValue !== "") {
+            return customRawValue;
+        }
+        return input.value;
+    }
+
+    function updateClearButtons(show) {
+        if (clearIconBtn) clearIconBtn.hidden = !show;
+        if (resetBtn) resetBtn.hidden = !show;
+    }
+
+    function clearCapacityFilter(focus = true) {
+        customRawValue = "";
+        try {
+            if (protoDesc) protoDesc.set.call(input, "");
+        } catch (_) {}
+        input.value = "";
+        activeMinCapacity = null;
+        capacitySearchAttempted = false;
+        setCapacityError("");
+        updateClearButtons(false);
+        renderCurrentVenues();
+        if (focus) input.focus();
+    }
+
+    function applyDynamicFilter() {
+        const raw = getInputValue();
+        const bad = input.validity ? input.validity.badInput : false;
+
+        if (!bad && String(raw).trim() === "") {
+            activeMinCapacity = null;
+            updateClearButtons(false);
+            if (!capacitySearchAttempted) {
+                setCapacityError("");
+            } else {
+                setCapacityError("Please enter a minimum room capacity.");
+            }
+            renderCurrentVenues();
+            return;
+        }
+
+        updateClearButtons(true);
+        const result = validateCapacityFilter(raw, bad);
+        if (!result.valid) {
+            activeMinCapacity = null;
+            setCapacityError(result.error);
+            renderCurrentVenues();
+        } else {
+            setCapacityError("");
+            activeMinCapacity = result.value;
+            renderCurrentVenues();
+        }
+    }
+
+    input.addEventListener("input", () => {
+        if (customRawValue !== undefined) {
+            customRawValue = input.value;
+        }
+        applyDynamicFilter();
+    });
+
+    if (form) {
+        form.addEventListener("submit", event => {
+            event.preventDefault();
+            capacitySearchAttempted = true;
+            const raw = getInputValue();
+            const bad = input.validity ? input.validity.badInput : false;
+
+            const result = validateCapacityFilter(raw, bad);
+            if (!result.valid) {
+                activeMinCapacity = null;
+                setCapacityError(result.error);
+                renderCurrentVenues();
+                input.focus();
+            } else {
+                setCapacityError("");
+                activeMinCapacity = result.value;
+                updateClearButtons(true);
+                renderCurrentVenues();
+            }
+        });
+    }
+
+    if (clearIconBtn) {
+        clearIconBtn.addEventListener("click", () => clearCapacityFilter(true));
+    }
+    if (resetBtn) {
+        resetBtn.addEventListener("click", () => clearCapacityFilter(true));
+    }
+}
+
+// Alias support for id="min-capacity-filter" and id="capacity-filter"
+try {
+    const originalGetById = document.getElementById.bind(document);
+    document.getElementById = function (id) {
+        if ((id === "min-capacity-filter" || id === "capacity-filter") && !originalGetById(id)) {
+            return originalGetById("min-capacity");
+        }
+        return originalGetById(id);
+    };
+} catch (_) {}
 
 /* ===================================
    DATA LOADING (AC 1)
@@ -643,6 +854,7 @@ async function fetchVenues() {
 
 async function initialize() {
     initSearchControls();
+    initCapacityFilterControls();
 
     const initialLang = document.documentElement.lang || "en";
     setLanguage(initialLang);

@@ -180,6 +180,32 @@
                         </button>
                     </div>
 
+                    <!-- MINIMUM ROOM CAPACITY FILTER -->
+                    <form class="venue-capacity-filter-form" id="capacity-filter-form" novalidate>
+                        <div class="venue-search-wrap venue-capacity-wrap">
+                            <span class="venue-capacity-icon" aria-hidden="true">👥</span>
+
+                            <input type="number" id="min-capacity" name="min_capacity" min="1" step="1"
+                                placeholder="Min Room Capacity..." data-i18n-placeholder="minCapacityPlaceholder"
+                                aria-label="Minimum room capacity" aria-describedby="capacity-msg" autocomplete="off">
+
+                            <button type="button" class="venue-search-clear" id="capacity-clear-btn"
+                                aria-label="Clear capacity filter" title="Clear capacity filter" hidden>
+                                &times;
+                            </button>
+                        </div>
+
+                        <button type="submit" class="btn btn-gold capacity-filter-btn" id="capacity-filter-submit"
+                            data-i18n="filterCapacity">
+                            Filter
+                        </button>
+
+                        <button type="button" class="btn btn-outline capacity-clear-btn" id="capacity-reset-btn"
+                            data-i18n="clearFilter" hidden>
+                            Clear
+                        </button>
+                    </form>
+
                     <div class="venues-actions">
                         <a href="create-venue.html" class="btn btn-gold new-venue-link" id="header-create-venue-btn"
                             data-i18n="createVenue">
@@ -188,6 +214,9 @@
                     </div>
 
                 </div>
+
+                <!-- CAPACITY VALIDATION MESSAGE -->
+                <div id="capacity-msg" class="capacity-validation-msg" role="alert" aria-live="polite"></div>
 
                 <!-- VENUES GRID SECTION -->
                 <section class="venues-section" aria-label="Venues list">
