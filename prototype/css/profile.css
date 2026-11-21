@@ -400,3 +400,93 @@ html[data-theme="dark"] .btn-signout:hover {
         justify-content: center;
     }
 }
+
+/* ===================================
+   ATTENDANCE HISTORY SECTION
+=================================== */
+
+.attendance-records-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.attendance-record-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-radius: 10px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    gap: 16px;
+    flex-wrap: wrap;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.attendance-record-main {
+    flex: 1;
+    min-width: 220px;
+}
+
+.attendance-record-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin: 0 0 6px;
+    color: var(--text);
+}
+
+.attendance-record-meta {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-size: 0.85rem;
+    color: var(--muted);
+}
+
+.attendance-record-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.status-badge.status-present {
+    background: rgba(16, 185, 129, 0.15);
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+html[data-theme="dark"] .status-badge.status-present {
+    background: rgba(16, 185, 129, 0.2);
+    color: #34d399;
+    border-color: rgba(16, 185, 129, 0.4);
+}
+
+.status-badge.status-absent {
+    background: rgba(239, 68, 68, 0.15);
+    color: #b91c1c;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+html[data-theme="dark"] .status-badge.status-absent {
+    background: rgba(239, 68, 68, 0.2);
+    color: #f87171;
+    border-color: rgba(239, 68, 68, 0.4);
+}
+
+.record-unavailable-box {
+    padding: 18px;
+    text-align: center;
+    border: 1px dashed rgba(239, 68, 68, 0.4);
+    background: rgba(239, 68, 68, 0.05);
+    border-radius: 10px;
+    color: #b91c1c;
+    font-weight: 600;
+}
+
+html[data-theme="dark"] .record-unavailable-box {
+    background: rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.4);
+    color: #fca5a5;
+}

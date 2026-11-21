@@ -138,12 +138,26 @@
             <div class="section-heading my-bookings-header">
                 <div>
                     <h1>
-                        <span data-i18n="myBookings">My Bookings</span>
+                        <span id="page-heading-title" data-i18n="myBookings">My Bookings</span>
                         <span id="bookings-count" class="bookings-count-badge" hidden></span>
                     </h1>
-                    <p class="muted" data-i18n="myBookingsSubtitle">View and manage your registered campus events and
+                    <p class="muted" id="page-heading-subtitle" data-i18n="myBookingsSubtitle">View and manage your registered campus events and
                         workshops.</p>
                 </div>
+            </div>
+
+            <!-- NAVIGATION TABS -->
+            <div class="filter-tabs booking-tabs" role="tablist" aria-label="Bookings and attendance tabs">
+                <button type="button" class="tab-btn active" id="tab-bookings" role="tab"
+                    aria-selected="true" aria-controls="bookings-panel">
+                    <span data-i18n="myBookings">My Bookings</span>
+                    <span class="tab-count" id="tab-bookings-count" hidden>0</span>
+                </button>
+                <button type="button" class="tab-btn" id="tab-attendance" role="tab"
+                    aria-selected="false" aria-controls="attendance-panel">
+                    <span data-i18n="attendanceHistory">Attendance History</span>
+                    <span class="tab-count" id="tab-attendance-count" hidden>0</span>
+                </button>
             </div>
 
             <!-- SUCCESS MESSAGE ALERT -->
@@ -161,19 +175,39 @@
                     style="margin-top: 15px; display: inline-block;">Sign In</a>
             </div>
 
-            <!-- EMPTY STATE (NO BOOKINGS FOUND) -->
-            <div id="bookings-empty" class="empty-state"
-                style="padding: 40px 20px; text-align: center; background: var(--navbar-surface); border: 1px solid var(--navbar-border); border-radius: var(--navbar-radius);"
-                hidden>
-                <p class="muted" data-i18n="noBookings">No event bookings found.</p>
-                <a href="events.html" class="btn btn-gold" data-i18n="browseEvents"
-                    style="margin-top: 15px; display: inline-block;">Browse Events</a>
+            <!-- BOOKINGS PANEL -->
+            <div id="bookings-panel" role="tabpanel" aria-labelledby="tab-bookings">
+                <!-- EMPTY STATE (NO BOOKINGS FOUND) -->
+                <div id="bookings-empty" class="empty-state"
+                    style="padding: 40px 20px; text-align: center; background: var(--navbar-surface); border: 1px solid var(--navbar-border); border-radius: var(--navbar-radius);"
+                    hidden>
+                    <p class="muted" data-i18n="noBookings">No event bookings found.</p>
+                    <a href="events.html" class="btn btn-gold" data-i18n="browseEvents"
+                        style="margin-top: 15px; display: inline-block;">Browse Events</a>
+                </div>
+
+                <!-- BOOKINGS GRID -->
+                <div id="bookings-grid" class="events-grid" aria-live="polite">
+                    <div class="empty-state" data-i18n="loadingBookings">
+                        Loading your bookings...
+                    </div>
+                </div>
             </div>
 
-            <!-- BOOKINGS GRID -->
-            <div id="bookings-grid" class="events-grid" aria-live="polite">
-                <div class="empty-state" data-i18n="loadingBookings">
-                    Loading your bookings...
+            <!-- ATTENDANCE HISTORY PANEL -->
+            <div id="attendance-panel" role="tabpanel" aria-labelledby="tab-attendance" hidden>
+                <!-- EMPTY STATE (NO PAST ATTENDANCE RECORDS FOUND) -->
+                <div id="attendance-empty" class="empty-state"
+                    style="padding: 40px 20px; text-align: center; background: var(--navbar-surface); border: 1px solid var(--navbar-border); border-radius: var(--navbar-radius);"
+                    hidden>
+                    <p class="muted" id="attendance-empty-text" data-i18n="noPastAttendance">No past attendance records found.</p>
+                </div>
+
+                <!-- ATTENDANCE GRID -->
+                <div id="attendance-grid" class="events-grid" aria-live="polite">
+                    <div class="empty-state" data-i18n="loadingAttendance">
+                        Loading attendance records...
+                    </div>
                 </div>
             </div>
         </section>
