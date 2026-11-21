@@ -17,6 +17,9 @@ let db = null;
 let currentUser = null;
 let userBookings = [];
 let loadState = "loading";
+let attendanceRecords = [];
+let attendanceLoadState = "loading";
+let activeTab = "bookings"; // "bookings" | "attendance"
 
 const translations = {
     en: {
@@ -24,6 +27,17 @@ const translations = {
         events: "Events",
         myBookings: "My Bookings",
         myBookingsSubtitle: "View and manage your registered campus events and workshops.",
+        attendanceHistory: "Attendance History",
+        attendanceHistorySubtitle: "View your past event attendance records and check-in timestamps.",
+        tabMyBookings: "My Bookings",
+        noPastAttendance: "No past attendance records found.",
+        attendanceUnavailable: "Attendance record unavailable.",
+        loadingAttendance: "Loading attendance records...",
+        checkInTimestamp: "Check-in Timestamp",
+        attendanceStatus: "Attendance Status",
+        statusPresent: "Present",
+        statusAbsent: "Absent",
+        recordsFound: "attendance records found",
         bookingsFound: "bookings found",
         bookingStatus: "Status",
         bookingDate: "Booked On",
@@ -69,6 +83,17 @@ const translations = {
         events: "الفعاليات",
         myBookings: "حجوزاتي",
         myBookingsSubtitle: "عرض وإدارة الفعاليات وورش العمل المسجلة الخاصة بك.",
+        attendanceHistory: "سجل الحضور",
+        attendanceHistorySubtitle: "عرض سجلات حضور الفعاليات السابقة وأوقات تسجيل الحضور.",
+        tabMyBookings: "حجوزاتي",
+        noPastAttendance: "لم يتم العثور على سجلات حضور سابقة.",
+        attendanceUnavailable: "سجل الحضور غير متوفر.",
+        loadingAttendance: "جارٍ تحميل سجلات الحضور...",
+        checkInTimestamp: "وقت تسجيل الحضور",
+        attendanceStatus: "حالة الحضور",
+        statusPresent: "حاضر",
+        statusAbsent: "غائب",
+        recordsFound: "سجل حضور",
         bookingsFound: "حجز",
         bookingStatus: "الحالة",
         bookingDate: "تاريخ الحجز",
@@ -287,12 +312,235 @@ async function getWaitlistQueuePosition(eventId, bookingId, bookingDate) {
     return 1;
 }
 
+function isPastEvent(event) {
+    if (!event || !event.event_date) return false;
+
+    const now = new Date();
+    const currentDate = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, "0"),
+        String(now.getDate()).padStart(2, "0")
+    ].join("-");
+
+    if (event.event_date < currentDate) return true;
+    if (event.event_date > currentDate) return false;
+
+    const timeToCheck = event.end_time || event.start_time;
+    if (!timeToCheck) return false;
+
+    const currentTime = [
+        String(now.getHours()).padStart(2, "0"),
+        String(now.getMinutes()).padStart(2, "0"),
+        String(now.getSeconds()).padStart(2, "0")
+    ].join(":");
+
+    return timeToCheck <= currentTime;
+}
+
+function formatCheckInTimestamp(value) {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+
+    return date.toLocaleString(
+        getLanguage() === "ar" ? "ar-KW" : "en-US",
+        {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit"
+        }
+    );
+}
+
+function switchTab(tabName) {
+    activeTab = tabName === "attendance" ? "attendance" : "bookings";
+
+    const bookingsTab = $("tab-bookings");
+    const attendanceTab = $("tab-attendance");
+    const bookingsPanel = $("bookings-panel");
+    const attendancePanel = $("attendance-panel");
+    const headingTitle = $("page-heading-title");
+    const headingSubtitle = $("page-heading-subtitle");
+    const countBadge = $("bookings-count");
+
+    if (activeTab === "attendance") {
+        if (bookingsTab) {
+            bookingsTab.classList.remove("active");
+            bookingsTab.setAttribute("aria-selected", "false");
+        }
+        if (attendanceTab) {
+            attendanceTab.classList.add("active");
+            attendanceTab.setAttribute("aria-selected", "true");
+        }
+        if (bookingsPanel) bookingsPanel.hidden = true;
+        if (attendancePanel) attendancePanel.hidden = false;
+
+        if (headingTitle) headingTitle.textContent = t("attendanceHistory");
+        if (headingSubtitle) headingSubtitle.textContent = t("attendanceHistorySubtitle");
+
+        if (countBadge) {
+            if (attendanceLoadState === "loaded" && attendanceRecords.length > 0) {
+                countBadge.textContent = `${attendanceRecords.length} ${t("recordsFound")}`;
+                countBadge.hidden = false;
+            } else {
+                countBadge.hidden = true;
+            }
+        }
+        renderAttendance();
+    } else {
+        if (attendanceTab) {
+            attendanceTab.classList.remove("active");
+            attendanceTab.setAttribute("aria-selected", "false");
+        }
+        if (bookingsTab) {
+            bookingsTab.classList.add("active");
+            bookingsTab.setAttribute("aria-selected", "true");
+        }
+        if (attendancePanel) attendancePanel.hidden = true;
+        if (bookingsPanel) bookingsPanel.hidden = false;
+
+        if (headingTitle) headingTitle.textContent = t("myBookings");
+        if (headingSubtitle) headingSubtitle.textContent = t("myBookingsSubtitle");
+
+        if (countBadge) {
+            if (loadState === "loaded" && userBookings.length > 0) {
+                countBadge.textContent = `${userBookings.length} ${t("bookingsFound")}`;
+                countBadge.hidden = false;
+            } else {
+                countBadge.hidden = true;
+            }
+        }
+        renderBookings();
+    }
+}
+
+function renderAttendance() {
+    const grid = $("attendance-grid");
+    const emptyState = $("attendance-empty");
+    const authPrompt = $("auth-prompt");
+    const countBadge = $("bookings-count");
+    const tabCount = $("tab-attendance-count");
+
+    if (tabCount) {
+        tabCount.textContent = attendanceRecords.length;
+        tabCount.hidden = attendanceRecords.length === 0;
+    }
+
+    if (emptyState) emptyState.hidden = true;
+
+    if (attendanceLoadState === "unauthenticated") {
+        if (grid) grid.innerHTML = "";
+        if (authPrompt) authPrompt.hidden = false;
+        return;
+    }
+
+    if (attendanceLoadState === "loading") {
+        if (grid) {
+            grid.innerHTML = `
+                <div class="empty-state">
+                    ${escapeHTML(t("loadingAttendance"))}
+                </div>
+            `;
+        }
+        return;
+    }
+
+    if (attendanceLoadState === "error") {
+        if (grid) {
+            grid.innerHTML = `
+                <div class="empty-state record-unavailable-card">
+                    ${escapeHTML(t("attendanceUnavailable"))}
+                </div>
+            `;
+        }
+        return;
+    }
+
+    if (attendanceRecords.length === 0) {
+        if (grid) grid.innerHTML = "";
+        if (emptyState) emptyState.hidden = false;
+        return;
+    }
+
+    if (activeTab === "attendance" && countBadge) {
+        countBadge.textContent = `${attendanceRecords.length} ${t("recordsFound")}`;
+        countBadge.hidden = false;
+    }
+
+    if (grid) {
+        grid.innerHTML = attendanceRecords.map((record) => {
+            if (record.corrupted) {
+                return `
+                    <article class="events-page-card booking-card record-unavailable-card">
+                        <p>${escapeHTML(t("attendanceUnavailable"))}</p>
+                    </article>
+                `;
+            }
+
+            const title = escapeHTML(record.title || t("untitledEvent"));
+            const typeLabel = escapeHTML(translateEventType(record.event_type));
+            const isPresent = record.status === "Present";
+            const statusClass = isPresent ? "status-present" : "status-absent";
+            const statusLabel = escapeHTML(isPresent ? t("statusPresent") : t("statusAbsent"));
+            const dateDisplay = escapeHTML(formatDate(record.event_date));
+            const checkInDisplay = record.check_in_time
+                ? escapeHTML(formatCheckInTimestamp(record.check_in_time))
+                : "—";
+
+            return `
+                <article class="events-page-card booking-card attendance-card" data-booking-id="${escapeHTML(record.booking_id)}">
+                    <div class="booking-card-head">
+                        <span class="event-type">${typeLabel}</span>
+                        <span class="status-badge ${statusClass}">${statusLabel}</span>
+                    </div>
+
+                    <h3>${title}</h3>
+
+                    <div class="event-info">
+                        <div class="event-info-item">
+                            <span class="event-info-icon" aria-hidden="true">📅</span>
+                            <div class="event-info-text">
+                                <span class="event-info-label">${escapeHTML(t("dateLabel"))}</span>
+                                <span class="event-info-value">${dateDisplay}</span>
+                            </div>
+                        </div>
+
+                        <div class="event-info-item">
+                            <span class="event-info-icon" aria-hidden="true">⏱️</span>
+                            <div class="event-info-text">
+                                <span class="event-info-label">${escapeHTML(t("checkInTimestamp"))}</span>
+                                <span class="event-info-value">${checkInDisplay}</span>
+                            </div>
+                        </div>
+
+                        <div class="event-info-item">
+                            <span class="event-info-icon" aria-hidden="true">📋</span>
+                            <div class="event-info-text">
+                                <span class="event-info-label">${escapeHTML(t("attendanceStatus"))}</span>
+                                <span class="event-info-value">${statusLabel}</span>
+                            </div>
+                        </div>
+                    </div>
+                </article>
+            `;
+        }).join("");
+    }
+}
+
 function renderBookings() {
     const grid = $("bookings-grid");
     const emptyState = $("bookings-empty");
     const authPrompt = $("auth-prompt");
     const errorBox = $("bookings-error");
     const countBadge = $("bookings-count");
+    const tabCount = $("tab-bookings-count");
+
+    if (tabCount) {
+        tabCount.textContent = userBookings.length;
+        tabCount.hidden = userBookings.length === 0;
+    }
 
     if (emptyState) emptyState.hidden = true;
     if (authPrompt) authPrompt.hidden = true;
@@ -300,7 +548,7 @@ function renderBookings() {
     if (loadState === "unauthenticated") {
         if (grid) grid.innerHTML = "";
         if (authPrompt) authPrompt.hidden = false;
-        if (countBadge) countBadge.hidden = true;
+        if (activeTab === "bookings" && countBadge) countBadge.hidden = true;
         return;
     }
 
@@ -312,7 +560,7 @@ function renderBookings() {
                 </div>
             `;
         }
-        if (countBadge) countBadge.hidden = true;
+        if (activeTab === "bookings" && countBadge) countBadge.hidden = true;
         return;
     }
 
@@ -322,18 +570,18 @@ function renderBookings() {
             errorBox.textContent = t("loadError");
             errorBox.hidden = false;
         }
-        if (countBadge) countBadge.hidden = true;
+        if (activeTab === "bookings" && countBadge) countBadge.hidden = true;
         return;
     }
 
     if (userBookings.length === 0) {
         if (grid) grid.innerHTML = "";
         if (emptyState) emptyState.hidden = false;
-        if (countBadge) countBadge.hidden = true;
+        if (activeTab === "bookings" && countBadge) countBadge.hidden = true;
         return;
     }
 
-    if (countBadge) {
+    if (activeTab === "bookings" && countBadge) {
         countBadge.textContent = `${userBookings.length} ${t("bookingsFound")}`;
         countBadge.hidden = false;
     }
@@ -637,13 +885,17 @@ async function loadUserBookings(user, preserveMessages = false) {
 
     if (!user?.id) {
         loadState = "unauthenticated";
+        attendanceLoadState = "unauthenticated";
         renderBookings();
+        renderAttendance();
         return;
     }
 
     currentUser = user;
     loadState = "loading";
+    attendanceLoadState = "loading";
     renderBookings();
+    renderAttendance();
 
     try {
         // Explicitly filter on user_id to ensure only the signed-in user's bookings are returned
@@ -653,6 +905,7 @@ async function loadUserBookings(user, preserveMessages = false) {
                 booking_id,
                 booking_date,
                 status,
+                user_id,
                 events (
                     event_id,
                     title,
@@ -666,6 +919,13 @@ async function loadUserBookings(user, preserveMessages = false) {
                         venue_name,
                         location
                     )
+                ),
+                attendance_logs (
+                    log_id,
+                    booking_id,
+                    attendance_status,
+                    check_in_time,
+                    check_out_time
                 )
             `)
             .eq("user_id", user.id)
@@ -689,11 +949,67 @@ async function loadUserBookings(user, preserveMessages = false) {
 
         loadState = "loaded";
         renderBookings();
+
+        // Process Attendance History records
+        attendanceRecords = [];
+        for (const b of (data || [])) {
+            // Check for corrupted booking ID
+            if (!b || b.booking_id == null || isNaN(Number(b.booking_id)) || Number(b.booking_id) <= 0) {
+                attendanceRecords.push({ corrupted: true, errorMsg: "Attendance record unavailable." });
+                continue;
+            }
+
+            const event = b.events;
+            const attLog = Array.isArray(b.attendance_logs) ? b.attendance_logs[0] : b.attendance_logs;
+
+            // Check if event data is missing or corrupted
+            if (!event || typeof event !== "object") {
+                if (attLog) {
+                    attendanceRecords.push({ corrupted: true, booking_id: b.booking_id, errorMsg: "Attendance record unavailable." });
+                }
+                continue;
+            }
+
+            const past = isPastEvent(event);
+            const hasLog = Boolean(attLog && attLog.attendance_status);
+
+            // Completed / past event or attendance was logged
+            if (past || hasLog) {
+                // If attendance log status is invalid
+                if (attLog && attLog.attendance_status && !["Present", "Absent"].includes(attLog.attendance_status)) {
+                    attendanceRecords.push({ corrupted: true, booking_id: b.booking_id, errorMsg: "Attendance record unavailable." });
+                    continue;
+                }
+
+                const isPresent = attLog?.attendance_status === "Present";
+                const checkIn = isPresent && attLog?.check_in_time ? attLog.check_in_time : null;
+
+                attendanceRecords.push({
+                    booking_id: b.booking_id,
+                    event_id: event.event_id,
+                    title: event.title || "",
+                    event_type: event.event_type || "",
+                    event_date: event.event_date || "",
+                    start_time: event.start_time || "",
+                    end_time: event.end_time || "",
+                    venues: event.venues,
+                    status: isPresent ? "Present" : "Absent",
+                    check_in_time: checkIn,
+                    corrupted: false
+                });
+            }
+        }
+
+        attendanceLoadState = "loaded";
+        renderAttendance();
     } catch (err) {
-        console.error("Error loading user bookings:", err);
+        console.error("Error loading user bookings or attendance:", err);
         userBookings = [];
+        attendanceRecords = [];
         loadState = "error";
+        attendanceLoadState = "error";
         renderBookings();
+        renderAttendance();
     }
 }
 
@@ -703,10 +1019,26 @@ async function initialize() {
         yearEl.textContent = new Date().getFullYear();
     }
 
+    const bookingsTab = $("tab-bookings");
+    const attendanceTab = $("tab-attendance");
+    if (bookingsTab) {
+        bookingsTab.addEventListener("click", () => switchTab("bookings"));
+    }
+    if (attendanceTab) {
+        attendanceTab.addEventListener("click", () => switchTab("attendance"));
+    }
+
+    const urlParams = new URLSearchParams(window.location.search);
+    if (window.location.hash === "#attendance" || urlParams.get("tab") === "attendance") {
+        switchTab("attendance");
+    }
+
     if (!window.supabase || !SUPABASE_URL || !SUPABASE_ANON_KEY) {
         console.error("Supabase client or configuration missing.");
         loadState = "error";
+        attendanceLoadState = "error";
         renderBookings();
+        renderAttendance();
         return;
     }
 
@@ -717,7 +1049,9 @@ async function initialize() {
     if (!db) {
         console.error("Supabase client or configuration missing.");
         loadState = "error";
+        attendanceLoadState = "error";
         renderBookings();
+        renderAttendance();
         return;
     }
 
@@ -727,14 +1061,18 @@ async function initialize() {
         const { data, error } = await db.auth.getSession();
         if (error || !data?.session?.user) {
             loadState = "unauthenticated";
+            attendanceLoadState = "unauthenticated";
             renderBookings();
+            renderAttendance();
         } else {
             await loadUserBookings(data.session.user);
         }
     } catch (err) {
         console.error("Session check error:", err);
         loadState = "unauthenticated";
+        attendanceLoadState = "unauthenticated";
         renderBookings();
+        renderAttendance();
     }
 
     db.auth.onAuthStateChange(async (_event, session) => {
@@ -743,8 +1081,11 @@ async function initialize() {
         } else {
             currentUser = null;
             userBookings = [];
+            attendanceRecords = [];
             loadState = "unauthenticated";
+            attendanceLoadState = "unauthenticated";
             renderBookings();
+            renderAttendance();
         }
     });
 
@@ -755,6 +1096,15 @@ async function initialize() {
                 .on(
                     "postgres_changes",
                     { event: "*", schema: "public", table: "bookings" },
+                    () => {
+                        if (currentUser) {
+                            loadUserBookings(currentUser, true);
+                        }
+                    }
+                )
+                .on(
+                    "postgres_changes",
+                    { event: "*", schema: "public", table: "attendance_logs" },
                     () => {
                         if (currentUser) {
                             loadUserBookings(currentUser, true);
@@ -776,7 +1126,11 @@ async function initialize() {
 
     // Re-render when language or theme changes in the document
     const observer = new MutationObserver(() => {
-        renderBookings();
+        if (activeTab === "attendance") {
+            renderAttendance();
+        } else {
+            renderBookings();
+        }
     });
     observer.observe(document.documentElement, {
         attributes: true,

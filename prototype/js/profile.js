@@ -72,7 +72,18 @@ const translations = {
         roleUnavailable: "Role unavailable",
         typeUnavailable: "Attendee type unavailable",
         memberSubtitle: "AUK Campus Community Member",
-        signedOutSuccess: "Signed out successfully."
+        signedOutSuccess: "Signed out successfully.",
+        attendanceHistory: "Attendance History",
+        attendanceHistorySubtitle:
+            "View your past event attendance records and check-in timestamps.",
+        noPastAttendance: "No past attendance records found.",
+        attendanceUnavailable: "Attendance record unavailable.",
+        loadingAttendance: "Loading attendance records...",
+        checkInTimestamp: "Check-in Timestamp",
+        attendanceStatus: "Attendance Status",
+        statusPresent: "Present",
+        statusAbsent: "Absent",
+        dateLabel: "Date"
     },
     ar: {
         home: "الرئيسية",
@@ -117,7 +128,18 @@ const translations = {
         roleUnavailable: "الدور غير متوفر",
         typeUnavailable: "نوع المشارك غير متوفر",
         memberSubtitle: "عضو مجتمع الجامعة الأمريكية بالكويت",
-        signedOutSuccess: "تم تسجيل الخروج بنجاح."
+        signedOutSuccess: "تم تسجيل الخروج بنجاح.",
+        attendanceHistory: "سجل الحضور",
+        attendanceHistorySubtitle:
+            "عرض سجلات حضور الفعاليات السابقة وأوقات تسجيل الحضور.",
+        noPastAttendance: "لم يتم العثور على سجلات حضور سابقة.",
+        attendanceUnavailable: "سجل الحضور غير متوفر.",
+        loadingAttendance: "جارٍ تحميل سجلات الحضور...",
+        checkInTimestamp: "وقت تسجيل الحضور",
+        attendanceStatus: "حالة الحضور",
+        statusPresent: "حاضر",
+        statusAbsent: "غائب",
+        dateLabel: "التاريخ"
     }
 };
 
@@ -176,6 +198,7 @@ function setLanguage(language) {
     }
 
     renderProfile();
+    renderProfileAttendance();
 }
 
 /* ===================================
@@ -443,6 +466,7 @@ async function fetchUserProfile(user) {
 
     if (!db) {
         renderProfile();
+    renderProfileAttendance();
         return;
     }
 
@@ -524,6 +548,214 @@ async function fetchUserProfile(user) {
     }
 
     renderProfile();
+    renderProfileAttendance();
+    await loadProfileAttendanceHistory(user);
+}
+
+/* ===================================
+   ATTENDANCE HISTORY
+=================================== */
+
+let profileAttendanceRecords = [];
+let profileAttendanceLoadState = "loading";
+
+function isPastEvent(event) {
+    if (!event || !event.event_date) return false;
+
+    const now = new Date();
+    const currentDate = [
+        now.getFullYear(),
+        String(now.getMonth() + 1).padStart(2, "0"),
+        String(now.getDate()).padStart(2, "0")
+    ].join("-");
+
+    if (event.event_date < currentDate) return true;
+    if (event.event_date > currentDate) return false;
+
+    const timeToCheck = event.end_time || event.start_time;
+    if (!timeToCheck) return false;
+
+    const currentTime = [
+        String(now.getHours()).padStart(2, "0"),
+        String(now.getMinutes()).padStart(2, "0"),
+        String(now.getSeconds()).padStart(2, "0")
+    ].join(":");
+
+    return timeToCheck <= currentTime;
+}
+
+function formatCheckInTimestamp(value) {
+    if (!value) return "—";
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return String(value);
+
+    return date.toLocaleString(
+        lang() === "ar" ? "ar-KW" : "en-US",
+        {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit"
+        }
+    );
+}
+
+function formatDate(value) {
+    if (!value) return "—";
+    const date = new Date(`${value}T12:00:00`);
+    if (Number.isNaN(date.getTime())) return String(value);
+
+    return date.toLocaleDateString(
+        lang() === "ar" ? "ar-KW" : "en-GB",
+        {
+            day: "numeric",
+            month: "long",
+            year: "numeric"
+        }
+    );
+}
+
+function renderProfileAttendance() {
+    const listEl = $("profile-attendance-list");
+    if (!listEl) return;
+
+    if (profileAttendanceLoadState === "loading") {
+        listEl.innerHTML = `<div class="empty-state">${t("loadingAttendance")}</div>`;
+        return;
+    }
+
+    if (profileAttendanceLoadState === "error") {
+        listEl.innerHTML = `<div class="record-unavailable-box">${t("attendanceUnavailable")}</div>`;
+        return;
+    }
+
+    if (profileAttendanceRecords.length === 0) {
+        listEl.innerHTML = `<div class="empty-state"><p class="muted">${t("noPastAttendance")}</p></div>`;
+        return;
+    }
+
+    listEl.innerHTML = profileAttendanceRecords.map((record) => {
+        if (record.corrupted) {
+            return `<div class="record-unavailable-box">${t("attendanceUnavailable")}</div>`;
+        }
+
+        const isPresent = record.status === "Present";
+        const statusClass = isPresent ? "status-present" : "status-absent";
+        const statusLabel = isPresent ? t("statusPresent") : t("statusAbsent");
+        const dateDisplay = formatDate(record.event_date);
+        const checkInDisplay = record.check_in_time
+            ? formatCheckInTimestamp(record.check_in_time)
+            : "—";
+
+        return `
+            <div class="attendance-record-row" data-booking-id="${record.booking_id || ''}">
+                <div class="attendance-record-main">
+                    <h3 class="attendance-record-title">${record.title || "—"}</h3>
+                    <div class="attendance-record-meta">
+                        <span>📅 ${dateDisplay}</span>
+                        <span>⏱️ ${t("checkInTimestamp")}: ${checkInDisplay}</span>
+                    </div>
+                </div>
+                <div class="attendance-record-status">
+                    <span class="status-badge ${statusClass}">${statusLabel}</span>
+                </div>
+            </div>
+        `;
+    }).join("");
+}
+
+async function loadProfileAttendanceHistory(user) {
+    if (!user?.id || !db) {
+        profileAttendanceLoadState = "error";
+        renderProfileAttendance();
+        return;
+    }
+
+    profileAttendanceLoadState = "loading";
+    renderProfileAttendance();
+
+    try {
+        const { data, error } = await db
+            .from("bookings")
+            .select(`
+                booking_id,
+                booking_date,
+                status,
+                user_id,
+                events (
+                    event_id,
+                    title,
+                    description,
+                    event_type,
+                    event_date,
+                    start_time,
+                    end_time
+                ),
+                attendance_logs (
+                    log_id,
+                    booking_id,
+                    attendance_status,
+                    check_in_time,
+                    check_out_time
+                )
+            `)
+            .eq("user_id", user.id)
+            .order("booking_date", { ascending: false });
+
+        if (error) throw error;
+
+        profileAttendanceRecords = [];
+        for (const b of (data || [])) {
+            if (!b || b.booking_id == null || isNaN(Number(b.booking_id)) || Number(b.booking_id) <= 0) {
+                profileAttendanceRecords.push({ corrupted: true });
+                continue;
+            }
+
+            const event = b.events;
+            const attLog = Array.isArray(b.attendance_logs) ? b.attendance_logs[0] : b.attendance_logs;
+
+            if (!event || typeof event !== "object") {
+                if (attLog) {
+                    profileAttendanceRecords.push({ corrupted: true, booking_id: b.booking_id });
+                }
+                continue;
+            }
+
+            const past = isPastEvent(event);
+            const hasLog = Boolean(attLog && attLog.attendance_status);
+
+            if (past || hasLog) {
+                if (attLog && attLog.attendance_status && !["Present", "Absent"].includes(attLog.attendance_status)) {
+                    profileAttendanceRecords.push({ corrupted: true, booking_id: b.booking_id });
+                    continue;
+                }
+
+                const isPresent = attLog?.attendance_status === "Present";
+                const checkIn = isPresent && attLog?.check_in_time ? attLog.check_in_time : null;
+
+                profileAttendanceRecords.push({
+                    booking_id: b.booking_id,
+                    event_id: event.event_id,
+                    title: event.title || "",
+                    event_date: event.event_date || "",
+                    start_time: event.start_time || "",
+                    end_time: event.end_time || "",
+                    status: isPresent ? "Present" : "Absent",
+                    check_in_time: checkIn,
+                    corrupted: false
+                });
+            }
+        }
+
+        profileAttendanceLoadState = "loaded";
+        renderProfileAttendance();
+    } catch (err) {
+        console.error("Error loading profile attendance history:", err);
+        profileAttendanceRecords = [];
+        profileAttendanceLoadState = "error";
+        renderProfileAttendance();
+    }
 }
 
 /* ===================================
