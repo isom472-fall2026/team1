@@ -133,6 +133,102 @@ html[data-theme="dark"] .venue-search-clear:hover {
     font-size: 0.92rem;
 }
 
+/* Minimum Capacity Filter */
+.venue-capacity-filter-form {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.venue-capacity-wrap {
+    min-width: 190px;
+    max-width: 260px;
+}
+
+.venue-capacity-icon {
+    font-size: 1.15rem;
+    line-height: 1;
+    color: var(--navy);
+    user-select: none;
+    flex-shrink: 0;
+}
+
+html[data-theme="dark"] .venue-capacity-icon {
+    color: #e77a90;
+}
+
+#min-capacity {
+    display: block;
+    flex: 1;
+    width: 100%;
+    min-width: 0;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    outline: none;
+    box-shadow: none;
+    color: var(--text);
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+#min-capacity::placeholder {
+    color: var(--muted);
+    font-weight: 400;
+}
+
+#min-capacity::-webkit-inner-spin-button,
+#min-capacity::-webkit-outer-spin-button {
+    opacity: 0.6;
+}
+
+.capacity-filter-btn {
+    height: 52px;
+    padding: 0 20px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.capacity-clear-btn {
+    height: 52px;
+    padding: 0 16px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.92rem;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.capacity-validation-msg {
+    margin: 10px 0 0;
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: #b31b34;
+    min-height: 1.2em;
+}
+
+html[data-theme="dark"] .capacity-validation-msg {
+    color: #ff6b81;
+}
+
+.capacity-validation-msg:empty {
+    display: none;
+}
+
 /* Venues Section & Grid */
 .venues-section {
     margin: 28px 0 50px;
