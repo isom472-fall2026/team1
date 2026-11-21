@@ -933,9 +933,15 @@ async function loadUserBookings(user, preserveMessages = false) {
 
         if (error) throw error;
 
-        userBookings = (data || []).filter(
-            (b) => String(b.status || "").toLowerCase() !== "cancelled"
-        );
+        userBookings = (data || []).filter((b) => {
+            if (String(b.status || "").toLowerCase() === "cancelled") {
+                return false;
+            }
+            if (isPastEvent(b.events)) {
+                return false;
+            }
+            return true;
+        });
 
         // AC 5: Calculate live queue positions for waitlisted bookings
         await Promise.all(
