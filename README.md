@@ -12,7 +12,7 @@ It also gives event organizers a simple digital checklist to check students in a
 
 - **Proposal page:** [Published proposal](https://isom472-fall2026.github.io/team1/docs/)
 - **Running system:** [AUK Events](https://isom472-fall2026.github.io/team1/prototype/home.html)
-- **Board:** TODO: link to your Project board
+- **Board:** [Team 1 — Seas](https://github.com/orgs/isom472-fall2026/projects/2)
 
 ## Where do I go?
 
