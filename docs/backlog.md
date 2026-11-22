@@ -118,7 +118,7 @@ the story ID, the title, who built it, and what happened to it.
 |---|---|---|---|
 |#119| Attendee Event Booking and Waitlist Placement| Sayed | done|
 |#23| Automatic Waitlist Promotion| Sulieman | done|
-|#68| Attendee Views Personal Attendance History | Ismail | done|
+|#68| Attendee Views Personal Attendance History | Ayoub | done|
 |#42| Coordinator Event Dashboard Summary & Statistics| Ismail | done|
 |#78| Coordinator Searches Venues by Minimum Capacity| Ayoub | done|
 |#80| Waitlisted Attendee Leaves Waitlist Queue | Mustafa | done|
