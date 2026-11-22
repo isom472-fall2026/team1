@@ -52,12 +52,12 @@ the story ID, the title, who built it, and what happened to it.
 |#24| Attendee Views Booking Status  | Mustafa |Moved to phase 4 |
 |#68| Attendee Views Personal Attendance History | Ismail | Moved to phase 4| 
 |#62| Organizer view Event Attendance History | Ismail | Moved to phase 4|
-|#61|Door Organizer Records Attendee Check-Out| Sayed | Moved to phase 5|
+|#61|Door Organizer Records Attendee Check-Out| Mustafa | Moved to phase 5|
 |#59| Coordinator Removes Organizer Assignment| Sayed | Moved to phase 5|
 |#70|Attendee Filters Events by Event Category| Suleiman | Moved to phase 5|
 |#71| Coordinator prevent Venue Scheduling Conflicts| Ismail | Moved to phase 5|
 |#72|Organizer update Attendance Status| Mustafa | Moved to phase 5|
-|#42| Coordinator Event Dashboard Summary & Statistics| Mustafa | Moved to phase 4|
+|#42| Coordinator Event Dashboard Summary & Statistics| Ismail | Moved to phase 4|
 |#43| Coordinator Event Editing and Constraint Validation | Mustafa | Moved to phase 4|
 |#44| Attendee Can View Upcoming Events| Suleiman | Moved to phase 4|
 |#45| Guest User is Prompted to Sign In Before Reserving| Suleiman | Moved to phase 4|
@@ -98,11 +98,11 @@ the story ID, the title, who built it, and what happened to it.
 |#24| Attendee Views Booking Status  | Mustafa |Moved to phase 5|
 |#68| Attendee Views Personal Attendance History | Ismail | Moved to phase 6| 
 |#62| Organizer view Event Attendance History | Ismail | Moved to phase 5|
-|#42| Coordinator Event Dashboard Summary & Statistics| Mustafa | Moved to phase 6|
+|#42| Coordinator Event Dashboard Summary & Statistics| Ismail | Moved to phase 6|
 |#78| Coordinator Searches Venues by Minimum Capacity| Ayoub | Moved to phase 5|
 |#79| Door Organizer Searches Roster by University ID | Ayoub | Moved to phase 6|
 |#80| Waitlisted Attendee Leaves Waitlist Queue | Ayoub | Moved to phase 5|
-|#61| Door Organizer Records Attendee Check-Out| Sayed | Removed for being out of scope|
+|#61| Door Organizer Records Attendee Check-Out| Mustafa | Removed for being out of scope|
 |#59| Coordinator Removes Organizer Assignment| Sayed | Moved to phase 5|
 |#71| Coordinator prevent Venue Scheduling Conflicts| Ismail | Moved to phase 5|
 |#72| Organizer update Attendance Status| Mustafa | Moved to phase 5|
@@ -116,7 +116,28 @@ the story ID, the title, who built it, and what happened to it.
 
 | Story | Title | Who | State at the tag |
 |---|---|---|---|
-|  |  |  |  |
+|#119| Attendee Event Booking and Waitlist Placement| Sayed | done|
+|#23| Automatic Waitlist Promotion| Sulieman | done|
+|#68| Attendee Views Personal Attendance History | Ismail | done|
+|#42| Coordinator Event Dashboard Summary & Statistics| Ismail | done|
+|#78| Coordinator Searches Venues by Minimum Capacity| Ayoub | done|
+|#80| Waitlisted Attendee Leaves Waitlist Queue | Mustafa | done|
+|#59| Coordinator Removes Organizer Assignment| Mustafa | done|
+|#82| Attendee Filters Events by Date Range | Ismail| done|
+|#58| Coordinator Assigns Door Organizer to an Event | Sayed | done|
+|#13| Capacity-Capped Seat Reservation| Sulieman | done|
+|#14| Live Door Check-In Interface | Sayed | Moved to phase 6|
+|#19| Coordinator Turnout Report Export | Ayoub |Moved to phase 6|
+|#20| Coordinator Roster Filtering and Search | Sulieman |Moved to phase 6|
+|#21| Door Organizer Walk-in Warning Alert | Sulieman |closed fot being a deplicate|
+|#24| Attendee Views Booking Status  | Mustafa |Moved to phase 6|
+|#62| Organizer view Event Attendance History | Ismail | Moved to phase 6|
+|#79| Door Organizer Searches Roster by University ID | Ayoub | Moved to phase 6|
+|#71| Coordinator prevent Venue Scheduling Conflicts| Ismail | Moved to phase 6|
+|#72| Organizer update Attendance Status| Mustafa | Moved to phase 6|
+|#84| Attendee Updates Attendee Classification Type | Ayoub| Moved to phase 6|
+|#85| Coordinator Exports Pre-Event Confirmed Attendee Roster | Ayoub | Moved to phase 6|
+|#127| Organizer Assigned Events Schedule | Ismail | Moved to phase 6 |
 
 ## Phase 6 — saved 9 December
 
