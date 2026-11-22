@@ -129,7 +129,7 @@ the story ID, the title, who built it, and what happened to it.
 |#14| Live Door Check-In Interface | Sayed | Moved to phase 6|
 |#19| Coordinator Turnout Report Export | Ayoub |Moved to phase 6|
 |#20| Coordinator Roster Filtering and Search | Sulieman |Moved to phase 6|
-|#21| Door Organizer Walk-in Warning Alert | Sulieman |closed fot being a deplicate|
+|#21| Door Organizer Walk-in Warning Alert | Sulieman |closed for being a deplicate|
 |#24| Attendee Views Booking Status  | Mustafa |Moved to phase 6|
 |#62| Organizer view Event Attendance History | Ismail | Moved to phase 6|
 |#79| Door Organizer Searches Roster by University ID | Ayoub | Moved to phase 6|
