@@ -1028,3 +1028,48 @@ WITH CHECK (
           AND public.is_assigned_organizer(b.event_id)
     )
 );
+
+CREATE OR REPLACE FUNCTION public.get_event_attendee_emails(
+    p_event_id bigint
+)
+RETURNS TABLE (
+    user_id uuid,
+    email text
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+BEGIN
+    -- Verify coordinator role and event ownership
+    IF auth.uid() IS NULL
+       OR public.is_coordinator() IS NOT TRUE
+       OR NOT EXISTS (
+        SELECT 1
+        FROM public.events e
+        WHERE e.event_id = p_event_id
+          AND e.coordinator_id = auth.uid()
+    ) THEN
+        RAISE EXCEPTION 'Unauthorized access to event';
+    END IF;
+
+    -- Retrieve emails for confirmed attendees
+    RETURN QUERY
+    SELECT DISTINCT
+        b.user_id,
+        au.email::text
+    FROM public.bookings b
+    JOIN auth.users au
+        ON au.id = b.user_id
+    WHERE b.event_id = p_event_id
+      AND b.status = 'Confirmed';
+END;
+$$;
+
+REVOKE ALL ON FUNCTION
+public.get_event_attendee_emails(bigint)
+FROM PUBLIC, anon;
+
+GRANT EXECUTE ON FUNCTION
+public.get_event_attendee_emails(bigint)
+TO authenticated;

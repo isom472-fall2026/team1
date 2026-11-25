@@ -29,6 +29,9 @@
 
     <!-- Supabase public client -->
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <!-- PDF export libraries -->
+    <script defer src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
     <script src="../js/config.js"></script>
     <script defer src="js/navbar.js?v=5"></script>
     <script defer src="js/coordinator-events.js?v=3"></script>
@@ -330,6 +333,9 @@
                     Add to Google Calendar
                 </a>
 
+                <button type="button" class="btn btn-gold" id="modal-export-report-btn" data-i18n="downloadTurnoutReport" hidden>
+                    Download Turnout Report
+                </button>
                 <button type="button" class="btn btn-gold" id="modal-edit-btn" data-i18n="edit">Edit</button>
                 <button type="button" class="btn btn-outline" id="modal-close-btn" data-i18n="close">
                     Close
