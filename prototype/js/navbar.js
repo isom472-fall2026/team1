@@ -20,6 +20,8 @@
             createEvent: "Create Event",
             createVenue: "Create Venue",
             assignOrganizers: "Assign Organizers",
+            organizer: "Organizer",
+            organizerDashboard: "Organizer Dashboard",
             signUp: "Sign Up",
             signIn: "Sign In",
             signOut: "Sign Out"
@@ -36,6 +38,8 @@
             createEvent: "إنشاء فعالية",
             createVenue: "إنشاء موقع",
             assignOrganizers: "تعيين المنظمين",
+            organizer: "المنظم",
+            organizerDashboard: "لوحة تحكم المنظم",
             signUp: "إنشاء حساب",
             signIn: "تسجيل الدخول",
             signOut: "تسجيل الخروج"
@@ -187,6 +191,14 @@
         ) {
             const coordToggle = document.querySelector('#coordinator-menu .nav-dropdown-toggle');
             if (coordToggle) coordToggle.classList.add("active");
+            const subLink = document.querySelector(`.site-header a[href="${page}"]`);
+            if (subLink) subLink.classList.add("active");
+        } else if (
+            page === "organizer-dashboard.html" ||
+            page === "organizer-attendance.html"
+        ) {
+            const orgToggle = document.querySelector('#organizer-menu .nav-dropdown-toggle');
+            if (orgToggle) orgToggle.classList.add("active");
             const subLink = document.querySelector(`.site-header a[href="${page}"]`);
             if (subLink) subLink.classList.add("active");
         }
@@ -386,6 +398,7 @@
                     "create-event.html",
                     "create-venue.html",
                     "assign-organizers.html",
+                    "organizer-dashboard.html",
                     "organizer-attendance.html",
                     "profile.html",
                     "my-bookings.html"
