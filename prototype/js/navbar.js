@@ -199,7 +199,7 @@
         ) {
             const orgToggle = document.querySelector('#organizer-menu .nav-dropdown-toggle');
             if (orgToggle) orgToggle.classList.add("active");
-            const subLink = document.querySelector(`.site-header a[href="${page}"]`);
+            const subLink = document.querySelector(`.site-header a[href="${page}"]`) || $("organizer-dashboard-link");
             if (subLink) subLink.classList.add("active");
         }
     }
@@ -264,7 +264,7 @@
         });
 
         window.addEventListener("resize", () => {
-            if (window.innerWidth > 1250) {
+            if (window.innerWidth > 767) {
                 navLinks.classList.remove("open");
                 toggle.setAttribute("aria-expanded", "false");
             }
