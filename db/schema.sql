@@ -505,6 +505,7 @@ EXECUTE FUNCTION public.prevent_event_overlap();
 CREATE OR REPLACE FUNCTION public.validate_attendance()
 RETURNS TRIGGER
 LANGUAGE PLPGSQL
+SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE

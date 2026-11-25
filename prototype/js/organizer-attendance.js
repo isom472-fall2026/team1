@@ -15,7 +15,6 @@
     let currentEventId = null;
     let currentEvent = null;
     let rosterRecords = [];
-    let searchQuery = "";
     let toastTimeout = null;
 
     const translations = {
@@ -31,7 +30,6 @@
             searchPlaceholder: "Search by attendee name or university ID...",
             loadingRoster: "Loading attendee roster...",
             noAttendees: "No registered attendees found for this event.",
-            noMatchingAttendees: "No attendees match your search.",
             colName: "Full Name",
             colUniversityId: "University ID",
             colStatus: "Booking Status",
@@ -62,7 +60,6 @@
             searchPlaceholder: "البحث بالاسم أو الرقم الجامعي...",
             loadingRoster: "جارٍ تحميل قائمة الحضور...",
             noAttendees: "لا يوجد مسجلون لهذه الفعالية حتى الآن.",
-            noMatchingAttendees: "لا يوجد مشاركون يطابقون بحثك.",
             colName: "الاسم الكامل",
             colUniversityId: "الرقم الجامعي",
             colStatus: "حالة الحجز",
@@ -165,16 +162,6 @@
         if ($("stat-waitlisted-total")) $("stat-waitlisted-total").textContent = String(waitlistedCount);
     }
 
-    function getFilteredRoster() {
-        const q = searchQuery.trim().toLowerCase();
-        if (!q) return rosterRecords;
-        return rosterRecords.filter(record => {
-            const name = String(record.displayName || "").toLowerCase();
-            const uid = String(record.universityId || "").toLowerCase();
-            return name.includes(q) || uid.includes(q);
-        });
-    }
-
     function renderRoster() {
         updateTurnoutStats();
 
@@ -186,13 +173,7 @@
             return;
         }
 
-        const filtered = getFilteredRoster();
-        if (!filtered.length) {
-            container.innerHTML = `<div class="empty-state">${escapeHTML(t("noMatchingAttendees"))}</div>`;
-            return;
-        }
-
-        const rowsHTML = filtered.map(record => {
+        const rowsHTML = rosterRecords.map(record => {
             const statusRaw = String(record.status || "").toLowerCase();
             const isConfirmed = statusRaw === "confirmed";
             const isWaitlisted = statusRaw === "waitlisted";
@@ -488,29 +469,6 @@
     }
 
     function initControls() {
-        const searchInput = $("roster-search");
-        const clearBtn = $("roster-search-clear");
-
-        if (searchInput) {
-            searchInput.addEventListener("input", () => {
-                searchQuery = searchInput.value;
-                if (clearBtn) clearBtn.hidden = !searchQuery;
-                renderRoster();
-            });
-        }
-
-        if (clearBtn) {
-            clearBtn.addEventListener("click", () => {
-                searchQuery = "";
-                if (searchInput) {
-                    searchInput.value = "";
-                    searchInput.focus();
-                }
-                clearBtn.hidden = true;
-                renderRoster();
-            });
-        }
-
         const container = $("roster-container");
         if (container) {
             container.addEventListener("click", e => {
@@ -527,10 +485,6 @@
         document.querySelectorAll("main [data-i18n]").forEach(el => {
             const key = el.dataset.i18n;
             if (dict[key]) el.textContent = dict[key];
-        });
-        document.querySelectorAll("main [data-i18n-placeholder]").forEach(el => {
-            const key = el.dataset.i18nPlaceholder;
-            if (dict[key]) el.placeholder = dict[key];
         });
         if (rosterRecords.length || currentEvent) {
             renderRoster();
