@@ -96,7 +96,14 @@ const translations = {
         eventType: "Event type",
         startTime: "Start time",
         endTime: "End time",
-        eventUpdatedSuccess: "Event updated successfully."
+        eventUpdatedSuccess: "Event updated successfully.",
+        downloadTurnoutReport: "Download Turnout Report",
+        exportingReport: "Generating Report...",
+        reportDownloaded: "Turnout report downloaded.",
+        reportError: "Unable to generate turnout report.",
+        reportEmailFetchError: "Unable to retrieve attendee emails. Turnout report download cancelled.",
+        pastEventRequiredForReport: "Turnout reports can only be downloaded for past events.",
+        invalidAttendanceWarning: "Warning: {count} invalid attendance record(s) with no matching booking were excluded from the report."
     },
     ar: {
         home: "الرئيسية",
@@ -162,7 +169,14 @@ const translations = {
         eventType: "نوع الفعالية",
         startTime: "وقت البدء",
         endTime: "وقت الانتهاء",
-        eventUpdatedSuccess: "تم تحديث الفعالية بنجاح."
+        eventUpdatedSuccess: "تم تحديث الفعالية بنجاح.",
+        downloadTurnoutReport: "تحميل تقرير الحضور",
+        exportingReport: "جارٍ إنشاء التقرير...",
+        reportDownloaded: "تم تحميل تقرير الحضور.",
+        reportError: "تعذر إنشاء تقرير الحضور.",
+        reportEmailFetchError: "تعذر استرجاع البريد الإلكتروني للمشاركين. تم إلغاء تحميل التقرير.",
+        pastEventRequiredForReport: "يمكن تحميل تقارير الحضور للفعاليات السابقة فقط.",
+        invalidAttendanceWarning: "تحذير: تم استبعاد {count} سجل حضور غير صالح بدون حجز مطابق من التقرير."
     }
 };
 
@@ -345,6 +359,389 @@ async function loadBookings() {
         });
     } catch (err) {
         console.warn("Could not load bookings for coordinator events:", err);
+    }
+}
+
+/* ===================================
+   TURNOUT REPORT EXPORT (#19 - PRO PDF)
+=================================== */
+
+function formatCheckInTime(value) {
+    if (!value) return "—";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return String(value);
+    return parsed.toLocaleString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+}
+
+function openPrintFallbackPDF(summary, checkedInAttendees) {
+    const rowsHtml = checkedInAttendees.length
+        ? checkedInAttendees.map((a, idx) => `
+            <tr>
+                <td>${idx + 1}</td>
+                <td>${escapeHTML(a.name)}</td>
+                <td>${escapeHTML(a.universityId)}</td>
+                <td>${escapeHTML(a.email)}</td>
+                <td>${escapeHTML(a.checkInTime)}</td>
+            </tr>`).join("")
+        : `<tr><td colspan="5" style="text-align:center;color:#666;">No checked-in attendees recorded.</td></tr>`;
+
+    const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHTML(summary.title)} - Turnout Report</title>
+    <style>
+        body{font-family:Arial,sans-serif;color:#1f2937;margin:32px;}
+        .banner{background:#7F1023;color:#fff;padding:20px 24px;border-bottom:4px solid #D6AD60;border-radius:8px 8px 0 0;}
+        .banner h1{margin:0;font-size:20px;} .banner p{margin:4px 0 0;font-size:12px;opacity:.9;}
+        .meta{display:grid;grid-template-columns:1fr 1fr;gap:8px 20px;background:#f9fafb;border:1px solid #e5e7eb;padding:16px;margin-top:16px;border-radius:6px;font-size:13px;}
+        .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0;}
+        .kpi{border:1px solid #e5e7eb;border-top:3px solid #7F1023;border-radius:6px;padding:12px;text-align:center;}
+        .kpi strong{display:block;font-size:20px;color:#7F1023;} .kpi span{font-size:11px;color:#6b7280;text-transform:uppercase;}
+        table{width:100%;border-collapse:collapse;font-size:12px;margin-top:10px;}
+        th{background:#7F1023;color:#fff;text-align:left;padding:8px 10px;}
+        td{padding:8px 10px;border-bottom:1px solid #e5e7eb;}
+        tr:nth-child(even) td{background:#f9fafb;}
+    </style></head><body>
+    <div class="banner"><h1>AUK Events — Official Turnout &amp; Attendance Summary</h1><p>Generated on ${escapeHTML(summary.generatedAt)}</p></div>
+    <div class="meta">
+        <div><strong>Event Title:</strong> ${escapeHTML(summary.title)}</div>
+        <div><strong>Date:</strong> ${escapeHTML(summary.date)}</div>
+        <div><strong>Time:</strong> ${escapeHTML(summary.time)}</div>
+        <div><strong>Venue:</strong> ${escapeHTML(summary.venue)}</div>
+        <div><strong>Capacity:</strong> ${escapeHTML(summary.capacity)}</div>
+    </div>
+    <div class="kpis">
+        <div class="kpi"><strong>${escapeHTML(summary.registrations)}</strong><span>Registrations</span></div>
+        <div class="kpi"><strong>${escapeHTML(summary.actualAttendance)}</strong><span>Actual Attendance</span></div>
+        <div class="kpi"><strong>${escapeHTML(summary.attendancePercentage)}</strong><span>Attendance Rate</span></div>
+        <div class="kpi"><strong>${escapeHTML(summary.noShows)}</strong><span>No-Shows</span></div>
+    </div>
+    <h3>Checked-In Attendees (${checkedInAttendees.length})</h3>
+    <table><thead><tr><th>#</th><th>Name</th><th>University ID</th><th>Email</th><th>Check-in Time</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+    </body></html>`;
+
+    const iframe = document.createElement("iframe");
+    iframe.style.position = "fixed";
+    iframe.style.right = "0";
+    iframe.style.bottom = "0";
+    iframe.style.width = "0";
+    iframe.style.height = "0";
+    iframe.style.border = "0";
+    document.body.appendChild(iframe);
+    iframe.contentDocument.open();
+    iframe.contentDocument.write(html);
+    iframe.contentDocument.close();
+    iframe.contentWindow.focus();
+    iframe.contentWindow.print();
+    setTimeout(() => iframe.remove(), 1000);
+}
+
+function generateTurnoutReportPDF(summary, checkedInAttendees, safeSlug) {
+    if (!window.jspdf || typeof window.jspdf.jsPDF !== "function") {
+        openPrintFallbackPDF(summary, checkedInAttendees);
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 14;
+    const contentWidth = pageWidth - margin * 2;
+
+    const maroon = [127, 16, 35];
+    const gold = [214, 173, 96];
+    const darkText = [31, 41, 55];
+    const mutedText = [107, 114, 128];
+    const softBg = [249, 250, 251];
+    const borderCol = [229, 231, 235];
+
+    // Header Banner
+    doc.setFillColor(...maroon);
+    doc.rect(0, 0, pageWidth, 30, "F");
+    doc.setFillColor(...gold);
+    doc.rect(0, 30, pageWidth, 1.8, "F");
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("AUK Events — Turnout & Attendance Report", margin, 14);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.text(`Official Administration Summary  |  Generated: ${summary.generatedAt}`, margin, 22);
+
+    // Event Details Box
+    let y = 39;
+    doc.setFillColor(...softBg);
+    doc.setDrawColor(...borderCol);
+    doc.roundedRect(margin, y, contentWidth, 34, 2, 2, "FD");
+
+    doc.setTextColor(...maroon);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(String(summary.title).slice(0, 80), margin + 4, y + 7);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9.5);
+    doc.setTextColor(...darkText);
+    const col2X = margin + contentWidth / 2 + 4;
+
+    doc.text(`Date: ${summary.date}`, margin + 4, y + 15);
+    doc.text(`Time: ${summary.time}`, col2X, y + 15);
+    doc.text(`Venue: ${String(summary.venue).slice(0, 42)}`, margin + 4, y + 22);
+    doc.text(`Capacity: ${summary.capacity} seats`, col2X, y + 22);
+    doc.text(`Registrations (Confirmed): ${summary.registrations}`, margin + 4, y + 29);
+
+    // KPI Summary Cards
+    y += 41;
+    const kpis = [
+        { label: "Registrations", value: String(summary.registrations) },
+        { label: "Actual Attendance", value: String(summary.actualAttendance) },
+        { label: "Attendance Rate", value: String(summary.attendancePercentage) },
+        { label: "No-Shows", value: String(summary.noShows) }
+    ];
+    const gap = 4;
+    const cardW = (contentWidth - gap * 3) / 4;
+    const cardH = 20;
+
+    kpis.forEach((kpi, i) => {
+        const x = margin + i * (cardW + gap);
+        doc.setFillColor(255, 255, 255);
+        doc.setDrawColor(...borderCol);
+        doc.roundedRect(x, y, cardW, cardH, 2, 2, "FD");
+        doc.setFillColor(...maroon);
+        doc.rect(x, y, cardW, 1.5, "F");
+
+        doc.setTextColor(...maroon);
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(14);
+        doc.text(kpi.value, x + cardW / 2, y + 10.5, { align: "center" });
+
+        doc.setTextColor(...mutedText);
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(8);
+        doc.text(kpi.label.toUpperCase(), x + cardW / 2, y + 16.5, { align: "center" });
+    });
+
+    // Checked-In Attendees Section
+    y += cardH + 10;
+    doc.setTextColor(...darkText);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.text(`Checked-In Attendees (${checkedInAttendees.length})`, margin, y);
+
+    const tableBody = checkedInAttendees.length
+        ? checkedInAttendees.map((a, idx) => [
+            String(idx + 1),
+            String(a.name || "—"),
+            String(a.universityId || "—"),
+            String(a.email || "—"),
+            String(a.checkInTime || "—")
+        ])
+        : [["—", "No checked-in attendees recorded for this event.", "—", "—", "—"]];
+
+    if (typeof doc.autoTable === "function") {
+        doc.autoTable({
+            startY: y + 4,
+            margin: { left: margin, right: margin, bottom: 18 },
+            head: [["#", "Full Name", "ID", "Email", "Check-in Time"]],
+            body: tableBody,
+            theme: "grid",
+            headStyles: {
+                fillColor: maroon,
+                textColor: [255, 255, 255],
+                fontStyle: "bold",
+                fontSize: 9
+            },
+            bodyStyles: {
+                textColor: darkText,
+                fontSize: 8.5,
+                cellPadding: 3
+            },
+            alternateRowStyles: {
+                fillColor: softBg
+            },
+            columnStyles: {
+                0: { cellWidth: 10, halign: "center" },
+                1: { cellWidth: 48 },
+                2: { cellWidth: 28 },
+                3: { cellWidth: 54 },
+                4: { cellWidth: 42 }
+            },
+            didDrawPage: () => {
+                const pageNum = doc.internal.getNumberOfPages();
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(8);
+                doc.setTextColor(...mutedText);
+                doc.text(
+                    `AUK Events & Workshop Attendance System  |  Page ${pageNum}`,
+                    pageWidth / 2,
+                    pageHeight - 8,
+                    { align: "center" }
+                );
+            }
+        });
+    }
+
+    doc.save(`turnout-report-${safeSlug}.pdf`);
+}
+
+async function downloadTurnoutReport(eventId, triggerBtn) {
+    const event = allEvents.find(e => Number(e.event_id) === Number(eventId));
+    if (!event || !client) return;
+
+    if (!isPastEvent(event)) {
+        showToast(t("pastEventRequiredForReport"));
+        return;
+    }
+
+    const originalText = triggerBtn ? triggerBtn.textContent : "";
+    if (triggerBtn) {
+        triggerBtn.disabled = true;
+        triggerBtn.textContent = t("exportingReport");
+    }
+
+    try {
+        const [bookingsRes, logsRes, usersRes, attendeesRes, emailsRes] = await Promise.all([
+            client
+                .from("bookings")
+                .select("booking_id, user_id, event_id, status"),
+            client
+                .from("attendance_logs")
+                .select("log_id, booking_id, attendance_status, check_in_time"),
+            client
+                .from("users")
+                .select("user_id, name, university_id"),
+            client
+                .from("attendee")
+                .select("user_id, attendee_type"),
+            client
+                .rpc("get_event_attendee_emails", { p_event_id: Number(eventId) })
+        ]);
+
+        if (bookingsRes.error) throw bookingsRes.error;
+        if (logsRes.error) throw logsRes.error;
+        if (usersRes.error) throw usersRes.error;
+        if (emailsRes.error) {
+            console.error("Failed to fetch attendee emails via RPC:", emailsRes.error);
+            setMessage(t("reportEmailFetchError"), "error");
+            showToast(t("reportEmailFetchError"));
+            return;
+        }
+
+        const allBookings = bookingsRes.data || [];
+        const allBookingsById = new Map(allBookings.map(b => [String(b.booking_id), b]));
+        const eventBookings = allBookings.filter(b => Number(b.event_id) === Number(eventId));
+        const confirmedBookings = eventBookings.filter(b => b.status === "Confirmed");
+        const eventBookingIds = new Set(eventBookings.map(b => String(b.booking_id)));
+        const usersById = new Map((usersRes.data || []).map(u => [String(u.user_id), u]));
+        const attendeeTypeById = new Map(
+            (!attendeesRes.error && Array.isArray(attendeesRes.data) ? attendeesRes.data : [])
+                .map(a => [String(a.user_id), a.attendee_type])
+        );
+        const emailByUserId = new Map(
+            (Array.isArray(emailsRes.data) ? emailsRes.data : [])
+                .map(row => [String(row.user_id), row.email])
+        );
+
+        let invalidOrphanCount = 0;
+        const checkedInByBookingId = new Map();
+
+        (logsRes.data || []).forEach(log => {
+            const bookingKey = String(log.booking_id ?? "");
+            if (!allBookingsById.has(bookingKey)) {
+                invalidOrphanCount++;
+                return;
+            }
+            if (!eventBookingIds.has(bookingKey)) {
+                return;
+            }
+            // AC: If attendance_logs.check_in_time is NULL, do not count the booking as checked in
+            if (log.check_in_time === null || log.check_in_time === undefined || String(log.check_in_time).trim() === "") {
+                return;
+            }
+            if (!checkedInByBookingId.has(bookingKey)) {
+                checkedInByBookingId.set(bookingKey, log);
+            }
+        });
+
+        const checkedInAttendees = [];
+        checkedInByBookingId.forEach((log, bookingKey) => {
+            const booking = allBookingsById.get(bookingKey);
+            const userIdKey = booking ? String(booking.user_id) : "";
+            const user = userIdKey ? (usersById.get(userIdKey) || {}) : {};
+            const attendeeType = userIdKey ? (attendeeTypeById.get(userIdKey) || "") : "";
+            const rawUniId = user.university_id;
+            const hasUniId = rawUniId !== null && rawUniId !== undefined && String(rawUniId).trim() !== "";
+            const universityIdDisplay = hasUniId
+                ? String(rawUniId).trim()
+                : (attendeeType === "Guest" ? "Guest" : "—");
+            const rawEmail = userIdKey ? emailByUserId.get(userIdKey) : "";
+            const resolvedEmail = (rawEmail !== null && rawEmail !== undefined && String(rawEmail).trim() !== "")
+                ? String(rawEmail).trim()
+                : "—";
+            checkedInAttendees.push({
+                name: user.name || "—",
+                universityId: universityIdDisplay,
+                email: resolvedEmail,
+                checkInTime: formatCheckInTime(log.check_in_time)
+            });
+        });
+
+        const registrations = confirmedBookings.length;
+        const actualAttendance = checkedInAttendees.length;
+        const noShows = Math.max(0, registrations - actualAttendance);
+        const attendancePercentage = registrations > 0
+            ? `${((actualAttendance / registrations) * 100).toFixed(1)}%`
+            : "0.0%";
+
+        const venueInfo = getVenueDisplay(event.venue_id);
+        const summary = {
+            title: event.title || "—",
+            date: event.event_date || "—",
+            time: formatTimeRange(event),
+            venue: venueInfo.displayName || "—",
+            capacity: event.capacity ?? "—",
+            registrations,
+            actualAttendance,
+            attendancePercentage,
+            noShows,
+            generatedAt: new Date().toLocaleString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            })
+        };
+
+        const safeSlug = String(event.title || "event")
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/^-|-$/g, "") || `event-${event.event_id}`;
+
+        generateTurnoutReportPDF(summary, checkedInAttendees, safeSlug);
+
+        if (invalidOrphanCount > 0) {
+            const warningText = t("invalidAttendanceWarning").replace("{count}", String(invalidOrphanCount));
+            setMessage(warningText, "error");
+            showToast(warningText);
+        } else {
+            setMessage("");
+            showToast(t("reportDownloaded"));
+        }
+    } catch (err) {
+        console.error("Failed to generate turnout report:", err);
+        showToast(t("reportError"));
+    } finally {
+        if (triggerBtn) {
+            triggerBtn.disabled = false;
+            triggerBtn.textContent = originalText;
+        }
     }
 }
 
@@ -604,6 +1001,11 @@ function renderEvents() {
                     </span>
 
                     <div class="card-buttons">
+                        ${isPast ? `
+                            <button type="button" class="btn btn-gold export-report-btn" data-event-id="${escapeHTML(event.event_id)}">
+                                ${escapeHTML(t("downloadTurnoutReport"))}
+                            </button>
+                        ` : ""}
                         <button type="button" class="btn btn-outline view-details-btn" data-event-id="${escapeHTML(event.event_id)}">
                             ${escapeHTML(t("viewDetails"))}
                         </button>
@@ -615,6 +1017,14 @@ function renderEvents() {
             </article>
         `;
     }).join("");
+
+    grid.querySelectorAll(".export-report-btn").forEach(button => {
+        button.addEventListener("click", event => {
+            event.stopPropagation();
+            const eventId = Number(button.dataset.eventId);
+            downloadTurnoutReport(eventId, button);
+        });
+    });
 
     grid.querySelectorAll(".view-details-btn").forEach(button => {
         button.addEventListener("click", event => {
@@ -924,6 +1334,11 @@ function openEventModal(event) {
         gcalBtn.hidden = true;
     }
 
+    const exportBtn = $("modal-export-report-btn");
+    if (exportBtn) {
+        exportBtn.hidden = !isPast;
+    }
+
     $("event-modal").hidden = false;
     document.body.style.overflow = "hidden";
     $("modal-close").focus();
@@ -950,6 +1365,15 @@ function initializeDialog() {
             closeEventModal();
             if (ev) {
                 startEditingEvent(ev.event_id);
+            }
+        });
+    }
+
+    const modalExportBtn = $("modal-export-report-btn");
+    if (modalExportBtn) {
+        modalExportBtn.addEventListener("click", () => {
+            if (currentModalEvent) {
+                downloadTurnoutReport(currentModalEvent.event_id, modalExportBtn);
             }
         });
     }
