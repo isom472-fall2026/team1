@@ -1,0 +1,260 @@
+/* =========================================================
+   AUK EVENTS — ORGANIZER DOOR CHECK-IN ROSTER STYLES
+========================================================= */
+
+.roster-top-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+}
+
+.back-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.9rem;
+    font-weight: 650;
+    color: var(--navy);
+    text-decoration: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.back-link:hover {
+    background: var(--soft, #f7f4f5);
+    border-color: var(--navy);
+}
+
+html[data-theme="dark"] .back-link {
+    color: #f3c9d1;
+}
+
+.stat-number.stat-turnout {
+    color: #16794a;
+}
+
+html[data-theme="dark"] .stat-number.stat-turnout {
+    color: #6ee7b7;
+}
+
+.stat-number.stat-waitlisted {
+    color: #b45309;
+}
+
+html[data-theme="dark"] .stat-number.stat-waitlisted {
+    color: #fbbf24;
+}
+
+/* Roster table */
+.roster-section {
+    margin-top: 14px;
+}
+
+.roster-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--card);
+}
+
+.roster-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: start;
+    font-size: 0.93rem;
+}
+
+.roster-table th,
+.roster-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: middle;
+}
+
+.roster-table thead th {
+    background: var(--bg);
+    color: var(--muted);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    white-space: nowrap;
+}
+
+.roster-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.roster-table tbody tr:hover {
+    background: rgba(127, 16, 35, 0.025);
+}
+
+.attendee-name {
+    font-weight: 700;
+    color: var(--text);
+}
+
+.attendee-name.name-missing {
+    font-style: italic;
+    color: var(--muted);
+    font-weight: 500;
+}
+
+.attendee-uid {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 0.88rem;
+    color: var(--muted);
+}
+
+.booking-status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+}
+
+.booking-status-badge.status-confirmed {
+    background: rgba(16, 185, 129, 0.14);
+    color: #047857;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+html[data-theme="dark"] .booking-status-badge.status-confirmed {
+    color: #6ee7b7;
+}
+
+.booking-status-badge.status-waitlisted {
+    background: rgba(245, 158, 11, 0.14);
+    color: #b45309;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+html[data-theme="dark"] .booking-status-badge.status-waitlisted {
+    color: #fcd34d;
+}
+
+.btn-mark-present {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 9px;
+    background: var(--navy);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 0.86rem;
+    font-weight: 700;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s ease, transform 0.1s ease;
+}
+
+.btn-mark-present:hover:not(:disabled) {
+    background: #640d1b;
+}
+
+.btn-mark-present:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.btn-mark-present:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.checked-in-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 14px;
+    border-radius: 9px;
+    border: 1px solid rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.12);
+    color: #047857;
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 700;
+    cursor: not-allowed;
+    white-space: nowrap;
+}
+
+html[data-theme="dark"] .checked-in-badge {
+    color: #6ee7b7;
+    background: rgba(16, 185, 129, 0.18);
+}
+
+.waitlisted-action-wrap {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+
+.btn-waitlisted-disabled {
+    padding: 7px 14px;
+    border-radius: 9px;
+    border: 1px dashed var(--border);
+    background: rgba(148, 163, 184, 0.12);
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 0.84rem;
+    font-weight: 600;
+    cursor: not-allowed;
+    white-space: nowrap;
+}
+
+.waitlist-error-note {
+    font-size: 0.78rem;
+    color: #b42318;
+    font-weight: 600;
+}
+
+html[data-theme="dark"] .waitlist-error-note {
+    color: #fca5a5;
+}
+
+@media (max-width: 768px) {
+    .roster-table thead {
+        display: none;
+    }
+
+    .roster-table,
+    .roster-table tbody,
+    .roster-table tr,
+    .roster-table td {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .roster-table tr {
+        padding: 14px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .roster-table td {
+        padding: 6px 0;
+        border-bottom: none;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .roster-table td::before {
+        content: attr(data-label);
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: var(--muted);
+        text-transform: uppercase;
+    }
+}

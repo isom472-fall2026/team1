@@ -320,7 +320,26 @@ html[data-theme="dark"] .site-header .nav-dropdown-menu a.active {
    RESPONSIVE BREAKPOINTS
 ========================================================= */
 
-@media (max-width: 1250px) {
+@media (max-width: 1150px) {
+    .site-header .modern-navbar {
+        flex-wrap: wrap;
+        gap: 10px 16px;
+        padding: 10px 16px;
+    }
+
+    .site-header .modern-nav-links {
+        flex-wrap: wrap;
+        gap: 4px;
+    }
+
+    .site-header .modern-nav-links .nav-link,
+    .site-header .nav-dropdown-toggle {
+        padding: 8px 10px;
+        font-size: 13px;
+    }
+}
+
+@media (max-width: 767px) {
     .site-header .modern-navbar {
         flex-wrap: wrap;
         gap: 12px;
@@ -346,6 +365,7 @@ html[data-theme="dark"] .site-header .nav-dropdown-menu a.active {
         justify-content: flex-start;
         width: 100%;
         padding: 12px 14px;
+        font-size: 14px;
     }
 
     .site-header .modern-nav-actions {
@@ -363,6 +383,8 @@ html[data-theme="dark"] .site-header .nav-dropdown-menu a.active {
     .site-header .modern-nav-links .nav-dropdown-toggle {
         width: 100%;
         justify-content: flex-start;
+        padding: 10px 13px;
+        font-size: 14px;
     }
 
     .site-header .modern-nav-links .nav-dropdown-menu {
