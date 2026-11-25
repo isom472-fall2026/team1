@@ -387,10 +387,12 @@ function openPrintFallbackPDF(summary, checkedInAttendees) {
                 <td>${escapeHTML(a.name)}</td>
                 <td>${escapeHTML(a.universityId)}</td>
                 <td>${escapeHTML(a.email)}</td>
-                <td>${escapeHTML(a.checkInTime)}</td>
+               <td>${escapeHTML(a.checkInTime)}</td>
+<td style="font-weight:bold;color:${a.status === "Attended" ? "#16a34a" : "#dc2626"}">
+    ${escapeHTML(a.status)}
+</td>
             </tr>`).join("")
-        : `<tr><td colspan="5" style="text-align:center;color:#666;">No checked-in attendees recorded.</td></tr>`;
-
+        : `<tr><td colspan="6" style="text-align:center;color:#666;">No confirmed attendees recorded.</td></tr>`;
     const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>${escapeHTML(summary.title)} - Turnout Report</title>
     <style>
         body{font-family:Arial,sans-serif;color:#1f2937;margin:32px;}
@@ -419,8 +421,8 @@ function openPrintFallbackPDF(summary, checkedInAttendees) {
         <div class="kpi"><strong>${escapeHTML(summary.attendancePercentage)}</strong><span>Attendance Rate</span></div>
         <div class="kpi"><strong>${escapeHTML(summary.noShows)}</strong><span>No-Shows</span></div>
     </div>
-    <h3>Checked-In Attendees (${checkedInAttendees.length})</h3>
-    <table><thead><tr><th>#</th><th>Name</th><th>University ID</th><th>Email</th><th>Check-in Time</th></tr></thead><tbody>${rowsHtml}</tbody></table>
+    <h3>Confirmed Attendees (${checkedInAttendees.length})</h3>
+    <table><thead><tr><th>#</th><th>Name</th><th>University ID</th><th>Email</th><th>Check-in Time</th><th>Status</th></tr></thead><tbody>${rowsHtml}</tbody></table>
     </body></html>`;
 
     const iframe = document.createElement("iframe");
@@ -532,24 +534,23 @@ function generateTurnoutReportPDF(summary, checkedInAttendees, safeSlug) {
     doc.setTextColor(...darkText);
     doc.setFont("helvetica", "bold");
     doc.setFontSize(11);
-    doc.text(`Checked-In Attendees (${checkedInAttendees.length})`, margin, y);
-
+    doc.text(`Confirmed Attendees (${checkedInAttendees.length})`, margin, y);
     const tableBody = checkedInAttendees.length
         ? checkedInAttendees.map((a, idx) => [
             String(idx + 1),
             String(a.name || "—"),
             String(a.universityId || "—"),
             String(a.email || "—"),
-            String(a.checkInTime || "—")
+            String(a.checkInTime || "—"),
+            String(a.status || "—")
         ])
-        : [["—", "No checked-in attendees recorded for this event.", "—", "—", "—"]];
+        : [["—", "No confirmed attendees.", "—", "—", "—", "—"]];
 
     if (typeof doc.autoTable === "function") {
         doc.autoTable({
             startY: y + 4,
             margin: { left: margin, right: margin, bottom: 18 },
-            head: [["#", "Full Name", "ID", "Email", "Check-in Time"]],
-            body: tableBody,
+            head: [["#", "Full Name", "ID", "Email", "Check-in Time", "Status"]], body: tableBody,
             theme: "grid",
             headStyles: {
                 fillColor: maroon,
@@ -566,11 +567,23 @@ function generateTurnoutReportPDF(summary, checkedInAttendees, safeSlug) {
                 fillColor: softBg
             },
             columnStyles: {
-                0: { cellWidth: 10, halign: "center" },
-                1: { cellWidth: 48 },
-                2: { cellWidth: 28 },
-                3: { cellWidth: 54 },
-                4: { cellWidth: 42 }
+                0: { cellWidth: 12, halign: "center" },
+                1: { cellWidth: 35 },
+                2: { cellWidth: 23 },
+                3: { cellWidth: 48 },
+                4: { cellWidth: 40 },
+                5: { cellWidth: 24, halign: "center" }
+            },
+            didParseCell: function (data) {
+                if (data.section === "body" && data.column.index === 5) {
+                    if (data.cell.raw === "Attended") {
+                        data.cell.styles.textColor = [22, 163, 74];
+                        data.cell.styles.fontStyle = "bold";
+                    } else if (data.cell.raw === "Absent") {
+                        data.cell.styles.textColor = [220, 38, 38];
+                        data.cell.styles.fontStyle = "bold";
+                    }
+                }
             },
             didDrawPage: () => {
                 const pageNum = doc.internal.getNumberOfPages();
@@ -670,31 +683,47 @@ async function downloadTurnoutReport(eventId, triggerBtn) {
         });
 
         const checkedInAttendees = [];
-        checkedInByBookingId.forEach((log, bookingKey) => {
-            const booking = allBookingsById.get(bookingKey);
-            const userIdKey = booking ? String(booking.user_id) : "";
-            const user = userIdKey ? (usersById.get(userIdKey) || {}) : {};
-            const attendeeType = userIdKey ? (attendeeTypeById.get(userIdKey) || "") : "";
+
+        confirmedBookings.forEach(booking => {
+            const bookingKey = String(booking.booking_id);
+            const log = checkedInByBookingId.get(bookingKey);
+
+            const userIdKey = String(booking.user_id);
+            const user = usersById.get(userIdKey) || {};
+            const attendeeType = attendeeTypeById.get(userIdKey) || "";
+
             const rawUniId = user.university_id;
-            const hasUniId = rawUniId !== null && rawUniId !== undefined && String(rawUniId).trim() !== "";
+            const hasUniId =
+                rawUniId !== null &&
+                rawUniId !== undefined &&
+                String(rawUniId).trim() !== "";
+
             const universityIdDisplay = hasUniId
                 ? String(rawUniId).trim()
                 : (attendeeType === "Guest" ? "Guest" : "—");
-            const rawEmail = userIdKey ? emailByUserId.get(userIdKey) : "";
-            const resolvedEmail = (rawEmail !== null && rawEmail !== undefined && String(rawEmail).trim() !== "")
-                ? String(rawEmail).trim()
-                : "—";
+
+            const rawEmail = emailByUserId.get(userIdKey);
+
+            const resolvedEmail =
+                rawEmail && String(rawEmail).trim()
+                    ? String(rawEmail).trim()
+                    : "—";
+
             checkedInAttendees.push({
                 name: user.name || "—",
                 universityId: universityIdDisplay,
                 email: resolvedEmail,
-                checkInTime: formatCheckInTime(log.check_in_time)
+                checkInTime: log
+                    ? formatCheckInTime(log.check_in_time)
+                    : "—",
+                status: log ? "Attended" : "Absent"
             });
         });
 
         const registrations = confirmedBookings.length;
-        const actualAttendance = checkedInAttendees.length;
-        const noShows = Math.max(0, registrations - actualAttendance);
+        const actualAttendance = checkedInAttendees.filter(
+            a => a.status === "Attended"
+        ).length; const noShows = Math.max(0, registrations - actualAttendance);
         const attendancePercentage = registrations > 0
             ? `${((actualAttendance / registrations) * 100).toFixed(1)}%`
             : "0.0%";
