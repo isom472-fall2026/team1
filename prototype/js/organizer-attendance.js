@@ -15,6 +15,8 @@
     let currentEventId = null;
     let currentEvent = null;
     let rosterRecords = [];
+    let activeFilter = "all";
+    let selectedWaitlistBookingId = null;
     let toastTimeout = null;
 
     const translations = {
@@ -27,9 +29,13 @@
             statCheckedIn: "Checked In (Live Turnout)",
             statConfirmedTotal: "Confirmed Attendees",
             statWaitlistedTotal: "Waitlisted",
+            filterAll: "All",
+            filterConfirmed: "Confirmed",
+            filterWaitlisted: "Waitlisted",
             searchPlaceholder: "Search by attendee name or university ID...",
             loadingRoster: "Loading attendee roster...",
-            noAttendees: "No registered attendees found for this event.",
+            noAttendees: "No matching attendees.",
+            noMatchingAttendees: "No matching attendees.",
             colName: "Full Name",
             colUniversityId: "University ID",
             colStatus: "Booking Status",
@@ -37,9 +43,17 @@
             markPresent: "Mark Present",
             markingPresent: "Checking in...",
             alreadyCheckedIn: "Already Checked In",
-            nameUnavailable: "Name unavailable",
+            nameUnavailable: "Name unavailable.",
             statusConfirmed: "Confirmed",
             statusWaitlisted: "Waitlisted",
+            statusInvalid: "Invalid Status",
+            unavailableAction: "Unavailable",
+            viewQueuePosition: "Queue Position",
+            queuePositionSummary: "Queue Position #{pos} of {total}",
+            bookedAtLabel: "Booked",
+            showingCountAll: "Total attendees: {count}",
+            showingCountConfirmed: "Confirmed attendees: {count}",
+            showingCountWaitlisted: "Waitlisted attendees: {count}",
             errNotAssigned: "You are not assigned to staff this event.",
             errAlreadyCheckedIn: "Attendee has already been checked in.",
             errWaitlisted: "Cannot check in: attendee status is Waitlisted.",
@@ -57,9 +71,13 @@
             statCheckedIn: "الحاضرون المسجلون (العدد الفعلي)",
             statConfirmedTotal: "الحجوزات المؤكدة",
             statWaitlistedTotal: "قائمة الانتظار",
+            filterAll: "الكل",
+            filterConfirmed: "مؤكد",
+            filterWaitlisted: "قائمة الانتظار",
             searchPlaceholder: "البحث بالاسم أو الرقم الجامعي...",
             loadingRoster: "جارٍ تحميل قائمة الحضور...",
-            noAttendees: "لا يوجد مسجلون لهذه الفعالية حتى الآن.",
+            noAttendees: "No matching attendees.",
+            noMatchingAttendees: "No matching attendees.",
             colName: "الاسم الكامل",
             colUniversityId: "الرقم الجامعي",
             colStatus: "حالة الحجز",
@@ -67,9 +85,17 @@
             markPresent: "تسجيل الحضور",
             markingPresent: "جارٍ التسجيل...",
             alreadyCheckedIn: "تم تسجيل الحضور",
-            nameUnavailable: "Name unavailable",
+            nameUnavailable: "Name unavailable.",
             statusConfirmed: "مؤكد",
             statusWaitlisted: "قائمة الانتظار",
+            statusInvalid: "حالة غير صالحة",
+            unavailableAction: "غير متاح",
+            viewQueuePosition: "ترتيب الانتظار",
+            queuePositionSummary: "الترتيب #{pos} من {total} في قائمة الانتظار",
+            bookedAtLabel: "تاريخ الحجز",
+            showingCountAll: "إجمالي المسجلين: {count}",
+            showingCountConfirmed: "الحجوزات المؤكدة: {count}",
+            showingCountWaitlisted: "قائمة الانتظار: {count}",
             errNotAssigned: "You are not assigned to staff this event.",
             errAlreadyCheckedIn: "Attendee has already been checked in.",
             errWaitlisted: "Cannot check in: attendee status is Waitlisted.",
@@ -146,20 +172,92 @@
         }, 3500);
     }
 
+    function normalizeBookingStatus(status) {
+        const normalized = String(status || "").trim().toLowerCase();
+        if (normalized === "confirmed") return "confirmed";
+        if (normalized === "waitlisted") return "waitlisted";
+        return "invalid";
+    }
+
     function updateTurnoutStats() {
         const checkedInCount = rosterRecords.filter(
             r => r.attendanceLog && r.attendanceLog.attendance_status === "Present"
         ).length;
         const confirmedCount = rosterRecords.filter(
-            r => String(r.status || "").toLowerCase() === "confirmed"
+            r => normalizeBookingStatus(r.status) === "confirmed"
         ).length;
         const waitlistedCount = rosterRecords.filter(
-            r => String(r.status || "").toLowerCase() === "waitlisted"
+            r => normalizeBookingStatus(r.status) === "waitlisted"
         ).length;
 
         if ($("stat-checked-in")) $("stat-checked-in").textContent = String(checkedInCount);
         if ($("stat-confirmed-total")) $("stat-confirmed-total").textContent = String(confirmedCount);
         if ($("stat-waitlisted-total")) $("stat-waitlisted-total").textContent = String(waitlistedCount);
+
+        if ($("filter-count-all")) $("filter-count-all").textContent = String(rosterRecords.length);
+        if ($("filter-count-confirmed")) $("filter-count-confirmed").textContent = String(confirmedCount);
+        if ($("filter-count-waitlisted")) $("filter-count-waitlisted").textContent = String(waitlistedCount);
+
+        document.querySelectorAll(".filter-tab[data-status-filter]").forEach(tab => {
+            const isSelected = tab.dataset.statusFilter === activeFilter;
+            tab.classList.toggle("active", isSelected);
+            tab.setAttribute("aria-selected", isSelected ? "true" : "false");
+        });
+
+        const summaryEl = $("filter-count-summary");
+        if (summaryEl) {
+            const count = activeFilter === "confirmed"
+                ? confirmedCount
+                : (activeFilter === "waitlisted" ? waitlistedCount : rosterRecords.length);
+            const templateKey = activeFilter === "confirmed"
+                ? "showingCountConfirmed"
+                : (activeFilter === "waitlisted" ? "showingCountWaitlisted" : "showingCountAll");
+            summaryEl.textContent = t(templateKey).replace("{count}", String(count));
+        }
+    }
+
+    function renderWaitlistPositionPanel() {
+        const panel = $("waitlist-position-panel");
+        if (!panel) return;
+
+        if (!selectedWaitlistBookingId) {
+            panel.hidden = true;
+            return;
+        }
+
+        const record = rosterRecords.find(
+            r => Number(r.booking_id) === Number(selectedWaitlistBookingId) &&
+                normalizeBookingStatus(r.status) === "waitlisted"
+        );
+        if (!record) {
+            selectedWaitlistBookingId = null;
+            panel.hidden = true;
+            return;
+        }
+
+        const totalWaitlisted = rosterRecords.filter(
+            r => normalizeBookingStatus(r.status) === "waitlisted"
+        ).length;
+
+        const badgeEl = $("waitlist-position-badge");
+        const titleEl = $("waitlist-position-title");
+        const metaEl = $("waitlist-position-meta");
+
+        if (badgeEl) badgeEl.textContent = `#${record.waitlistPosition}`;
+        if (titleEl) {
+            const posText = t("queuePositionSummary")
+                .replace("{pos}", String(record.waitlistPosition))
+                .replace("{total}", String(totalWaitlisted));
+            titleEl.textContent = `${record.displayName} — ${posText}`;
+        }
+        if (metaEl) {
+            const bookedText = record.bookingDate
+                ? `${t("bookedAtLabel")}: ${new Date(record.bookingDate).toLocaleString()}`
+                : "";
+            metaEl.textContent = [record.universityId || "—", bookedText].filter(Boolean).join(" · ");
+        }
+
+        panel.hidden = false;
     }
 
     function renderRoster() {
@@ -168,24 +266,38 @@
         const container = $("roster-container");
         if (!container) return;
 
-        if (!rosterRecords.length) {
-            container.innerHTML = `<div class="empty-state">${escapeHTML(t("noAttendees"))}</div>`;
+        const filteredRecords = rosterRecords.filter(record => {
+            const norm = normalizeBookingStatus(record.status);
+            if (activeFilter === "confirmed") return norm === "confirmed";
+            if (activeFilter === "waitlisted") return norm === "waitlisted";
+            return true;
+        });
+
+        renderWaitlistPositionPanel();
+
+        if (!filteredRecords.length) {
+            container.innerHTML = `<div class="empty-state">${escapeHTML(t("noMatchingAttendees"))}</div>`;
             return;
         }
 
-        const rowsHTML = rosterRecords.map(record => {
-            const statusRaw = String(record.status || "").toLowerCase();
-            const isConfirmed = statusRaw === "confirmed";
-            const isWaitlisted = statusRaw === "waitlisted";
+        const rowsHTML = filteredRecords.map(record => {
+            const normStatus = normalizeBookingStatus(record.status);
+            const isConfirmed = normStatus === "confirmed";
+            const isWaitlisted = normStatus === "waitlisted";
+            const isInvalid = normStatus === "invalid";
             const hasLog = Boolean(record.attendanceLog);
 
             const statusLabel = isWaitlisted
                 ? t("statusWaitlisted")
-                : (isConfirmed ? t("statusConfirmed") : escapeHTML(record.status));
-            const statusClass = isWaitlisted ? "status-waitlisted" : "status-confirmed";
+                : (isConfirmed
+                    ? t("statusConfirmed")
+                    : (record.status ? String(record.status) : t("statusInvalid")));
+            const statusClass = isWaitlisted
+                ? "status-waitlisted"
+                : (isConfirmed ? "status-confirmed" : "status-invalid");
 
             let actionHTML = "";
-            if (hasLog) {
+            if (hasLog && isConfirmed) {
                 actionHTML = `
                     <button type="button" class="checked-in-badge" disabled aria-disabled="true"
                         data-booking-id="${escapeHTML(record.booking_id)}">
@@ -199,8 +311,17 @@
                             title="${escapeHTML(t("errWaitlisted"))}">
                             ${escapeHTML(t("markPresent"))}
                         </button>
-                        <span class="waitlist-error-note">${escapeHTML(t("errWaitlisted"))}</span>
+                        <button type="button" class="btn-select-waitlist"
+                            data-booking-id="${escapeHTML(record.booking_id)}">
+                            ${escapeHTML(t("viewQueuePosition"))}
+                        </button>
                     </div>
+                `;
+            } else if (isInvalid) {
+                actionHTML = `
+                    <button type="button" class="btn-waitlisted-disabled" disabled aria-disabled="true">
+                        ${escapeHTML(t("unavailableAction"))}
+                    </button>
                 `;
             } else {
                 actionHTML = `
@@ -212,8 +333,18 @@
                 `;
             }
 
+            const isSelectedWaitlist = isWaitlisted &&
+                Number(selectedWaitlistBookingId) === Number(record.booking_id);
+            const rowClasses = [
+                isWaitlisted ? "roster-row-waitlisted" : "",
+                isSelectedWaitlist ? "roster-row-selected" : ""
+            ].filter(Boolean).join(" ");
+
             return `
-                <tr data-booking-id="${escapeHTML(record.booking_id)}">
+                <tr class="${rowClasses}"
+                    data-booking-id="${escapeHTML(record.booking_id)}"
+                    data-status="${escapeHTML(normStatus)}"
+                    ${isWaitlisted ? `tabindex="0" aria-selected="${isSelectedWaitlist ? "true" : "false"}"` : ""}>
                     <td data-label="${escapeHTML(t("colName"))}">
                         <span class="attendee-name ${record.isNameMissing ? "name-missing" : ""}">
                             ${escapeHTML(record.displayName)}
@@ -276,10 +407,16 @@
             return;
         }
 
-        // AC 4: Prevent checking in Waitlisted attendees
-        if (String(record.status || "").toLowerCase() === "waitlisted") {
+        // Prevent checking in Waitlisted or invalid-status attendees
+        const normStatus = normalizeBookingStatus(record.status);
+        if (normStatus === "waitlisted") {
             setFeedback(t("errWaitlisted"), "error");
             showToast(t("errWaitlisted"), "error");
+            return;
+        }
+        if (normStatus !== "confirmed") {
+            setFeedback(t("errInvalidBooking"), "error");
+            showToast(t("errInvalidBooking"), "error");
             return;
         }
 
@@ -451,12 +588,27 @@
                 return {
                     booking_id: b.booking_id,
                     user_id: b.user_id,
+                    bookingDate: b.booking_date,
                     status: b.status,
                     displayName,
                     isNameMissing,
                     universityId: user.university_id || "",
-                    attendanceLog: rawLog
+                    attendanceLog: rawLog,
+                    waitlistPosition: null
                 };
+            });
+
+            // Assign exact chronological queue positions (1-based) to waitlisted bookings
+            const waitlistedSorted = rosterRecords
+                .filter(r => normalizeBookingStatus(r.status) === "waitlisted")
+                .sort((a, b) => {
+                    const timeA = a.bookingDate ? new Date(a.bookingDate).getTime() : 0;
+                    const timeB = b.bookingDate ? new Date(b.bookingDate).getTime() : 0;
+                    if (timeA !== timeB) return timeA - timeB;
+                    return Number(a.booking_id) - Number(b.booking_id);
+                });
+            waitlistedSorted.forEach((rec, idx) => {
+                rec.waitlistPosition = idx + 1;
             });
 
             renderRoster();
@@ -468,13 +620,57 @@
         }
     }
 
+    function selectWaitlistedAttendee(bookingId) {
+        selectedWaitlistBookingId = Number(bookingId);
+        renderRoster();
+    }
+
     function initControls() {
+        document.querySelectorAll(".filter-tab[data-status-filter]").forEach(tab => {
+            tab.addEventListener("click", () => {
+                activeFilter = tab.dataset.statusFilter || "all";
+                if (activeFilter === "confirmed") {
+                    selectedWaitlistBookingId = null;
+                }
+                renderRoster();
+            });
+        });
+
+        const closeBtn = $("waitlist-position-close");
+        if (closeBtn) {
+            closeBtn.addEventListener("click", () => {
+                selectedWaitlistBookingId = null;
+                renderRoster();
+            });
+        }
+
         const container = $("roster-container");
         if (container) {
             container.addEventListener("click", e => {
-                const btn = e.target.closest(".btn-mark-present");
-                if (!btn) return;
-                handleMarkPresent(btn.dataset.bookingId);
+                const markBtn = e.target.closest(".btn-mark-present");
+                if (markBtn) {
+                    handleMarkPresent(markBtn.dataset.bookingId);
+                    return;
+                }
+
+                const waitlistBtn = e.target.closest(".btn-select-waitlist");
+                if (waitlistBtn) {
+                    selectWaitlistedAttendee(waitlistBtn.dataset.bookingId);
+                    return;
+                }
+
+                const waitlistRow = e.target.closest("tr[data-status='waitlisted']");
+                if (waitlistRow) {
+                    selectWaitlistedAttendee(waitlistRow.dataset.bookingId);
+                }
+            });
+
+            container.addEventListener("keydown", e => {
+                if (e.key !== "Enter" && e.key !== " ") return;
+                const waitlistRow = e.target.closest("tr[data-status='waitlisted']");
+                if (!waitlistRow) return;
+                e.preventDefault();
+                selectWaitlistedAttendee(waitlistRow.dataset.bookingId);
             });
         }
     }

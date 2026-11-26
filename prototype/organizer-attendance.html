@@ -32,7 +32,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script src="../js/config.js"></script>
     <script defer src="js/navbar.js?v=5"></script>
-    <script defer src="js/organizer-attendance.js?v=1"></script>
+    <script defer src="js/organizer-attendance.js?v=2"></script>
 </head>
 
 <body>
@@ -196,6 +196,42 @@
                         <span class="stat-number stat-waitlisted" id="stat-waitlisted-total">0</span>
                         <span class="stat-label" data-i18n="statWaitlistedTotal">Waitlisted</span>
                     </div>
+                </div>
+
+                <!-- STATUS FILTER TABS -->
+                <div class="roster-filter-bar">
+                    <div class="roster-filter-tabs" role="tablist" aria-label="Filter attendees by booking status">
+                        <button type="button" class="filter-tab active" id="filter-tab-all" role="tab"
+                            aria-selected="true" data-status-filter="all">
+                            <span data-i18n="filterAll">All</span>
+                            <span class="filter-tab-count" id="filter-count-all">0</span>
+                        </button>
+                        <button type="button" class="filter-tab" id="filter-tab-confirmed" role="tab"
+                            aria-selected="false" data-status-filter="confirmed">
+                            <span data-i18n="filterConfirmed">Confirmed</span>
+                            <span class="filter-tab-count" id="filter-count-confirmed">0</span>
+                        </button>
+                        <button type="button" class="filter-tab" id="filter-tab-waitlisted" role="tab"
+                            aria-selected="false" data-status-filter="waitlisted">
+                            <span data-i18n="filterWaitlisted">Waitlisted</span>
+                            <span class="filter-tab-count" id="filter-count-waitlisted">0</span>
+                        </button>
+                    </div>
+                    <p class="filter-count-summary" id="filter-count-summary" aria-live="polite"></p>
+                </div>
+
+                <!-- WAITLIST QUEUE POSITION PANEL -->
+                <div id="waitlist-position-panel" class="waitlist-position-panel" role="region"
+                    aria-label="Waitlist queue position" aria-live="polite" hidden>
+                    <div class="waitlist-position-info">
+                        <span class="waitlist-position-badge" id="waitlist-position-badge">#1</span>
+                        <div>
+                            <div class="waitlist-position-title" id="waitlist-position-title"></div>
+                            <div class="waitlist-position-meta" id="waitlist-position-meta"></div>
+                        </div>
+                    </div>
+                    <button type="button" class="waitlist-position-close" id="waitlist-position-close"
+                        aria-label="Close waitlist position details">✕</button>
                 </div>
 
                 <!-- STATUS FEEDBACK -->
