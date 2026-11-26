@@ -51,6 +51,160 @@ html[data-theme="dark"] .stat-number.stat-waitlisted {
     color: #fbbf24;
 }
 
+/* Status filter tabs */
+.roster-filter-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 18px 0 14px;
+}
+
+.roster-filter-tabs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.filter-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 650;
+    cursor: pointer;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.filter-tab:hover {
+    border-color: var(--navy);
+}
+
+.filter-tab.active {
+    background: var(--navy);
+    border-color: var(--navy);
+    color: #ffffff;
+}
+
+.filter-tab-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 22px;
+    padding: 2px 7px;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 700;
+    background: rgba(15, 23, 42, 0.08);
+    color: inherit;
+}
+
+.filter-tab.active .filter-tab-count {
+    background: rgba(255, 255, 255, 0.22);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .filter-tab-count {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.filter-count-summary {
+    margin: 0;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: var(--muted);
+}
+
+/* Waitlist queue position panel */
+.waitlist-position-panel {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    border-radius: 12px;
+    border: 1px solid rgba(245, 158, 11, 0.4);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.waitlist-position-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.waitlist-position-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 42px;
+    height: 42px;
+    padding: 0 10px;
+    border-radius: 10px;
+    background: #b45309;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 800;
+}
+
+.waitlist-position-title {
+    font-weight: 700;
+    color: var(--text);
+    font-size: 0.95rem;
+}
+
+.waitlist-position-meta {
+    font-size: 0.84rem;
+    color: var(--muted);
+    margin-top: 2px;
+}
+
+.waitlist-position-close {
+    border: none;
+    background: transparent;
+    color: var(--muted);
+    font-size: 1rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+}
+
+.waitlist-position-close:hover {
+    background: rgba(0, 0, 0, 0.06);
+    color: var(--text);
+}
+
+.roster-row-waitlisted {
+    cursor: pointer;
+}
+
+.roster-table tbody tr.roster-row-selected {
+    background: rgba(245, 158, 11, 0.14);
+}
+
+.btn-select-waitlist {
+    margin-top: 4px;
+    padding: 4px 10px;
+    border-radius: 7px;
+    border: 1px solid rgba(245, 158, 11, 0.45);
+    background: rgba(245, 158, 11, 0.12);
+    color: #b45309;
+    font-family: inherit;
+    font-size: 0.78rem;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+html[data-theme="dark"] .btn-select-waitlist {
+    color: #fcd34d;
+}
+
 /* Roster table */
 .roster-section {
     margin-top: 14px;
@@ -142,6 +296,16 @@ html[data-theme="dark"] .booking-status-badge.status-confirmed {
 
 html[data-theme="dark"] .booking-status-badge.status-waitlisted {
     color: #fcd34d;
+}
+
+.booking-status-badge.status-invalid {
+    background: rgba(239, 68, 68, 0.12);
+    color: #b42318;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+html[data-theme="dark"] .booking-status-badge.status-invalid {
+    color: #fca5a5;
 }
 
 .btn-mark-present {
